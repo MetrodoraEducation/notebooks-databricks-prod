@@ -9,6 +9,7 @@
 # MAGIC SELECT 
 # MAGIC              origen.id_Dim_Origen_SIS AS id_origen_SIS
 # MAGIC             ,CONCAT(origen.codigo_Origen_SIS, receipts.receipt_id) AS cod_recibo
+# MAGIC             ,CONCAT(origen.codigo_Origen_SIS, enrolladmis.enroll_id) AS cod_matricula
 # MAGIC             ,COALESCE(concepto_cobro.id_dim_concepto_cobro, -1) AS id_dim_concepto_cobro
 # MAGIC             ,receipts.emission_date AS fecha_emision
 # MAGIC             ,receipts.expiry_date AS fecha_vencimiento
@@ -24,7 +25,7 @@
 # MAGIC             ,receipts.payment_method AS forma_pago
 # MAGIC             ,COALESCE(dim_estudiante.id_dim_estudiante, -1) AS id_dim_estudiante
 # MAGIC             ,COALESCE(producto.id_Dim_Producto, -1) AS id_dim_producto
-# MAGIC             ,COALESCE(fctmatricula.id_matricula, -1) AS id_fct_matricula
+# MAGIC             --,COALESCE(fctmatricula.id_matricula, -1) AS id_fct_matricula
 # MAGIC             ,COALESCE(programa.id_Dim_Programa, -1) AS id_dim_programa
 # MAGIC             ,COALESCE(modalidad.id_dim_modalidad, -1) AS id_dim_modalidad
 # MAGIC             ,COALESCE(institucion.id_dim_institucion, -1) AS id_dim_institucion
@@ -41,15 +42,20 @@
 # MAGIC               END fec_fin_reconocimiento
 # MAGIC         FROM silver_lakehouse.ClasslifeReceipts receipts
 # MAGIC    LEFT JOIN gold_lakehouse.origenClasslife origen ON 1 = origen.id_Dim_Origen_SIS
-# MAGIC    LEFT JOIN gold_lakehouse.dim_concepto_cobro concepto_cobro ON receipts.receipt_concept = concepto_cobro.concepto 
-# MAGIC    LEFT JOIN silver_lakehouse.classlifeenrollments enroll ON enroll.enroll_id = receipts.enroll_id
+# MAGIC    LEFT JOIN gold_lakehouse.dim_concepto_cobro concepto_cobro ON receipts.receipt_concept = concepto_cobro.concepto
+# MAGIC    FULL OUTER JOIN (SELECT COALESCE(enroll.enroll_group, admissions.enroll_group) AS enroll_group
+# MAGIC                           ,COALESCE(enroll.enroll_id,admissions.id) AS enroll_id
+# MAGIC                       FROM silver_lakehouse.classlifeenrollments enroll
+# MAGIC                       FULL OUTER JOIN  silver_lakehouse.ClasslifeAdmissions admissions  
+# MAGIC                         ON enroll.enroll_id = admissions.id) enrolladmis
+# MAGIC                   ON receipts.enroll_id = enrolladmis.enroll_id
 # MAGIC    LEFT JOIN gold_lakehouse.dim_estudiante dim_estudiante ON dim_estudiante.cod_estudiante = CONCAT(origen.codigo_Origen_SIS, receipts.student_id)    
-# MAGIC    LEFT JOIN gold_lakehouse.dim_producto producto ON NULLIF(producto.cod_Producto, '') = enroll.enroll_group
+# MAGIC    LEFT JOIN gold_lakehouse.dim_producto producto ON NULLIF(producto.cod_Producto, '') = enrolladmis.enroll_group
 # MAGIC    LEFT JOIN gold_lakehouse.fct_matricula fctmatricula ON NULLIF(fctmatricula.cod_matricula, '') = CONCAT(origen.codigo_Origen_SIS, receipts.enroll_id)
 # MAGIC    LEFT JOIN gold_lakehouse.dim_programa programa ON UPPER(producto.cod_Programa) = UPPER(programa.cod_Programa)
-# MAGIC    LEFT JOIN gold_lakehouse.dim_modalidad modalidad ON SUBSTRING(enroll.enroll_group, 18, 1) = SUBSTRING(modalidad.nombre_modalidad,1,1)
+# MAGIC    LEFT JOIN gold_lakehouse.dim_modalidad modalidad ON SUBSTRING(enrolladmis.enroll_group, 18, 1) = SUBSTRING(modalidad.nombre_modalidad,1,1)
 # MAGIC    LEFT JOIN gold_lakehouse.dim_institucion institucion ON UPPER(producto.entidad_Legal) = NULLIF(UPPER(institucion.nombre_institucion), '')
-# MAGIC    LEFT JOIN gold_lakehouse.dim_sede sede ON SUBSTRING(enroll.enroll_group, 20, 3) = NULLIF(sede.codigo_sede, '')
+# MAGIC    LEFT JOIN gold_lakehouse.dim_sede sede ON SUBSTRING(enrolladmis.enroll_group, 20, 3) = NULLIF(sede.codigo_sede, '')
 # MAGIC    LEFT JOIN gold_lakehouse.dim_tipo_formacion formacion ON producto.tipo_Producto = NULLIF(formacion.tipo_formacion_desc, '')
 # MAGIC    LEFT JOIN gold_lakehouse.dim_tipo_negocio tiponegocio ON producto.tipo_Negocio = NULLIF(tiponegocio.tipo_negocio_desc, '');
 # MAGIC
@@ -79,6 +85,7 @@
 # MAGIC
 # MAGIC WHEN MATCHED AND (
 # MAGIC     tgt.id_dim_concepto_cobro <> src.id_dim_concepto_cobro OR
+# MAGIC     tgt.cod_matricula <> src.cod_matricula OR
 # MAGIC     tgt.fecha_vencimiento <> src.fecha_vencimiento OR
 # MAGIC     tgt.fecha_pago <> src.fecha_pago OR
 # MAGIC     tgt.estado <> src.estado OR
@@ -92,6 +99,7 @@
 # MAGIC )
 # MAGIC THEN UPDATE SET
 # MAGIC     tgt.id_dim_concepto_cobro = src.id_dim_concepto_cobro,
+# MAGIC     tgt.cod_matricula = src.cod_matricula,
 # MAGIC     tgt.fecha_vencimiento = src.fecha_vencimiento,
 # MAGIC     tgt.fecha_pago = src.fecha_pago,
 # MAGIC     tgt.estado = src.estado,
@@ -106,13 +114,13 @@
 # MAGIC
 # MAGIC WHEN NOT MATCHED THEN INSERT (
 # MAGIC     id_origen_SIS, cod_recibo, id_dim_concepto_cobro, fecha_emision, fecha_vencimiento, fecha_pago, estado, importe_recibo, 
-# MAGIC     tiene_factura, forma_pago, id_dim_estudiante, id_dim_producto, id_fct_matricula, id_dim_programa, id_dim_modalidad, id_dim_institucion, 
+# MAGIC     tiene_factura, forma_pago, id_dim_estudiante, id_dim_producto, cod_matricula, id_dim_programa, id_dim_modalidad, id_dim_institucion, 
 # MAGIC     id_dim_sede, id_dim_tipo_formacion, id_dim_tipo_negocio, fec_inicio_reconocimiento, fec_fin_reconocimiento, meses_reconocimiento, 
 # MAGIC     importe_Mensual_Reconocimiento, ETLcreatedDate, ETLupdatedDate
 # MAGIC )
 # MAGIC VALUES (
 # MAGIC     src.id_origen_SIS, src.cod_recibo, src.id_dim_concepto_cobro, src.fecha_emision, src.fecha_vencimiento, src.fecha_pago, src.estado, src.importe_recibo, 
-# MAGIC     src.tiene_factura, src.forma_pago, src.id_dim_estudiante, src.id_dim_producto, src.id_fct_matricula, src.id_dim_programa, src.id_dim_modalidad, src.id_dim_institucion, 
+# MAGIC     src.tiene_factura, src.forma_pago, src.id_dim_estudiante, src.id_dim_producto, src.cod_matricula, src.id_dim_programa, src.id_dim_modalidad, src.id_dim_institucion, 
 # MAGIC     src.id_dim_sede, src.id_dim_tipo_formacion, src.id_dim_tipo_negocio, src.fec_inicio_reconocimiento, src.fec_fin_reconocimiento, src.meses_reconocimiento, 
 # MAGIC     src.importe_Mensual_Reconocimiento, CURRENT_TIMESTAMP(), CURRENT_TIMESTAMP()
 # MAGIC );

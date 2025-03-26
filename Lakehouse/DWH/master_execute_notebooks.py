@@ -149,16 +149,35 @@
 
 # COMMAND ----------
 
+# DBTITLE 1,dim_pais
 # MAGIC %run "../DWH/dim_pais"
 
 # COMMAND ----------
 
+# DBTITLE 1,dim_estudio
 # MAGIC %run "../DWH/dim_estudio"
 
 # COMMAND ----------
 
+# DBTITLE 1,dim_fecha
 # MAGIC %run "../DWH/dim_fecha" 
 
 # COMMAND ----------
 
+# DBTITLE 1,dim_hora
 # MAGIC %run "../DWH/dim_hora" 
+
+# COMMAND ----------
+
+# DBTITLE 1,dim_concepto_cobro
+# MAGIC %run "../DWH/dim_concepto_cobro"
+
+# COMMAND ----------
+
+# DBTITLE 1,fct_recibos
+# MAGIC %run "../DWH/fct_recibos"
+
+# COMMAND ----------
+
+# DBTITLE 1,fct_budget
+# MAGIC %run "../DWH/fct_budget"

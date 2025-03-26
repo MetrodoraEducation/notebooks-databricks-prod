@@ -8,13 +8,6 @@ endpoint_process_name = "students"
 table_name = "JsaClassLifeStudents"
 
 classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife/{endpoint_process_name}/{current_date}/{table_name}.json")
-classlifetitulaciones_df
-
-# 📌 Inspeccionar el esquema inicial
-print("📌 Esquema inicial antes de limpieza:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -23,14 +16,6 @@ display(classlifetitulaciones_df)
 # MAGIC - Limpiar el esquema completo del DataFrame antes de trabajar con las columnas anidadas.
 # MAGIC - Desanidar las estructuras una por una asegurando que no existan conflictos.
 # MAGIC - Revisar si existen estructuras complejas adicionales que deban manejarse de forma especial.
-
-# COMMAND ----------
-
-# 📌 Inspeccionar Esquema Inicial
-print("📌 Esquema inicial antes de limpieza:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -55,19 +40,11 @@ def clean_column_names(df):
     
     return df
 
-display(classlifetitulaciones_df)
-
 # COMMAND ----------
 
 # 📌 Extraer el contenido de `data` si existe
 if "data" in classlifetitulaciones_df.columns:
     classlifetitulaciones_df = classlifetitulaciones_df.selectExpr("data.*")
-
-# 📌 Inspeccionar después de extraer `data`
-print("📌 Esquema después de seleccionar `data.*`:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -78,16 +55,6 @@ if "items" in classlifetitulaciones_df.columns:
     # Si `items` es un array de estructuras, lo explotamos
     if isinstance(classlifetitulaciones_df.schema["items"].dataType, ArrayType):
         classlifetitulaciones_df = classlifetitulaciones_df.withColumn("items", explode(col("items")))
-    
-display(classlifetitulaciones_df)
-
-# COMMAND ----------
-
-# 📌 Verificar esquema después de explotar `items`
-print("📌 Esquema después de explotar `items`:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -105,27 +72,10 @@ if "items" in classlifetitulaciones_df.columns:
     # 📌 Extraer columnas de `items` y renombrarlas
     classlifetitulaciones_df = classlifetitulaciones_df.select(*[col(c).alias(c.replace("items.", "")) for c in clean_subcolumns])
 
-    display(classlifetitulaciones_df)
-
 # COMMAND ----------
-
-# 📌 Inspeccionar después de desanidar `items`
-print("📌 Esquema después de desanidar `items`:")
-classlifetitulaciones_df.printSchema()
-
 
 # 📌 Aplicar limpieza de nombres de columnas
 classlifetitulaciones_df = clean_column_names(classlifetitulaciones_df)
-
-display(classlifetitulaciones_df)
-
-# COMMAND ----------
-
-# 📌 Inspeccionar después de limpiar nombres de columnas
-print("📌 Esquema después de limpiar nombres de columnas:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 

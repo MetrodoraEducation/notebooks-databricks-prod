@@ -219,7 +219,7 @@ display(classlifetitulaciones_df)
 from pyspark.sql.functions import col, to_date, to_timestamp, lit, current_timestamp
 from pyspark.sql.types import StringType, IntegerType
 
-# 📌 Lista de columnas con sus respectivos tipos
+# 📌 Lista de columnas con transformaciones
 columnas_con_tipo = [
     ("processdate", current_timestamp()), 
     ("sourcesystem", lit("ClasslifeEnrollments")), 
@@ -263,7 +263,6 @@ columnas_con_tipo = [
     ("area_id", col("area_id").cast(StringType())), 
     ("lead_area", col("lead_area").cast(StringType())), 
     ("acceso_euneiz", col("acceso_euneiz").cast(StringType())), 
-    ("querystring", col("querystring").cast(StringType())), 
     ("lead_email", col("lead_email").cast(StringType())), 
     ("enroll_alias", col("enroll_alias").cast(StringType())), 
     ("year", col("year").cast(StringType())), 
@@ -282,22 +281,22 @@ columnas_con_tipo = [
     ("enroll_status", col("enroll_status").cast(StringType())), 
     ("excludesecurityarraymetas", col("excludesecurityarraymetas").cast(StringType())), 
     ("updated_at_2", to_timestamp(col("updated_at_2"))), 
-    ("term_title", col("term_title").cast(StringType())), 
-    ("resumen", col("resumen").cast(StringType())), 
+    ("term_title", col("term_title").cast(StringType())),
     ("school_name", col("school_name").cast(StringType())),
     ("zoho_deal_id", col("zoho_deal_id").cast(StringType())),
+    ("first_activate_enroll", col("first_activate_enroll").cast(StringType())),
     ("fee_title_docencia", col("fee_title_docencia").cast(StringType())),
     ("fee_title_matricula", col("fee_title_matricula").cast(StringType()))
 ]
 
-# 📌 Aplicar transformaciones y seleccionar solo las columnas definidas
+# 📌 Aplicar transformaciones
 classlifetitulaciones_df = classlifetitulaciones_df.select(
     [expr.alias(nombre) for nombre, expr in columnas_con_tipo]
 )
 
-# 📌 Mostrar los primeros registros
-display(classlifetitulaciones_df)
-
+# 📌 Mostrar solo las columnas que acabas de definir
+columnas_a_mostrar = [nombre for nombre, _ in columnas_con_tipo]
+display(classlifetitulaciones_df.select(columnas_a_mostrar))
 
 # COMMAND ----------
 

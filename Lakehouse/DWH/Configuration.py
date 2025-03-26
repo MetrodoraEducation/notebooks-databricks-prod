@@ -16,7 +16,7 @@ def get_pg_connection():
             dbname="lakehouse",
             user="sqladminuser",
             password=db_password,
-            host="psql-metrodoralakehouse-dev.postgres.database.azure.com",
+            host="psql-metrodoralakehouse-pro.postgres.database.azure.com",
             port="5432",
             keepalives=1,        # Mantener conexión viva
             keepalives_idle=30,  # Enviar ping cada 30 segundos

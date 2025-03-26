@@ -22,7 +22,7 @@ def upsert_fct_recibos(partition):
         INSERT INTO fct_recibos (
             id_recibo, id_origen_SIS, cod_recibo, id_dim_concepto_cobro, fecha_emision, fecha_vencimiento,
             fecha_pago, estado, importe_recibo, tiene_factura, forma_pago, id_dim_estudiante, id_dim_producto,
-            id_fct_matricula, id_dim_programa, id_dim_modalidad, id_dim_institucion, id_dim_sede,
+            cod_matricula, id_dim_programa, id_dim_modalidad, id_dim_institucion, id_dim_sede,
             id_dim_tipo_formacion, id_dim_tipo_negocio, fec_inicio_reconocimiento, fec_fin_reconocimiento,
             meses_reconocimiento, importe_Mensual_Reconocimiento, ETLcreatedDate, ETLupdatedDate
         )
@@ -40,7 +40,7 @@ def upsert_fct_recibos(partition):
             forma_pago = EXCLUDED.forma_pago,
             id_dim_estudiante = EXCLUDED.id_dim_estudiante,
             id_dim_producto = EXCLUDED.id_dim_producto,
-            id_fct_matricula = EXCLUDED.id_fct_matricula,
+            cod_matricula = EXCLUDED.cod_matricula,
             id_dim_programa = EXCLUDED.id_dim_programa,
             id_dim_modalidad = EXCLUDED.id_dim_modalidad,
             id_dim_institucion = EXCLUDED.id_dim_institucion,
@@ -59,7 +59,7 @@ def upsert_fct_recibos(partition):
             row["id_recibo"], row["id_origen_SIS"], row["cod_recibo"], row["id_dim_concepto_cobro"],
             row["fecha_emision"], row["fecha_vencimiento"], row["fecha_pago"], row["estado"],
             row["importe_recibo"], row["tiene_factura"], row["forma_pago"], row["id_dim_estudiante"],
-            row["id_dim_producto"], row["id_fct_matricula"], row["id_dim_programa"], row["id_dim_modalidad"],
+            row["id_dim_producto"], row["cod_matricula"], row["id_dim_programa"], row["id_dim_modalidad"],
             row["id_dim_institucion"], row["id_dim_sede"], row["id_dim_tipo_formacion"], row["id_dim_tipo_negocio"],
             row["fec_inicio_reconocimiento"], row["fec_fin_reconocimiento"], row["meses_reconocimiento"],
             row["importe_Mensual_Reconocimiento"], row["ETLcreatedDate"], row["ETLupdatedDate"]
@@ -83,7 +83,7 @@ def upsert_fct_recibos(partition):
 source_table = (spark.table("gold_lakehouse.fct_recibos")
                 .select("id_recibo", "id_origen_SIS", "cod_recibo", "id_dim_concepto_cobro", "fecha_emision",
                         "fecha_vencimiento", "fecha_pago", "estado", "importe_recibo", "tiene_factura", "forma_pago",
-                        "id_dim_estudiante", "id_dim_producto", "id_fct_matricula", "id_dim_programa", "id_dim_modalidad",
+                        "id_dim_estudiante", "id_dim_producto", "cod_matricula", "id_dim_programa", "id_dim_modalidad",
                         "id_dim_institucion", "id_dim_sede", "id_dim_tipo_formacion", "id_dim_tipo_negocio",
                         "fec_inicio_reconocimiento", "fec_fin_reconocimiento", "meses_reconocimiento",
                         "importe_Mensual_Reconocimiento", "ETLcreatedDate", "ETLupdatedDate"))

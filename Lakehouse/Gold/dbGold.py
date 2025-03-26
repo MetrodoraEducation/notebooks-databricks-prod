@@ -16,7 +16,7 @@
 # COMMAND ----------
 
 # DBTITLE 1,Declare variable storage_account_name
-storage_account_name = "stmetrodoralakehousedev"
+storage_account_name = "stmetrodoralakehousepro"
 
 # COMMAND ----------
 
@@ -1141,6 +1141,7 @@ CREATE TABLE IF NOT EXISTS gold_lakehouse.fct_recibos
     id_recibo BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 0 INCREMENT BY 1),
     id_origen_SIS INT,
     cod_recibo STRING,
+    cod_matricula STRING,
     id_dim_concepto_cobro BIGINT,
     fecha_emision TIMESTAMP,
     fecha_vencimiento TIMESTAMP,
@@ -1151,7 +1152,6 @@ CREATE TABLE IF NOT EXISTS gold_lakehouse.fct_recibos
     forma_pago STRING,
     id_dim_estudiante BIGINT,
     id_dim_producto BIGINT,
-    id_fct_matricula BIGINT,
     id_dim_programa BIGINT,
     id_dim_modalidad BIGINT,
     id_dim_institucion BIGINT,

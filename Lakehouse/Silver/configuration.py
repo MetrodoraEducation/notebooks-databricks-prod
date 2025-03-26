@@ -1,7 +1,7 @@
 # Databricks notebook source
-bronze_folder_path = "/mnt/stmetrodoralakehousedev/bronze"
-silver_folder_path = "/mnt/stmetrodoralakehousedev/silver"
-gold_folder_path = "/mnt/stmetrodoralakehousedev/gold"
+bronze_folder_path = "/mnt/stmetrodoralakehousepro/bronze"
+silver_folder_path = "/mnt/stmetrodoralakehousepro/silver"
+gold_folder_path = "/mnt/stmetrodoralakehousepro/gold"
 
 # COMMAND ----------
 

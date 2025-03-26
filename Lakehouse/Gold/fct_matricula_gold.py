@@ -19,7 +19,7 @@
 # MAGIC             ,COALESCE(tiponegocio.id_dim_tipo_negocio, -1) AS id_dim_tipo_negocio
 # MAGIC             ,COALESCE(pais.id, -1) AS id_dim_pais
 # MAGIC             ,enroll.year AS ano_curso
-# MAGIC             ,TRY_CAST(enroll.enroll_in AS DATE) AS fec_matricula
+# MAGIC             ,TRY_CAST(enroll.first_activate_enroll AS DATE) AS fec_matricula
 # MAGIC             ,COALESCE(matricula.id_dim_estado_matricula, -1) AS id_dim_estado_matricula
 # MAGIC             ,TRY_CAST('1900-01-01' AS DATE) AS fec_anulacion
 # MAGIC             ,TRY_CAST('1900-01-01' AS DATE) AS fec_finalizacion

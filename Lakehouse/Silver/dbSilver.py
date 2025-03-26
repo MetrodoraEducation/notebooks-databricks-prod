@@ -14,7 +14,7 @@
 
 # COMMAND ----------
 
-storage_account_name = "stmetrodoralakehousedev"
+storage_account_name = "stmetrodoralakehousepro"
 
 # COMMAND ----------
 
@@ -711,7 +711,6 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.ClasslifeEnrollments
     lead_source STRING,
     paymentmethodwannme STRING,
     degree_id STRING,
-    resumen STRING,
     newsletter STRING,
     school_id_2 STRING,
     codigo_promocion STRING,
@@ -730,7 +729,6 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.ClasslifeEnrollments
     area_id STRING,
     lead_area STRING,
     acceso_euneiz STRING,
-    querystring STRING,
     lead_email STRING,
     enroll_alias STRING,
     year STRING,
@@ -752,6 +750,7 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.ClasslifeEnrollments
     term_title STRING,
     school_name STRING,
     zoho_deal_id STRING,
+    first_activate_enroll STRING,
     fee_title_docencia STRING,
     fee_title_matricula STRING,
     processdate TIMESTAMP,
@@ -769,26 +768,27 @@ spark.sql(sql_query)
 sql_query = f"""
 CREATE TABLE IF NOT EXISTS silver_lakehouse.ClasslifeReceipts
 (
-    student_id STRING,
-    enroll_id STRING,
     receipt_id STRING,
-    receipt_tax_per DOUBLE,
-    payment_method STRING,
-    receipt_tax DOUBLE,
-    remittance_id STRING,
-    receipt_total DOUBLE,
-    invoice_id STRING,
-    receipt_concept STRING,
-    receipt_status_id STRING,
-    student_full_name STRING,
-    receipt_price DOUBLE,
-    receipt_status STRING,
-    payment_method_id STRING,
-    receipt_advanced DOUBLE,
-    emission_date TIMESTAMP,
-    expiry_date TIMESTAMP,
-    collection_date TIMESTAMP,
-    classlifetitulaciones_view
+    receipt_tax_per DOUBLE,
+    payment_method STRING,
+    receipt_tax DOUBLE,
+    student_id STRING,
+    enroll_id STRING,
+    remittance_id STRING,
+    receipt_total DOUBLE,
+    invoice_id STRING,
+    receipt_concept STRING,
+    receipt_status_id STRING,
+    student_full_name STRING,
+    receipt_price DOUBLE,
+    receipt_status STRING,
+    payment_method_id STRING,
+    receipt_advanced DOUBLE,
+    emission_date TIMESTAMP,
+    expiry_date TIMESTAMP,
+    collection_date TIMESTAMP,
+    processdate TIMESTAMP,
+    sourcesystem STRING
 )
 USING DELTA
 LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/ClasslifeReceipts';
@@ -796,6 +796,35 @@ LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/C
 
 spark.sql(sql_query)
 
+# COMMAND ----------
+
+# DBTITLE 1,ClasslifeAdmissions
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS silver_lakehouse.ClasslifeAdmissions
+(
+    student_phone STRING,
+    comercial STRING,
+    student_email STRING,
+    ini_date STRING,
+    zoho_deal_id STRING,
+    enroll_group STRING,
+    ciclo_title STRING,
+    id STRING,
+    student_dni STRING,
+    registration_date STRING,
+    year_id STRING,
+    student_full_name STRING,
+    area_title STRING,
+    school_name STRING,
+    end_date STRING,
+    processdate TIMESTAMP,
+    sourcesystem STRING
+)
+USING DELTA
+LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/ClasslifeAdmissions';
+"""
+
+spark.sql(sql_query)
 
 # COMMAND ----------
 

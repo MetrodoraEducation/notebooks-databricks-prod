@@ -28,7 +28,7 @@ def insert_new_records(partition, db_password):
             dbname="lakehouse",
             user="sqladminuser",
             password=db_password,
-            host="psql-metrodoralakehouse-dev.postgres.database.azure.com",
+            host="psql-metrodoralakehouse-pro.postgres.database.azure.com",
             port="5432"
         )
         cursor = conn.cursor()
