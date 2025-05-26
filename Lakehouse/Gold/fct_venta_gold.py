@@ -2,8 +2,6 @@
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW silver_venta_view
 # MAGIC     AS SELECT * FROM silver_lakehouse.sales where fec_procesamiento > (select IFNULL(max(fec_procesamiento),'1900-01-01') from gold_lakehouse.fct_venta);
-# MAGIC
-# MAGIC select * from silver_venta_view;
 
 # COMMAND ----------
 
@@ -14,8 +12,6 @@
 # MAGIC FROM silver_venta_view a
 # MAGIC left JOIN  gold_lakehouse.mapeo_modalidad b
 # MAGIC on  a.modalidad = b.modalidad;
-# MAGIC
-# MAGIC select * from modalidad_mapeo_view;
 
 # COMMAND ----------
 
@@ -132,8 +128,6 @@
 # MAGIC     --LEFT JOIN gold_lakehouse.dim_tipo_formacion m ON a.id_dim_tipo_formacion = m.id_dim_tipo_formacion --mapeo
 # MAGIC     --LEFT JOIN gold_lakehouse.dim_tipo_negocio n ON a.id_dim_tipo_negocio = n.id_dim_tipo_negocio --mapeo
 # MAGIC     LEFT JOIN gold_lakehouse.dim_motivo_cierre o ON a.motivo_cierre = o.motivo_cierre;
-# MAGIC
-# MAGIC     select * from fct_venta_view;
 # MAGIC
 
 # COMMAND ----------

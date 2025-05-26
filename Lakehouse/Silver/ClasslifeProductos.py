@@ -59,6 +59,7 @@ display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
+# DBTITLE 1,Explota data
 # 📌 Extraer el contenido de `data` si existe
 if "data" in classlifetitulaciones_df.columns:
     classlifetitulaciones_df = classlifetitulaciones_df.selectExpr("data.*")
@@ -71,6 +72,7 @@ display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
+# DBTITLE 1,Explota items
 # 📌 Explotar `items` si es un array
 if "items" in classlifetitulaciones_df.columns:
     print("📌 'items' es una estructura o array. Procedemos a desanidar.")
@@ -83,14 +85,7 @@ display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
-# 📌 Verificar esquema después de explotar `items`
-print("📌 Esquema después de explotar `items`:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
-
-# COMMAND ----------
-
+# DBTITLE 1,Extrae subcolumnas de items
 # 📌 Extraer subcolumnas de `items`
 if "items" in classlifetitulaciones_df.columns:
     subcolumns = classlifetitulaciones_df.select("items.*").columns  # Obtener nombres originales
@@ -108,6 +103,7 @@ if "items" in classlifetitulaciones_df.columns:
 
 # COMMAND ----------
 
+# DBTITLE 1,Clean columns
 # 📌 Inspeccionar después de desanidar `items`
 print("📌 Esquema después de desanidar `items`:")
 classlifetitulaciones_df.printSchema()
@@ -120,14 +116,7 @@ display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
-# 📌 Inspeccionar después de limpiar nombres de columnas
-print("📌 Esquema después de limpiar nombres de columnas:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
-
-# COMMAND ----------
-
+# DBTITLE 1,Desanida counters and metas
 # 📌 Desanidar estructuras internas (`counters`, `metas`) si existen
 if "counters" in classlifetitulaciones_df.columns:
     counters_cols = classlifetitulaciones_df.select("counters.*").columns
@@ -136,14 +125,6 @@ if "counters" in classlifetitulaciones_df.columns:
 if "metas" in classlifetitulaciones_df.columns:
     metas_cols = classlifetitulaciones_df.select("metas.*").columns
     classlifetitulaciones_df = classlifetitulaciones_df.select("*", *[col(f"metas.{c}").alias(f"metas_{c}") for c in metas_cols]).drop("metas")
-
-display(classlifetitulaciones_df)
-
-# COMMAND ----------
-
-# 📌 Inspeccionar después de expandir estructuras internas
-print("📌 Esquema final después de desanidar estructuras:")
-classlifetitulaciones_df.printSchema()
 
 display(classlifetitulaciones_df)
 
@@ -228,89 +209,43 @@ display(classlifetitulaciones_df)
 # COMMAND ----------
 
 from pyspark.sql.functions import col, to_date, to_timestamp, lit, current_timestamp
-from pyspark.sql.types import StringType, IntegerType, DoubleType
+from pyspark.sql.types import IntegerType, DoubleType
 
-# 📌 Aplicar transformaciones a las columnas con nombres corregidos
+# Agrega campos de auditoría
 classlifetitulaciones_df = classlifetitulaciones_df \
     .withColumn("processdate", current_timestamp()) \
-    .withColumn("sourcesystem", lit("classlifetitulaciones")) \
-    .withColumn("fecha_inicio_docencia", to_date(col("fecha_inicio_docencia"), "dd/MM/yyyy")) \
-    .withColumn("fecha_inicio", to_date(col("fecha_inicio"), "dd/MM/yyyy")) \
-    .withColumn("fecha_fin_pago", to_date(col("fecha_fin_pago"), "dd/MM/yyyy")) \
-    .withColumn("fecha_inicio_cuotas", to_date(col("fecha_inicio_cuotas"), "dd/MM/yyyy")) \
-    .withColumn("fecha_fin", to_date(col("fecha_fin"), "dd/MM/yyyy")) \
-    .withColumn("fecha_fin_cuotas", to_date(col("fecha_fin_cuotas"), "dd/MM/yyyy")) \
-    .withColumn("fecha_fin_reconocimiento_ingresos", to_date(col("fecha_fin_reconocimiento_ingresos"), "dd/MM/yyyy")) \
-    .withColumn("fecha_inicio_reconocimiento_ingresos", to_date(col("fecha_inicio_reconocimiento_ingresos"), "dd/MM/yyyy")) \
-    .withColumn("fecha_fin_docencia", to_date(col("fecha_fin_docencia"), "dd/MM/yyyy")) \
-    .withColumn("fecha_creacion", to_timestamp(col("fecha_creacion"), "yyyy-MM-dd HH:mm:ss")) \
-    .withColumn("ultima_actualizacion", to_timestamp(col("ultima_actualizacion"), "yyyy-MM-dd HH:mm:ss")) \
-    .withColumn("enroll_end", to_timestamp(col("enroll_end"), "yyyy-MM-dd HH:mm:ss")) \
-    .withColumn("enroll_ini", to_timestamp(col("enroll_ini"), "yyyy-MM-dd HH:mm:ss")) \
-    .withColumn("horas_acreditadas", col("horas_acreditadas").cast(IntegerType())) \
-    .withColumn("horas_presenciales", col("horas_presenciales").cast(IntegerType())) \
-    .withColumn("horas_presenciales_2", col("horas_presenciales_2").cast(IntegerType())) \
-    .withColumn("enroll_group_id", col("enroll_group_id").cast(IntegerType())) \
-    .withColumn("enroll_group_id_2", col("enroll_group_id_2").cast(IntegerType())) \
-    .withColumnRenamed("counters_pre_enrolled", "pre_enrolled") \
-    .withColumn("pre_enrolled", col("pre_enrolled").cast(IntegerType())) \
-    .withColumn("tarifa_ampliacion", col("tarifa_ampliacion").cast(DoubleType())) \
-    .withColumn("tarifa_euneiz", col("tarifa_euneiz").cast(DoubleType())) \
-    .withColumn("tarifa_matricula", col("tarifa_matricula").cast(DoubleType())) \
-    .withColumn("tarifa_docencia", col("tarifa_docencia").cast(DoubleType())) \
-    .withColumn("total_tarifas", col("total_tarifas").cast(DoubleType())) \
-    .withColumn("creditos", col("creditos").cast(DoubleType())) \
-    .withColumn("cuotas_docencia", col("cuotas_docencia").cast(IntegerType())) \
-    .withColumn("receipts_count", col("receipts_count").cast(IntegerType())) \
-    .withColumn("roaster_ind", col("roaster_ind").cast(IntegerType())) \
-    .withColumn("admisionsino", col("admisionsino").cast(StringType())) \
-    .withColumn("certificado_euneiz_incluido", col("certificado_euneiz_incluido").cast(StringType())) \
-    .withColumn("certificado_euneiz_incluido_2", col("certificado_euneiz_incluido_2").cast(StringType())) \
-    .withColumn("admisionsino_2", col("admisionsino_2").cast(StringType())) \
-    .withColumn("tiponegocio", col("tiponegocio").cast(StringType())) \
-    .withColumn("tiponegocio_2", col("tiponegocio_2").cast(StringType())) \
-    .withColumn("codigo_antiguo", col("codigo_antiguo").cast(StringType())) \
-    .withColumn("codigo_especialidad", col("codigo_especialidad").cast(StringType())) \
-    .withColumn("codigo_programa", col("codigo_programa").cast(StringType())) \
-    .withColumn("codigo_vertical", col("codigo_vertical").cast(StringType())) \
-    .withColumn("codigo_vertical_2", col("codigo_vertical_2").cast(StringType())) \
-    .withColumn("codigo_sede", col("codigo_sede").cast(StringType())) \
-    .withColumn("codigo_entidad_legal", col("codigo_entidad_legal").cast(StringType())) \
-    .withColumn("modalidad_code", col("modalidad_code").cast(StringType())) \
-    .withColumn("area_id", col("area_id").cast(IntegerType())) \
-    .withColumn("area_title", col("area_title").cast(StringType())) \
-    .withColumn("degree_id", col("degree_id").cast(IntegerType())) \
-    .withColumn("degree_title", col("degree_title").cast(StringType())) \
-    .withColumn("plan_id", col("plan_id").cast(IntegerType())) \
-    .withColumn("plan_title", col("plan_title").cast(StringType())) \
-    .withColumn("school_id", col("school_id").cast(IntegerType())) \
-    .withColumn("school_name", col("school_name").cast(StringType())) \
-    .withColumn("section_id", col("section_id").cast(IntegerType())) \
-    .withColumn("section_title", col("section_title").cast(StringType())) \
-    .withColumn("term_id", col("term_id").cast(IntegerType())) \
-    .withColumn("term_title", col("term_title").cast(StringType())) \
-    .withColumn("building_id", col("building_id").cast(IntegerType())) \
-    .withColumn("building_title", col("building_title").cast(StringType())) \
-    .withColumnRenamed("counters_availables", "availables") \
-    .withColumn("availables", col("availables").cast(IntegerType())) \
-    .withColumnRenamed("counters_enrolled", "enrolled") \
-    .withColumn("enrolled", col("enrolled").cast(IntegerType())) \
-    .withColumnRenamed("counters_seats", "seats") \
-    .withColumn("seats", col("seats").cast(IntegerType())) \
-    .withColumn("enroll_group_name", col("enroll_group_name").cast(StringType())) \
-    .withColumn("enroll_alias", col("enroll_alias").cast(StringType())) \
-    .withColumn("especialidad", col("especialidad").cast(StringType())) \
-    .withColumn("destinatarios", col("destinatarios").cast(StringType())) \
-    .withColumn("descripcion_calendario", col("descripcion_calendario").cast(StringType())) \
-    .withColumn("nombre_antiguo_de_programa", col("nombre_antiguo_de_programa").cast(StringType())) \
-    .withColumn("nombre_del_programa_oficial_completo", col("nombre_del_programa_oficial_completo").cast(StringType())) \
-    .withColumn("nombreweb", col("nombreweb").cast(StringType()))
+    .withColumn("sourcesystem", lit("classlifetitulaciones"))
 
-# 📌 Mostrar los primeros registros
+# Lista completa de columnas tipo string
+string_columns = [
+    "modalidad", "fecha_inicio_docencia", "fecha_inicio", "meses_cursos_open", "admisionsino", "grupo",
+    "meses_duracion", "horas_acreditadas", "plazas", "horas_presenciales_2", "codigo_programa", "area_title",
+    "fecha_inicio_cuotas", "enroll_group_id", "tarifa_euneiz", "term_title", "certificado_euneiz_incluido_2",
+    "especialidad", "fecha_fin", "creditos", "enroll_group_id_2", "counters_pre_enrolled", "fecha_fin_cuotas",
+    "ano_inicio_docencia", "fecha_fin_reconocimiento_ingresos", "term_id", "fecha_inicio_reconocimiento_ingresos",
+    "group_vertical", "tarifa_matricula", "area_id", "admisionsino_2", "year", "codigo_sede", "zoho_id",
+    "ano_inicio_docencia_2", "mesesampliacion", "nombre_del_programa_oficial_completo", "codigo_entidad_legal",
+    "fecha_fin_docencia", "nombreweb", "area_codigo_vertical", "tiponegocio_2", "enroll_end", "area_entidad_legal",
+    "ciclo_title", "school_id", "grupo_2", "counters_availables", "ultima_actualizacion", "mes_inicio_docencia_2",
+    "counters_enrolled", "horas_acreditadas_2", "receipts_count", "tiponegocio", "horas_presenciales",
+    "enroll_group_name", "enroll_alias", "school_name", "cuotas_docencia", "enroll_ini", "acreditado",
+    "descripcion_calendario", "destinatarios", "certificado_euneiz_incluido", "group_entidad_legal", "area_vertical",
+    "group_entidad_legal_codigo", "counters_seats", "codigo_especialidad", "descripcion_calendario_2", "ciclo_id",
+    "section_id", "codigo_vertical", "mes_inicio_docencia", "section_title", "area_entidad_legal_codigo",
+    "group_sede", "fecha_creacion", "tarifa_docencia", "total_tarifas", "group_codigo_vertical", "roaster_ind"
+]
+
+# Aplicar el cast
+for col_name in string_columns:
+    if col_name in classlifetitulaciones_df.columns:
+        classlifetitulaciones_df = classlifetitulaciones_df.withColumn(col_name, col(col_name).cast(StringType()))
+
+# Mostrar resultado
 display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
+classlifetitulaciones_df = classlifetitulaciones_df.filter("enroll_group_name IS NOT NULL")
 classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 
 # COMMAND ----------
@@ -319,7 +254,209 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC MERGE INTO silver_lakehouse.classlifetitulaciones AS target
 # MAGIC USING classlifetitulaciones_view AS source
 # MAGIC ON target.enroll_group_id = source.enroll_group_id
-# MAGIC WHEN MATCHED THEN 
-# MAGIC     UPDATE SET *
-# MAGIC WHEN NOT MATCHED THEN 
-# MAGIC     INSERT *;
+# MAGIC
+# MAGIC WHEN MATCHED AND (
+# MAGIC   target.modalidad IS DISTINCT FROM source.modalidad
+# MAGIC   OR target.fecha_inicio_docencia IS DISTINCT FROM source.fecha_inicio_docencia
+# MAGIC   OR target.fecha_inicio IS DISTINCT FROM source.fecha_inicio
+# MAGIC   OR target.meses_cursos_open IS DISTINCT FROM source.meses_cursos_open
+# MAGIC   OR target.admisionsino IS DISTINCT FROM source.admisionsino
+# MAGIC   OR target.degree_title IS DISTINCT FROM source.degree_title
+# MAGIC   OR target.grupo IS DISTINCT FROM source.grupo
+# MAGIC   OR target.degree_id IS DISTINCT FROM source.degree_id
+# MAGIC   OR target.meses_duracion IS DISTINCT FROM source.meses_duracion
+# MAGIC   OR target.horas_acreditadas IS DISTINCT FROM source.horas_acreditadas
+# MAGIC   OR target.plazas IS DISTINCT FROM source.plazas
+# MAGIC   OR target.fecha_fin_pago IS DISTINCT FROM source.fecha_fin_pago
+# MAGIC   OR target.horas_presenciales_2 IS DISTINCT FROM source.horas_presenciales_2
+# MAGIC   OR target.num_plazas_ultimas IS DISTINCT FROM source.num_plazas_ultimas
+# MAGIC   OR target.codigo_programa IS DISTINCT FROM source.codigo_programa
+# MAGIC   OR target.area_title IS DISTINCT FROM source.area_title
+# MAGIC   OR target.fecha_inicio_cuotas IS DISTINCT FROM source.fecha_inicio_cuotas
+# MAGIC   OR target.enroll_group_id IS DISTINCT FROM source.enroll_group_id
+# MAGIC   OR target.tarifa_ampliacion IS DISTINCT FROM source.tarifa_ampliacion
+# MAGIC   OR target.tarifa_euneiz IS DISTINCT FROM source.tarifa_euneiz
+# MAGIC   OR target.term_title IS DISTINCT FROM source.term_title
+# MAGIC   OR target.certificado_euneiz_incluido_2 IS DISTINCT FROM source.certificado_euneiz_incluido_2
+# MAGIC   OR target.especialidad IS DISTINCT FROM source.especialidad
+# MAGIC   OR target.fecha_fin IS DISTINCT FROM source.fecha_fin
+# MAGIC   OR target.creditos IS DISTINCT FROM source.creditos
+# MAGIC   OR target.enroll_group_id_2 IS DISTINCT FROM source.enroll_group_id_2
+# MAGIC   OR target.counters_pre_enrolled IS DISTINCT FROM source.counters_pre_enrolled
+# MAGIC   OR target.fecha_fin_cuotas IS DISTINCT FROM source.fecha_fin_cuotas
+# MAGIC   OR target.ano_inicio_docencia IS DISTINCT FROM source.ano_inicio_docencia
+# MAGIC   OR target.fecha_fin_reconocimiento_ingresos IS DISTINCT FROM source.fecha_fin_reconocimiento_ingresos
+# MAGIC   OR target.term_id IS DISTINCT FROM source.term_id
+# MAGIC   OR target.fecha_inicio_reconocimiento_ingresos IS DISTINCT FROM source.fecha_inicio_reconocimiento_ingresos
+# MAGIC   OR target.group_vertical IS DISTINCT FROM source.group_vertical
+# MAGIC   OR target.tarifa_matricula IS DISTINCT FROM source.tarifa_matricula
+# MAGIC   OR target.area_sede IS DISTINCT FROM source.area_sede
+# MAGIC   OR target.area_id IS DISTINCT FROM source.area_id
+# MAGIC   OR target.admisionsino_2 IS DISTINCT FROM source.admisionsino_2
+# MAGIC   OR target.year IS DISTINCT FROM source.year
+# MAGIC   OR target.codigo_sede IS DISTINCT FROM source.codigo_sede
+# MAGIC   OR target.plan_title IS DISTINCT FROM source.plan_title
+# MAGIC   OR target.no_ultimas_plazas IS DISTINCT FROM source.no_ultimas_plazas
+# MAGIC   OR target.zoho_id IS DISTINCT FROM source.zoho_id
+# MAGIC   OR target.ano_inicio_docencia_2 IS DISTINCT FROM source.ano_inicio_docencia_2
+# MAGIC   OR target.mesesampliacion IS DISTINCT FROM source.mesesampliacion
+# MAGIC   OR target.codigo_antiguo IS DISTINCT FROM source.codigo_antiguo
+# MAGIC   OR target.nombre_del_programa_oficial_completo IS DISTINCT FROM source.nombre_del_programa_oficial_completo
+# MAGIC   OR target.codigo_entidad_legal IS DISTINCT FROM source.codigo_entidad_legal
+# MAGIC   OR target.fecha_fin_docencia IS DISTINCT FROM source.fecha_fin_docencia
+# MAGIC   OR target.nombreweb IS DISTINCT FROM source.nombreweb
+# MAGIC   OR target.area_codigo_vertical IS DISTINCT FROM source.area_codigo_vertical
+# MAGIC   OR target.tiponegocio_2 IS DISTINCT FROM source.tiponegocio_2
+# MAGIC   OR target.enroll_end IS DISTINCT FROM source.enroll_end
+# MAGIC   OR target.modalidad_code IS DISTINCT FROM source.modalidad_code
+# MAGIC   OR target.area_entidad_legal IS DISTINCT FROM source.area_entidad_legal
+# MAGIC   OR target.ciclo_title IS DISTINCT FROM source.ciclo_title
+# MAGIC   OR target.building_title IS DISTINCT FROM source.building_title
+# MAGIC   OR target.school_id IS DISTINCT FROM source.school_id
+# MAGIC   OR target.grupo_2 IS DISTINCT FROM source.grupo_2
+# MAGIC   OR target.building_id IS DISTINCT FROM source.building_id
+# MAGIC   OR target.plan_id IS DISTINCT FROM source.plan_id
+# MAGIC   OR target.counters_availables IS DISTINCT FROM source.counters_availables
+# MAGIC   OR target.ultima_actualizacion IS DISTINCT FROM source.ultima_actualizacion
+# MAGIC   OR target.mes_inicio_docencia_2 IS DISTINCT FROM source.mes_inicio_docencia_2
+# MAGIC   OR target.counters_enrolled IS DISTINCT FROM source.counters_enrolled
+# MAGIC   OR target.horas_acreditadas_2 IS DISTINCT FROM source.horas_acreditadas_2
+# MAGIC   OR target.receipts_count IS DISTINCT FROM source.receipts_count
+# MAGIC   OR target.tiponegocio IS DISTINCT FROM source.tiponegocio
+# MAGIC   OR target.horas_presenciales IS DISTINCT FROM source.horas_presenciales
+# MAGIC   OR target.enroll_group_name IS DISTINCT FROM source.enroll_group_name
+# MAGIC   OR target.fecha_inicio_pago IS DISTINCT FROM source.fecha_inicio_pago
+# MAGIC   OR target.enroll_alias IS DISTINCT FROM source.enroll_alias
+# MAGIC   OR target.building IS DISTINCT FROM source.building
+# MAGIC   OR target.school_name IS DISTINCT FROM source.school_name
+# MAGIC   OR target.cuotas_docencia IS DISTINCT FROM source.cuotas_docencia
+# MAGIC   OR target.enroll_ini IS DISTINCT FROM source.enroll_ini
+# MAGIC   OR target.acreditado IS DISTINCT FROM source.acreditado
+# MAGIC   OR target.descripcion_calendario IS DISTINCT FROM source.descripcion_calendario
+# MAGIC   OR target.destinatarios IS DISTINCT FROM source.destinatarios
+# MAGIC   OR target.enroll_pago_ini_t IS DISTINCT FROM source.enroll_pago_ini_t
+# MAGIC   OR target.nombre_antiguo_de_programa IS DISTINCT FROM source.nombre_antiguo_de_programa
+# MAGIC   OR target.certificado_euneiz_incluido IS DISTINCT FROM source.certificado_euneiz_incluido
+# MAGIC   OR target.group_entidad_legal IS DISTINCT FROM source.group_entidad_legal
+# MAGIC   OR target.area_vertical IS DISTINCT FROM source.area_vertical
+# MAGIC   OR target.group_entidad_legal_codigo IS DISTINCT FROM source.group_entidad_legal_codigo
+# MAGIC   OR target.counters_seats IS DISTINCT FROM source.counters_seats
+# MAGIC   OR target.codigo_especialidad IS DISTINCT FROM source.codigo_especialidad
+# MAGIC   OR target.descripcion_calendario_2 IS DISTINCT FROM source.descripcion_calendario_2
+# MAGIC   OR target.ciclo_id IS DISTINCT FROM source.ciclo_id
+# MAGIC   OR target.section_id IS DISTINCT FROM source.section_id
+# MAGIC   OR target.codigo_vertical IS DISTINCT FROM source.codigo_vertical
+# MAGIC   OR target.mes_inicio_docencia IS DISTINCT FROM source.mes_inicio_docencia
+# MAGIC   OR target.section_title IS DISTINCT FROM source.section_title
+# MAGIC   OR target.area_entidad_legal_codigo IS DISTINCT FROM source.area_entidad_legal_codigo
+# MAGIC   OR target.group_sede IS DISTINCT FROM source.group_sede
+# MAGIC   OR target.fecha_creacion IS DISTINCT FROM source.fecha_creacion
+# MAGIC   OR target.tarifa_docencia IS DISTINCT FROM source.tarifa_docencia
+# MAGIC   OR target.total_tarifas IS DISTINCT FROM source.total_tarifas
+# MAGIC   OR target.group_codigo_vertical IS DISTINCT FROM source.group_codigo_vertical
+# MAGIC   OR target.roaster_ind IS DISTINCT FROM source.roaster_ind
+# MAGIC ) THEN
+# MAGIC   UPDATE SET
+# MAGIC     target.modalidad = source.modalidad,
+# MAGIC     target.fecha_inicio_docencia = source.fecha_inicio_docencia,
+# MAGIC     target.fecha_inicio = source.fecha_inicio,
+# MAGIC     target.meses_cursos_open = source.meses_cursos_open,
+# MAGIC     target.admisionsino = source.admisionsino,
+# MAGIC     target.degree_title = source.degree_title,
+# MAGIC     target.grupo = source.grupo,
+# MAGIC     target.degree_id = source.degree_id,
+# MAGIC     target.meses_duracion = source.meses_duracion,
+# MAGIC     target.horas_acreditadas = source.horas_acreditadas,
+# MAGIC     target.plazas = source.plazas,
+# MAGIC     target.fecha_fin_pago = source.fecha_fin_pago,
+# MAGIC     target.horas_presenciales_2 = source.horas_presenciales_2,
+# MAGIC     target.num_plazas_ultimas = source.num_plazas_ultimas,
+# MAGIC     target.codigo_programa = source.codigo_programa,
+# MAGIC     target.area_title = source.area_title,
+# MAGIC     target.fecha_inicio_cuotas = source.fecha_inicio_cuotas,
+# MAGIC     target.enroll_group_id = source.enroll_group_id,
+# MAGIC     target.tarifa_ampliacion = source.tarifa_ampliacion,
+# MAGIC     target.tarifa_euneiz = source.tarifa_euneiz,
+# MAGIC     target.term_title = source.term_title,
+# MAGIC     target.certificado_euneiz_incluido_2 = source.certificado_euneiz_incluido_2,
+# MAGIC     target.especialidad = source.especialidad,
+# MAGIC     target.fecha_fin = source.fecha_fin,
+# MAGIC     target.creditos = source.creditos,
+# MAGIC     target.enroll_group_id_2 = source.enroll_group_id_2,
+# MAGIC     target.counters_pre_enrolled = source.counters_pre_enrolled,
+# MAGIC     target.fecha_fin_cuotas = source.fecha_fin_cuotas,
+# MAGIC     target.ano_inicio_docencia = source.ano_inicio_docencia,
+# MAGIC     target.fecha_fin_reconocimiento_ingresos = source.fecha_fin_reconocimiento_ingresos,
+# MAGIC     target.term_id = source.term_id,
+# MAGIC     target.fecha_inicio_reconocimiento_ingresos = source.fecha_inicio_reconocimiento_ingresos,
+# MAGIC     target.group_vertical = source.group_vertical,
+# MAGIC     target.tarifa_matricula = source.tarifa_matricula,
+# MAGIC     target.area_sede = source.area_sede,
+# MAGIC     target.area_id = source.area_id,
+# MAGIC     target.admisionsino_2 = source.admisionsino_2,
+# MAGIC     target.year = source.year,
+# MAGIC     target.codigo_sede = source.codigo_sede,
+# MAGIC     target.plan_title = source.plan_title,
+# MAGIC     target.no_ultimas_plazas = source.no_ultimas_plazas,
+# MAGIC     target.zoho_id = source.zoho_id,
+# MAGIC     target.ano_inicio_docencia_2 = source.ano_inicio_docencia_2,
+# MAGIC     target.mesesampliacion = source.mesesampliacion,
+# MAGIC     target.codigo_antiguo = source.codigo_antiguo,
+# MAGIC     target.nombre_del_programa_oficial_completo = source.nombre_del_programa_oficial_completo,
+# MAGIC     target.codigo_entidad_legal = source.codigo_entidad_legal,
+# MAGIC     target.fecha_fin_docencia = source.fecha_fin_docencia,
+# MAGIC     target.nombreweb = source.nombreweb,
+# MAGIC     target.area_codigo_vertical = source.area_codigo_vertical,
+# MAGIC     target.tiponegocio_2 = source.tiponegocio_2,
+# MAGIC     target.enroll_end = source.enroll_end,
+# MAGIC     target.modalidad_code = source.modalidad_code,
+# MAGIC     target.area_entidad_legal = source.area_entidad_legal,
+# MAGIC     target.ciclo_title = source.ciclo_title,
+# MAGIC     target.building_title = source.building_title,
+# MAGIC     target.school_id = source.school_id,
+# MAGIC     target.grupo_2 = source.grupo_2,
+# MAGIC     target.building_id = source.building_id,
+# MAGIC     target.plan_id = source.plan_id,
+# MAGIC     target.counters_availables = source.counters_availables,
+# MAGIC     target.ultima_actualizacion = source.ultima_actualizacion,
+# MAGIC     target.mes_inicio_docencia_2 = source.mes_inicio_docencia_2,
+# MAGIC     target.counters_enrolled = source.counters_enrolled,
+# MAGIC     target.horas_acreditadas_2 = source.horas_acreditadas_2,
+# MAGIC     target.receipts_count = source.receipts_count,
+# MAGIC     target.tiponegocio = source.tiponegocio,
+# MAGIC     target.horas_presenciales = source.horas_presenciales,
+# MAGIC     target.enroll_group_name = source.enroll_group_name,
+# MAGIC     target.fecha_inicio_pago = source.fecha_inicio_pago,
+# MAGIC     target.enroll_alias = source.enroll_alias,
+# MAGIC     target.building = source.building,
+# MAGIC     target.school_name = source.school_name,
+# MAGIC     target.cuotas_docencia = source.cuotas_docencia,
+# MAGIC     target.enroll_ini = source.enroll_ini,
+# MAGIC     target.acreditado = source.acreditado,
+# MAGIC     target.descripcion_calendario = source.descripcion_calendario,
+# MAGIC     target.destinatarios = source.destinatarios,
+# MAGIC     target.enroll_pago_ini_t = source.enroll_pago_ini_t,
+# MAGIC     target.nombre_antiguo_de_programa = source.nombre_antiguo_de_programa,
+# MAGIC     target.certificado_euneiz_incluido = source.certificado_euneiz_incluido,
+# MAGIC     target.group_entidad_legal = source.group_entidad_legal,
+# MAGIC     target.area_vertical = source.area_vertical,
+# MAGIC     target.group_entidad_legal_codigo = source.group_entidad_legal_codigo,
+# MAGIC     target.counters_seats = source.counters_seats,
+# MAGIC     target.codigo_especialidad = source.codigo_especialidad,
+# MAGIC     target.descripcion_calendario_2 = source.descripcion_calendario_2,
+# MAGIC     target.ciclo_id = source.ciclo_id,
+# MAGIC     target.section_id = source.section_id,
+# MAGIC     target.codigo_vertical = source.codigo_vertical,
+# MAGIC     target.mes_inicio_docencia = source.mes_inicio_docencia,
+# MAGIC     target.section_title = source.section_title,
+# MAGIC     target.area_entidad_legal_codigo = source.area_entidad_legal_codigo,
+# MAGIC     target.group_sede = source.group_sede,
+# MAGIC     target.fecha_creacion = source.fecha_creacion,
+# MAGIC     target.tarifa_docencia = source.tarifa_docencia,
+# MAGIC     target.total_tarifas = source.total_tarifas,
+# MAGIC     target.group_codigo_vertical = source.group_codigo_vertical,
+# MAGIC     target.roaster_ind = source.roaster_ind
+# MAGIC
+# MAGIC WHEN NOT MATCHED THEN
+# MAGIC   INSERT *;
+# MAGIC

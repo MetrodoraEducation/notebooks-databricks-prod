@@ -10,8 +10,6 @@
 # MAGIC         DISTINCT tipo_formacion_desc AS tipo_formacion_desc,
 # MAGIC         cod_tipo_formacion	AS cod_tipo_formacion
 # MAGIC     FROM gold_lakehouse.dim_estudio;
-# MAGIC
-# MAGIC select * from tipo_formacion_view;
 
 # COMMAND ----------
 

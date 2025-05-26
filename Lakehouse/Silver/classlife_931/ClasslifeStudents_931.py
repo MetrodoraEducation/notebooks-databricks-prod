@@ -7,7 +7,7 @@
 endpoint_process_name = "students"
 table_name = "JsaClassLifeStudents"
 
-classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife/{endpoint_process_name}/{current_date}/{table_name}.json")
+classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/{table_name}.json")
 
 # COMMAND ----------
 

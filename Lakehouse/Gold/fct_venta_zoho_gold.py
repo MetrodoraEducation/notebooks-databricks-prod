@@ -18,36 +18,27 @@
 # MAGIC          END AS cod_Lead
 # MAGIC          ,tablon.cod_Oportunidad
 # MAGIC          ,COALESCE(Nombre, nombre_Oportunidad) AS nombre
-# MAGIC          ,COALESCE(
-# MAGIC              CASE 
-# MAGIC                  WHEN tablon.id_tipo_registro = 1 THEN tablon.email  -- Email de LEAD
+# MAGIC          ,COALESCE(CASE WHEN tablon.id_tipo_registro = 1 THEN tablon.email  -- Email de LEAD
 # MAGIC              END, 
 # MAGIC              contacts.email  -- Email de CONTACT
 # MAGIC          ) AS email
-# MAGIC          ,COALESCE(
-# MAGIC              CASE 
-# MAGIC                  WHEN tablon.id_tipo_registro = 1 THEN tablon.telefono1  -- telefono1 de LEAD
+# MAGIC          ,COALESCE(CASE WHEN tablon.id_tipo_registro = 1 THEN tablon.telefono1  -- telefono1 de LEAD
 # MAGIC              END, 
 # MAGIC              contacts.phone  -- phone de CONTACT
 # MAGIC          ) AS telefono
-# MAGIC          ,COALESCE(
-# MAGIC              CASE 
-# MAGIC                  WHEN tablon.id_tipo_registro = 1 THEN CONCAT(tablon.Nombre, ' ', tablon.Apellido1, ' ', tablon.Apellido2)  -- LEAD
+# MAGIC          ,COALESCE(CASE WHEN tablon.id_tipo_registro = 1 THEN CONCAT(tablon.Nombre, ' ', tablon.Apellido1, ' ', tablon.Apellido2)  -- LEAD
 # MAGIC              END, 
 # MAGIC              CONCAT(contacts.First_Name, ' ', contacts.Last_Name, ' ', tablon.Apellido2)  -- CONTACT
 # MAGIC          ) AS nombre_Contacto
-# MAGIC          ,CASE 
-# MAGIC              WHEN tablon.id_tipo_registro = 1 THEN 0
-# MAGIC              WHEN tablon.id_tipo_registro IN (2,3) THEN COALESCE(ABS(tablon.pct_Descuento), 0)
-# MAGIC              ELSE NULL
+# MAGIC          ,CASE WHEN tablon.id_tipo_registro = 1 THEN 0
+# MAGIC                WHEN tablon.id_tipo_registro IN (2,3) THEN COALESCE(ABS(tablon.pct_Descuento), 0)
+# MAGIC                ELSE NULL
 # MAGIC          END AS importe_Descuento
-# MAGIC          ,CASE 
-# MAGIC              WHEN tablon.id_tipo_registro = 1 THEN 0
-# MAGIC              WHEN tablon.id_tipo_registro IN (2,3) THEN COALESCE(ABS(tablon.importe), 0)
-# MAGIC              ELSE NULL
+# MAGIC          ,CASE WHEN tablon.id_tipo_registro = 1 THEN 0
+# MAGIC                WHEN tablon.id_tipo_registro IN (2,3) THEN COALESCE(ABS(tablon.importe), 0)
+# MAGIC                ELSE NULL
 # MAGIC          END AS Importe_Venta_Neto
-# MAGIC          ,CASE 
-# MAGIC              WHEN tablon.id_tipo_registro = 1 THEN 0
+# MAGIC          ,CASE WHEN tablon.id_tipo_registro = 1 THEN 0
 # MAGIC              WHEN tablon.id_tipo_registro IN (2,3) THEN COALESCE(ABS(tablon.importe) + ABS(tablon.pct_Descuento), 0)
 # MAGIC              ELSE NULL
 # MAGIC          END AS Importe_Venta
@@ -114,8 +105,6 @@
 # MAGIC      FROM silver_lakehouse.tablon_leads_and_deals tablon
 # MAGIC LEFT JOIN silver_lakehouse.zohocontacts contacts
 # MAGIC        ON tablon.cod_Contacto = contacts.id;
-# MAGIC
-# MAGIC select * from zoho_table_view;
 
 # COMMAND ----------
 
@@ -193,9 +182,6 @@
 # MAGIC LEFT JOIN gold_lakehouse.dim_utm_adset utmadset ON tablon.utm_ad_id = NULLIF(utmadset.utm_ad_id, '')
 # MAGIC LEFT JOIN gold_lakehouse.dim_utm_source utmsource ON tablon.utm_source = NULLIF(utmsource.utm_source, '')
 # MAGIC LEFT JOIN gold_lakehouse.dim_vertical vertical ON UPPER(producto.cod_Vertical) = NULLIF(UPPER(vertical.nombre_Vertical_Corto), '');
-# MAGIC
-# MAGIC select * from zoho_dimensions_temp;
-# MAGIC
 
 # COMMAND ----------
 
@@ -210,8 +196,6 @@
 # MAGIC     FROM zoho_dimensions_temp
 # MAGIC ) filtered
 # MAGIC WHERE rn = 1;  -- 🔹 Solo conserva la versión más reciente
-# MAGIC
-# MAGIC select * from fct_zoho_unique_temp;
 
 # COMMAND ----------
 
@@ -221,7 +205,7 @@
 # MAGIC MERGE INTO gold_lakehouse.fctventa AS target
 # MAGIC USING fct_zoho_unique_temp AS source
 # MAGIC ON 
-# MAGIC     COALESCE(target.cod_Lead, '') = COALESCE(source.cod_Lead, '') 
+# MAGIC     COALESCE(target.cod_Lead, '') = COALESCE(source.cod_Lead, '')
 # MAGIC     AND target.cod_Oportunidad IS NULL 
 # MAGIC     AND source.cod_Oportunidad IS NOT NULL
 # MAGIC

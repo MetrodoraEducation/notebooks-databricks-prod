@@ -439,99 +439,105 @@ spark.sql(sql_query)
 sql_query = f"""
 CREATE TABLE IF NOT EXISTS silver_lakehouse.classlifetitulaciones
 (
-        modalidad STRING,
-    fecha_inicio_docencia DATE,
-    entidad_legal STRING,
-    fecha_inicio DATE,
-    meses_cursos_open INT,
-    admisionsino STRING,
-    degree_title STRING,
-    vertical STRING,
-    grupo STRING,
-    degree_id INT,
-    meses_duracion INT,
-    sede STRING,
-    horas_acreditadas INT,
-    plazas INT,
-    fecha_fin_pago DATE,
-    horas_presenciales_2 INT,
-    codigo_programa STRING,
-    area_title STRING,
-    fecha_inicio_cuotas DATE,
-    enroll_group_id INT,
-    tarifa_ampliacion DOUBLE,
-    tarifa_euneiz DOUBLE,
-    term_title STRING,
-    certificado_euneiz_incluido_2 STRING,
-    especialidad STRING,
-    fecha_fin DATE,
-    creditos DOUBLE,
-    enroll_group_id_2 INT,
-    pre_enrolled INT,
-    fecha_fin_cuotas DATE,
-    ano_inicio_docencia INT,
-    term_id INT,
-    fecha_inicio_reconocimiento_ingresos DATE,
-    fecha_fin_reconocimiento_ingresos DATE,
-    tarifa_matricula DOUBLE,
-    area_id INT,
-    admisionsino_2 STRING,
-    year INT,
-    codigo_sede STRING,
-    plan_title STRING,
-    no_ultimas_plazas STRING,
-    zoho_id STRING,
-    ano_inicio_docencia_2 INT,
-    mesesampliacion STRING,
-    codigo_antiguo STRING,
-    nombre_del_programa_oficial_completo STRING,
-    entidad_legal_codigo STRING,
-    codigo_entidad_legal STRING,
-    fecha_fin_docencia DATE,
-    nombreweb STRING,
-    tiponegocio_2 STRING,
-    enroll_end TIMESTAMP,
-    modalidad_code STRING,
-    ciclo_title STRING,
-    building_title STRING,
-    school_id INT,
-    grupo_2 STRING,
-    building_id INT,
-    plan_id INT,
-    availables INT,
-    ultima_actualizacion TIMESTAMP,
-    mes_inicio_docencia_2 INT,
-    enrolled INT,
-    horas_acreditadas_2 INT,
-    receipts_count INT,
-    tiponegocio STRING,
-    horas_presenciales INT,
-    enroll_group_name STRING,
-    fecha_inicio_pago DATE,
-    enroll_alias STRING,
-    school_name STRING,
-    cuotas_docencia INT,
-    enroll_ini TIMESTAMP,
-    acreditado STRING,
-    descripcion_calendario STRING,
-    destinatarios STRING,
-    nombre_antiguo_de_programa STRING,
-    certificado_euneiz_incluido STRING,
-    seats INT,
-    codigo_especialidad STRING,
-    descripcion_calendario_2 STRING,
-    ciclo_id INT,
-    section_id INT,
-    codigo_vertical STRING,
-    mes_inicio_docencia INT,
-    section_title STRING,
-    fecha_creacion TIMESTAMP,
-    tarifa_docencia DOUBLE,
-    codigo_vertical_2 STRING,
-    total_tarifas DOUBLE,
-    roaster_ind INT,
-    processdate TIMESTAMP,
-    sourcesystem STRING
+     modalidad STRING
+    ,fecha_inicio_docencia STRING
+    ,fecha_inicio STRING
+    ,meses_cursos_open STRING
+    ,admisionsino STRING
+    ,degree_title STRING
+    ,grupo STRING
+    ,degree_id STRING
+    ,meses_duracion STRING
+    ,horas_acreditadas STRING
+    ,plazas STRING
+    ,fecha_fin_pago STRING
+    ,horas_presenciales_2 STRING
+    ,num_plazas_ultimas STRING
+    ,codigo_programa STRING
+    ,area_title STRING
+    ,fecha_inicio_cuotas STRING
+    ,enroll_group_id STRING
+    ,tarifa_ampliacion STRING
+    ,tarifa_euneiz STRING
+    ,term_title STRING
+    ,certificado_euneiz_incluido_2 STRING
+    ,especialidad STRING
+    ,fecha_fin STRING
+    ,creditos STRING
+    ,enroll_group_id_2 STRING
+    ,counters_pre_enrolled STRING
+    ,fecha_fin_cuotas STRING
+    ,ano_inicio_docencia STRING
+    ,fecha_fin_reconocimiento_ingresos STRING
+    ,term_id STRING
+    ,fecha_inicio_reconocimiento_ingresos STRING
+    ,group_vertical STRING
+    ,tarifa_matricula STRING
+    ,area_sede STRING
+    ,area_id STRING
+    ,admisionsino_2 STRING
+    ,year STRING
+    ,codigo_sede STRING
+    ,plan_title STRING
+    ,no_ultimas_plazas STRING
+    ,zoho_id STRING
+    ,ano_inicio_docencia_2 STRING
+    ,mesesampliacion STRING
+    ,codigo_antiguo STRING
+    ,nombre_del_programa_oficial_completo STRING
+    ,codigo_entidad_legal STRING
+    ,fecha_fin_docencia STRING
+    ,nombreweb STRING
+    ,area_codigo_vertical STRING
+    ,tiponegocio_2 STRING
+    ,enroll_end STRING
+    ,modalidad_code STRING
+    ,area_entidad_legal STRING
+    ,ciclo_title STRING
+    ,building_title STRING
+    ,school_id STRING
+    ,grupo_2 STRING
+    ,building_id STRING
+    ,plan_id STRING
+    ,counters_availables STRING
+    ,ultima_actualizacion STRING
+    ,mes_inicio_docencia_2 STRING
+    ,counters_enrolled STRING
+    ,horas_acreditadas_2 STRING
+    ,receipts_count STRING
+    ,tiponegocio STRING
+    ,horas_presenciales STRING
+    ,enroll_group_name STRING
+    ,fecha_inicio_pago STRING
+    ,enroll_alias STRING
+    ,building STRING
+    ,school_name STRING
+    ,cuotas_docencia STRING
+    ,enroll_ini STRING
+    ,acreditado STRING
+    ,descripcion_calendario STRING
+    ,destinatarios STRING
+    ,enroll_pago_ini_t STRING
+    ,nombre_antiguo_de_programa STRING
+    ,certificado_euneiz_incluido STRING
+    ,group_entidad_legal STRING
+    ,area_vertical STRING
+    ,group_entidad_legal_codigo STRING
+    ,counters_seats STRING
+    ,codigo_especialidad STRING
+    ,descripcion_calendario_2 STRING
+    ,ciclo_id STRING
+    ,section_id STRING
+    ,codigo_vertical STRING
+    ,mes_inicio_docencia STRING
+    ,section_title STRING
+    ,area_entidad_legal_codigo STRING
+    ,group_sede STRING
+    ,fecha_creacion STRING
+    ,tarifa_docencia STRING
+    ,total_tarifas STRING
+    ,group_codigo_vertical STRING
+    ,roaster_ind STRING
 )
 USING DELTA
 LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/classlifetitulaciones';
@@ -563,7 +569,7 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.classlifeStudents
     student_language STRING,
     fiscaladmit_direccion STRING,
     language STRING,
-    year_id INT,
+    year_id STRING,
     direccion STRING,
     databaixaacademica STRING,
     fiscaladmit_iban STRING,
@@ -573,7 +579,7 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.classlifeStudents
     basephone STRING,
     colegiadoprofesional STRING,
     ciudad STRING,
-    seguridadsocial DOUBLE,
+    seguridadsocial STRING,
     factura_pais STRING,
     lastname STRING,
     datosacceso_ultim_estudi_matriculat STRING,
@@ -581,7 +587,6 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.classlifeStudents
     dnumero STRING,
     codipreinscripcio STRING,
     student_blocked STRING,
-    secondguardian_movil STRING,
     student_phone STRING,
     student_email STRING,
     student_uid STRING,
@@ -592,7 +597,7 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.classlifeStudents
     student_lastname STRING,
     email2 STRING,
     ncolegiado STRING,
-    term_id INT,
+    term_id STRING,
     phone STRING,
     admit_dni_front STRING,
     classlife_uid STRING,
@@ -602,10 +607,8 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.classlifeStudents
     fiscaladmit_cif STRING,
     area_id STRING,
     lead_area STRING,
-    secondguardian_name STRING,
     enroll_ref STRING,
     lead_email STRING,
-    secondguardian_tipusdocument STRING,
     zoho_id STRING,
     excludesecurityarraymetas STRING,
     dpuerta STRING,
@@ -613,22 +616,20 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.classlifeStudents
     sexo STRING,
     lead_segment STRING,
     student_id STRING,
-    secondguardian_numerodocument STRING,
     datosacceso_curs_ultim_estudi_matriculat STRING,
     lead_lastname STRING,
     lead_status STRING,
     nommunicipinaixementfora STRING,
-    secondguardian_lastname STRING,
     school_id STRING,
     fiscaladmit_lastnameend STRING,
     student_lastnameend STRING,
     fiscaladmit_correo STRING,
     dbloc STRING,
     factura_numfiscal STRING,
-    lead_count INT,
+    lead_count STRING,
     nia STRING,
     factura_nomfactura STRING,
-    edad INT,
+    edad STRING,
     incompany STRING,
     telefono STRING,
     fiscaladmit_codigo STRING,
@@ -636,13 +637,11 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.classlifeStudents
     admit_dni_back STRING,
     codigo STRING,
     lastnameend STRING,
-    secondguardian_telefono STRING,
     lead_admission STRING,
     lead_asnew STRING,
     email STRING,
     student_name STRING,
     name STRING,
-    secondguardian_email STRING,
     pais STRING,
     school_id_2 STRING,
     datosacceso_pais_ultim_curs_matriculat STRING,
@@ -1207,6 +1206,27 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.tablon_leads_and_deals
 )
 USING DELTA
 LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/tablon_leads_and_deals';
+"""
+
+# Ejecutar la consulta SQL con Spark
+spark.sql(sql_query)
+
+# COMMAND ----------
+
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS silver_lakehouse.budget_ff
+(
+     fecha DATE
+    ,escenario STRING
+    ,producto STRING
+    ,num_Leads_Netos STRING
+    ,num_Leads_Brutos STRING
+    ,num_Matriculas STRING
+    ,importe_Venta_Neta STRING
+    ,importe_Captacion STRING
+)
+USING DELTA
+LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/budget_ff';
 """
 
 # Ejecutar la consulta SQL con Spark

@@ -2,8 +2,6 @@
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW dim_pais_view
 # MAGIC     AS SELECT * FROM silver_lakehouse.dim_pais;
-# MAGIC
-# MAGIC SELECT * FROM dim_pais_view;
 
 # COMMAND ----------
 

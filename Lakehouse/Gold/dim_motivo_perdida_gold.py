@@ -36,8 +36,6 @@
 # MAGIC     ,CURRENT_TIMESTAMP AS ETLupdatedDate
 # MAGIC FROM silver_lakehouse.clientifydeals
 # MAGIC WHERE lost_reason IS NOT NULL AND lost_reason <> '';
-# MAGIC
-# MAGIC select * from dim_motivo_perdida_clientify_view
 
 # COMMAND ----------
 
@@ -126,8 +124,6 @@
 # MAGIC ON zl.id = zd.id  -- Asegurar la clave de unión (puede cambiar según los datos)
 # MAGIC WHERE COALESCE(zd.motivo_perdida_b2c, zd.motivo_perdida_b2b, zl.motivos_perdida) IS NOT NULL
 # MAGIC   AND COALESCE(zd.motivo_perdida_b2c, zd.motivo_perdida_b2b, zl.motivos_perdida) != '';
-# MAGIC
-# MAGIC select * from dim_motivo_perdida_view;
 
 # COMMAND ----------
 

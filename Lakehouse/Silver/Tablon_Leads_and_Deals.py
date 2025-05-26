@@ -126,6 +126,37 @@
 # MAGIC         target.cod_Oportunidad = source.cod_Oportunidad,
 # MAGIC         target.id_tipo_registro = 2,
 # MAGIC         target.tipo_registro = 'Con lead y con oportunidad',
+# MAGIC         target.lead_Nombre = source.lead_Nombre,
+# MAGIC         target.Nombre = source.Nombre,
+# MAGIC         target.Apellido1 = source.Apellido1,
+# MAGIC         target.Apellido2 = source.Apellido2,
+# MAGIC         target.email = source.email,
+# MAGIC         target.telefono1 = source.telefono1,
+# MAGIC         target.nacionalidad = source.nacionalidad,
+# MAGIC         target.telefono2 = source.telefono2,
+# MAGIC         target.provincia = source.provincia,
+# MAGIC         target.residencia = source.residencia,
+# MAGIC         target.sexo = source.sexo,
+# MAGIC         target.lead_Rating = source.lead_Rating,
+# MAGIC         target.leadScoring = source.leadScoring,
+# MAGIC         target.etapa = source.etapa,
+# MAGIC         target.motivo_Perdida = source.motivo_Perdida,
+# MAGIC         target.tipo_Cliente_lead = source.tipo_Cliente_lead,
+# MAGIC         target.tipo_conversion_lead = source.tipo_conversion_lead,
+# MAGIC         target.utm_ad_id = source.utm_ad_id,
+# MAGIC         target.utm_adset_id = source.utm_adset_id,
+# MAGIC         target.utm_campaign_id = source.utm_campaign_id,
+# MAGIC         target.utm_campaign_name = source.utm_campaign_name,
+# MAGIC         target.utm_channel = source.utm_channel,
+# MAGIC         target.utm_estrategia = source.utm_estrategia,
+# MAGIC         target.utm_medium = source.utm_medium,
+# MAGIC         target.utm_perfil = source.utm_perfil,
+# MAGIC         target.utm_source = source.utm_source,
+# MAGIC         target.utm_term = source.utm_term,
+# MAGIC         target.utm_type = source.utm_type,
+# MAGIC         target.cod_Owner = source.cod_Owner,
+# MAGIC         target.cod_Producto = source.cod_Producto,
+# MAGIC         target.lead_Correlation = source.lead_Correlation,
 # MAGIC         target.fecha_Modificacion_Oportunidad = source.fecha_Modificacion_Oportunidad,
 # MAGIC         target.processdate = source.processdate,
 # MAGIC         target.sourcesystem = source.sourcesystem;
@@ -136,8 +167,7 @@
 # MAGIC %sql
 # MAGIC MERGE INTO silver_lakehouse.tablon_leads_and_deals AS target
 # MAGIC USING staging_tablon AS source
-# MAGIC ON 
-# MAGIC     COALESCE(target.cod_Oportunidad, '') = COALESCE(source.cod_Oportunidad, '') 
+# MAGIC ON COALESCE(target.cod_Oportunidad, '') = COALESCE(source.cod_Oportunidad, '') 
 # MAGIC     AND target.cod_Lead IS NULL 
 # MAGIC     AND source.cod_Lead IS NOT NULL
 # MAGIC
@@ -146,6 +176,52 @@
 # MAGIC         target.cod_Lead = source.cod_Lead,
 # MAGIC         target.id_tipo_registro = 2,
 # MAGIC         target.tipo_registro = 'Con lead y con oportunidad',
+# MAGIC         target.nacionalidad = source.nacionalidad,
+# MAGIC         target.residencia = source.residencia,
+# MAGIC         target.lead_Rating = source.lead_Rating,
+# MAGIC         target.leadScoring = source.leadScoring,
+# MAGIC         target.etapa = source.etapa,
+# MAGIC         target.motivo_Perdida = source.motivo_Perdida,
+# MAGIC         target.probabilidad_Conversion = source.probabilidad_Conversion,
+# MAGIC         target.flujo_Venta = source.flujo_Venta,
+# MAGIC         target.profesion_Estudiante = source.profesion_Estudiante,
+# MAGIC         target.competencia = source.competencia,
+# MAGIC         target.tipo_Cliente_lead = source.tipo_Cliente_lead,
+# MAGIC         target.utm_ad_id = source.utm_ad_id,
+# MAGIC         target.utm_adset_id = source.utm_adset_id,
+# MAGIC         target.utm_campaign_id = source.utm_campaign_id,
+# MAGIC         target.utm_campaign_name = source.utm_campaign_name,
+# MAGIC         target.utm_channel = source.utm_channel,
+# MAGIC         target.utm_estrategia = source.utm_estrategia,
+# MAGIC         target.utm_medium = source.utm_medium,
+# MAGIC         target.utm_perfil = source.utm_perfil,
+# MAGIC         target.utm_source = source.utm_source,
+# MAGIC         target.utm_term = source.utm_term,
+# MAGIC         target.utm_type = source.utm_type,
+# MAGIC         target.cod_Owner = source.cod_Owner,
+# MAGIC         target.cod_Producto = source.cod_Producto,
+# MAGIC         target.lead_Correlation = source.lead_Correlation,
+# MAGIC         target.nombre_estado_venta = source.nombre_estado_venta,
+# MAGIC         target.cod_Oportunidad = source.cod_Oportunidad,
+# MAGIC         target.cod_Classlife = source.cod_Classlife,
+# MAGIC         target.nombre_Oportunidad = source.nombre_Oportunidad,
+# MAGIC         target.cod_Contacto = source.cod_Contacto,
+# MAGIC         target.fecha_Cierre = source.fecha_Cierre,
+# MAGIC         target.cod_Unico_Zoho = source.cod_Unico_Zoho,
+# MAGIC         target.ratio_Moneda = source.ratio_Moneda,
+# MAGIC         target.moneda = source.moneda,
+# MAGIC         target.importe_Pagado = source.importe_Pagado,
+# MAGIC         target.cod_Descuento = source.cod_Descuento,
+# MAGIC         target.pct_Descuento = source.pct_Descuento,
+# MAGIC         target.importe = source.importe,
+# MAGIC         target.tipo_Alumno = source.tipo_Alumno,
+# MAGIC         target.tipo_Conversion_opotunidad = source.tipo_Conversion_opotunidad,
+# MAGIC         target.tipo_Cliente_oportunidad = source.tipo_Cliente_oportunidad,
+# MAGIC         target.fecha_hora_Pagado = source.fecha_hora_Pagado,
+# MAGIC         target.fecha_Creacion_Oportunidad = source.fecha_Creacion_Oportunidad,
+# MAGIC         target.fecha_Modificacion_Oportunidad = source.fecha_Modificacion_Oportunidad,
+# MAGIC         target.fecha_hora_Anulacion = source.fecha_hora_Anulacion,
+# MAGIC         target.id_classlife = source.id_classlife,
 # MAGIC         target.fecha_Modificacion_Lead = source.fecha_Modificacion_Lead,
 # MAGIC         target.processdate = source.processdate,
 # MAGIC         target.sourcesystem = source.sourcesystem;
@@ -156,38 +232,69 @@
 # MAGIC %sql
 # MAGIC MERGE INTO silver_lakehouse.tablon_leads_and_deals AS target
 # MAGIC USING staging_tablon AS source
-# MAGIC ON 
-# MAGIC     COALESCE(target.cod_Lead, '') = COALESCE(source.cod_Lead, '') 
-# MAGIC     AND COALESCE(target.cod_Oportunidad, '') = COALESCE(source.cod_Oportunidad, '')
+# MAGIC ON COALESCE(target.cod_Lead, '') = COALESCE(source.cod_Lead, '') 
+# MAGIC AND COALESCE(target.cod_Oportunidad, '') = COALESCE(source.cod_Oportunidad, '')
 # MAGIC
 # MAGIC WHEN NOT MATCHED THEN 
 # MAGIC     INSERT (
-# MAGIC         id_tipo_registro, tipo_registro, cod_Lead, cod_Oportunidad, lead_Nombre, Nombre, Apellido1, Apellido2,
+# MAGIC         id_tipo_registro, tipo_registro, cod_Lead, lead_Nombre, Nombre, Apellido1, Apellido2,
 # MAGIC         email, telefono1, nacionalidad, telefono2, provincia, residencia, sexo, lead_Rating, 
 # MAGIC         leadScoring, etapa, motivo_Perdida, probabilidad_Conversion, flujo_Venta, 
 # MAGIC         profesion_Estudiante, competencia, tipo_Cliente_lead, tipo_conversion_lead, 
 # MAGIC         utm_ad_id, utm_adset_id, utm_campaign_id, utm_campaign_name, utm_channel, utm_estrategia, 
-# MAGIC         utm_medium, utm_perfil, utm_source, utm_term, utm_type, cod_Owner, cod_Producto, 
-# MAGIC         lead_Correlation, fecha_Creacion_Lead, fecha_Modificacion_Lead, nombre_estado_venta, 
-# MAGIC         fecha_Cierre, cod_Unico_Zoho, ratio_Moneda, moneda, importe_Pagado, 
-# MAGIC         cod_Descuento, pct_Descuento, importe, tipo_Alumno, 
-# MAGIC         tipo_Conversion_opotunidad, tipo_Cliente_oportunidad, id_classlife, fecha_hora_Pagado, fecha_Creacion_Oportunidad, 
-# MAGIC         fecha_Modificacion_Oportunidad, fecha_hora_anulacion, processdate, sourcesystem
+# MAGIC         utm_medium, utm_perfil, utm_source, utm_term, utm_type, cod_Owner, cod_Producto,
+# MAGIC         lead_Correlation, nombre_estado_venta, cod_Contacto, cod_Oportunidad, cod_Classlife, nombre_Oportunidad,
+# MAGIC         fecha_Creacion_Lead, fecha_Modificacion_Lead, fecha_Creacion_Oportunidad, fecha_Modificacion_Oportunidad,
+# MAGIC         fecha_Cierre, cod_Unico_Zoho, ratio_Moneda, moneda, importe_Pagado, cod_Descuento, pct_Descuento, importe, 
+# MAGIC         tipo_Alumno, tipo_Conversion_opotunidad, tipo_Cliente_oportunidad, id_classlife, fecha_hora_Pagado, 
+# MAGIC         fecha_hora_anulacion, processdate, sourcesystem
 # MAGIC     ) 
 # MAGIC     VALUES (
-# MAGIC         source.id_tipo_registro, source.tipo_registro,source.cod_Lead, source.cod_Oportunidad, source.lead_Nombre, source.Nombre, 
+# MAGIC         source.id_tipo_registro, source.tipo_registro, source.cod_Lead, source.lead_Nombre, source.Nombre, 
 # MAGIC         source.Apellido1, source.Apellido2, source.email, source.telefono1, source.nacionalidad, source.telefono2, 
 # MAGIC         source.provincia, source.residencia, source.sexo, source.lead_Rating, source.leadScoring, source.etapa, 
 # MAGIC         source.motivo_Perdida, source.probabilidad_Conversion, source.flujo_Venta, source.profesion_Estudiante, 
 # MAGIC         source.competencia, source.tipo_Cliente_lead, source.tipo_conversion_lead, source.utm_ad_id, source.utm_adset_id, 
 # MAGIC         source.utm_campaign_id, source.utm_campaign_name, source.utm_channel, source.utm_estrategia, source.utm_medium, 
 # MAGIC         source.utm_perfil, source.utm_source, source.utm_term, source.utm_type, source.cod_Owner, source.cod_Producto, 
-# MAGIC         source.lead_Correlation, source.fecha_Creacion_Lead, source.fecha_Modificacion_Lead, source.nombre_estado_venta, 
+# MAGIC         source.lead_Correlation, source.nombre_estado_venta, source.cod_Contacto, source.cod_Oportunidad, source.cod_Classlife, source.nombre_Oportunidad,
+# MAGIC         source.fecha_Creacion_Lead, source.fecha_Modificacion_Lead, source.fecha_Creacion_Oportunidad, source.fecha_Modificacion_Oportunidad,
 # MAGIC         source.fecha_Cierre, source.cod_Unico_Zoho, source.ratio_Moneda, source.moneda, source.importe_Pagado, 
 # MAGIC         source.cod_Descuento, source.pct_Descuento, source.importe, source.tipo_Alumno, source.tipo_Conversion_opotunidad, 
-# MAGIC         source.tipo_Cliente_oportunidad, source.id_classlife ,source.fecha_hora_Pagado, source.fecha_Creacion_Oportunidad, source.fecha_Modificacion_Oportunidad, 
+# MAGIC         source.tipo_Cliente_oportunidad, source.id_classlife, source.fecha_hora_Pagado, 
 # MAGIC         source.fecha_hora_anulacion, source.processdate, source.sourcesystem
 # MAGIC     );
+
+# COMMAND ----------
+
+# DBTITLE 1,Actualiza datos sin cambiar de estado
+# MAGIC %sql
+# MAGIC MERGE INTO silver_lakehouse.tablon_leads_and_deals AS target
+# MAGIC USING staging_tablon AS source
+# MAGIC ON COALESCE(target.cod_Oportunidad, '') = COALESCE(source.cod_Oportunidad, '')
+# MAGIC    AND COALESCE(target.cod_Lead, '') = COALESCE(source.cod_Lead, '')  -- para cubrir registros sin lead
+# MAGIC
+# MAGIC -- Aquí detectamos que hay cambios, aunque no cambie el estado
+# MAGIC WHEN MATCHED AND source.fecha_Modificacion_Oportunidad > target.fecha_Modificacion_Oportunidad THEN
+# MAGIC UPDATE SET
+# MAGIC     target.fecha_hora_Pagado = source.fecha_hora_Pagado,
+# MAGIC     target.fecha_hora_Anulacion = source.fecha_hora_Anulacion,
+# MAGIC     target.fecha_Cierre = source.fecha_Cierre,
+# MAGIC     target.etapa = source.etapa,
+# MAGIC     target.probabilidad_Conversion = source.probabilidad_Conversion,
+# MAGIC     target.flujo_Venta = source.flujo_Venta,
+# MAGIC     target.nombre_Oportunidad = source.nombre_Oportunidad,
+# MAGIC     target.importe_Pagado = source.importe_Pagado,
+# MAGIC     target.ratio_Moneda = source.ratio_Moneda,
+# MAGIC     target.moneda = source.moneda,
+# MAGIC     target.cod_Descuento = source.cod_Descuento,
+# MAGIC     target.pct_Descuento = source.pct_Descuento,
+# MAGIC     target.importe = source.importe,
+# MAGIC     target.tipo_Alumno = source.tipo_Alumno,
+# MAGIC     target.tipo_Conversion_opotunidad = source.tipo_Conversion_opotunidad,
+# MAGIC     target.tipo_Cliente_oportunidad = source.tipo_Cliente_oportunidad,
+# MAGIC     target.processdate = source.processdate,
+# MAGIC     target.sourcesystem = source.sourcesystem;
 
 # COMMAND ----------
 

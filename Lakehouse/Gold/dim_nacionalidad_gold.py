@@ -2,8 +2,6 @@
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW dim_nacionalidad_view
 # MAGIC     AS SELECT * FROM gold_lakehouse.dim_pais;
-# MAGIC
-# MAGIC SELECT * FROM dim_nacionalidad_view;
 
 # COMMAND ----------
 

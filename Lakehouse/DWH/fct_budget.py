@@ -8,95 +8,109 @@
 from pyspark.sql.functions import col
 from psycopg2.extras import execute_values
 
-# Función para insertar o actualizar registros en `fct_budget`
+# Función para insertar o actualizar registros en PostgreSQL
 def upsert_fct_budget(partition):
-    if not partition:  # Si la partición está vacía, no hacer nada
-        logger.info("La partición está vacía, no se procesarán registros.")
+    if not partition:
+        logger.info("La partición está vacía.")
         return
 
     try:
-        conn = get_pg_connection()  # Obtener conexión desde la función del Bloque 1
+        conn = get_pg_connection()
         cursor = conn.cursor()
 
-        # Query para insertar o actualizar registros
         query = """
         INSERT INTO fct_budget (
-            id_budget,
-            fec_budget,
-            id_dim_escenario_budget,
-            id_dim_titulacion_budget,
-            centro,
-            sede,
-            modalidad,
-            num_leads_netos,
-            num_leads_brutos,
-            num_matriculas,
-            importe_venta_neta,
-            importe_venta_bruta,
-            importe_captacion,
-            fec_procesamiento
+            id_fct_budget,
+            id_dim_fecha_budget,
+            id_dim_escenario_presupuesto,
+            id_Dim_Producto,
+            escenario,
+            producto,
+            num_Leads_Netos,
+            num_Leads_Brutos,
+            num_Matriculas,
+            importe_matriculacion,
+            importe_Captacion,
+            id_Dim_Programa,
+            id_dim_modalidad,
+            id_dim_institucion,
+            id_dim_sede,
+            id_dim_tipo_formacion,
+            id_dim_tipo_negocio
         )
         VALUES %s
-        ON CONFLICT (id_budget) DO UPDATE SET
-            fec_budget = EXCLUDED.fec_budget,
-            id_dim_escenario_budget = EXCLUDED.id_dim_escenario_budget,
-            id_dim_titulacion_budget = EXCLUDED.id_dim_titulacion_budget,
-            centro = EXCLUDED.centro,
-            sede = EXCLUDED.sede,
-            modalidad = EXCLUDED.modalidad,
-            num_leads_netos = EXCLUDED.num_leads_netos,
-            num_leads_brutos = EXCLUDED.num_leads_brutos,
-            num_matriculas = EXCLUDED.num_matriculas,
-            importe_venta_neta = EXCLUDED.importe_venta_neta,
-            importe_venta_bruta = EXCLUDED.importe_venta_bruta,
-            importe_captacion = EXCLUDED.importe_captacion,
-            fec_procesamiento = EXCLUDED.fec_procesamiento;
+        ON CONFLICT (
+            id_dim_fecha_budget,
+            id_dim_escenario_presupuesto,
+            id_Dim_Producto,
+            id_Dim_Programa
+        ) DO UPDATE SET
+            id_fct_budget = EXCLUDED.id_fct_budget,
+            escenario = EXCLUDED.escenario,
+            producto = EXCLUDED.producto,
+            num_Leads_Netos = EXCLUDED.num_Leads_Netos,
+            num_Leads_Brutos = EXCLUDED.num_Leads_Brutos,
+            num_Matriculas = EXCLUDED.num_Matriculas,
+            importe_matriculacion = EXCLUDED.importe_matriculacion,
+            importe_Captacion = EXCLUDED.importe_Captacion,
+            id_dim_modalidad = EXCLUDED.id_dim_modalidad,
+            id_dim_institucion = EXCLUDED.id_dim_institucion,
+            id_dim_sede = EXCLUDED.id_dim_sede,
+            id_dim_tipo_formacion = EXCLUDED.id_dim_tipo_formacion,
+            id_dim_tipo_negocio = EXCLUDED.id_dim_tipo_negocio;
         """
 
-        # Transformar la partición de Spark en una lista de tuplas para insertar
         values = [(
-            row["id_budget"],
-            row["fec_budget"],
-            row["id_dim_escenario_budget"],
-            row["id_dim_titulacion_budget"],
-            row["centro"],
-            row["sede"],
-            row["modalidad"],
-            row["num_leads_netos"],
-            row["num_leads_brutos"],
-            row["num_matriculas"],
-            row["importe_venta_neta"],
-            row["importe_venta_bruta"],
-            row["importe_captacion"],
-            row["fec_procesamiento"]
+            row["id_fct_budget"],
+            row["id_dim_fecha_budget"],
+            row["id_dim_escenario_presupuesto"],
+            row["id_Dim_Producto"],
+            row["escenario"],
+            row["producto"],
+            row["num_Leads_Netos"],
+            row["num_Leads_Brutos"],
+            row["num_Matriculas"],
+            row["importe_matriculacion"],
+            row["importe_Captacion"],
+            row["id_Dim_Programa"],
+            row["id_dim_modalidad"],
+            row["id_dim_institucion"],
+            row["id_dim_sede"],
+            row["id_dim_tipo_formacion"],
+            row["id_dim_tipo_negocio"]
         ) for row in partition]
 
         if values:
-            # Ejecutar la inserción o actualización
             execute_values(cursor, query, values)
             conn.commit()
-            logger.info(f"Procesados {len(values)} registros en PostgreSQL (insertados o actualizados).")
+            logger.info(f"✅ Upsert completado: {len(values)} registros insertados o actualizados en fct_budget.")
         else:
-            logger.info("No se encontraron datos válidos en esta partición.")
+            logger.info("⚠️ No hay registros válidos para insertar en esta partición.")
 
         cursor.close()
         conn.close()
+
     except Exception as e:
-        logger.error(f"Error al procesar registros: {e}")
+        logger.error(f"💥 Error en upsert fct_budget: {e}")
         raise
 
-# Leer datos desde la tabla `gold_lakehouse.fct_budget` en Databricks
-source_table = (spark.table("gold_lakehouse.fct_budget")
-                .select("id_budget", "fec_budget", "id_dim_escenario_budget", "id_dim_titulacion_budget",
-                        "centro", "sede", "modalidad", "num_leads_netos", "num_leads_brutos",
-                        "num_matriculas", "importe_venta_neta", "importe_venta_bruta",
-                        "importe_captacion", "fec_procesamiento"))
+# 🔄 Leer datos desde la tabla en Databricks
+source_table = (
+    spark.table("gold_lakehouse.fct_budget")
+    .select(
+        "id_fct_budget","id_dim_fecha_budget", "id_dim_escenario_presupuesto", "id_Dim_Producto",
+        "escenario", "producto", "num_Leads_Netos", "num_Leads_Brutos",
+        "num_Matriculas", "importe_matriculacion", "importe_Captacion",
+        "id_Dim_Programa", "id_dim_modalidad", "id_dim_institucion",
+        "id_dim_sede", "id_dim_tipo_formacion", "id_dim_tipo_negocio"
+    )
+)
 
-# Aplicar la función a las particiones de datos
+# 🚀 Aplicar el upsert con foreachPartition
 try:
     source_table.foreachPartition(upsert_fct_budget)
-    logger.info("Proceso completado con éxito (Upsert en fct_budget de PostgreSQL).")
+    logger.info("🎯 ¡Proceso completado con éxito en fct_budget!")
 except Exception as e:
-    logger.error(f"Error general en el proceso: {e}")
+    logger.error(f"💥 Error general en el proceso fct_budget: {e}")
 
-print("¡Proceso completado!")
+print("✅ ¡Proceso completado!")

@@ -11,8 +11,6 @@
 # MAGIC FROM silver_lakehouse.sales
 # MAGIC WHERE origen_campania IS NOT NULL
 # MAGIC   AND origen_campania != '';
-# MAGIC
-# MAGIC select * from origen_campania_sales_view;
 
 # COMMAND ----------
 

@@ -19,7 +19,11 @@
 # MAGIC             ,COALESCE(tiponegocio.id_dim_tipo_negocio, -1) AS id_dim_tipo_negocio
 # MAGIC             ,COALESCE(pais.id, -1) AS id_dim_pais
 # MAGIC             ,enroll.year AS ano_curso
-# MAGIC             ,TRY_CAST(enroll.first_activate_enroll AS DATE) AS fec_matricula
+# MAGIC             ,CASE 
+# MAGIC                     WHEN TRY_CAST(enroll.first_activate_enroll AS DATE) IS NOT NULL THEN TRY_CAST(enroll.first_activate_enroll AS DATE)
+# MAGIC                     WHEN enroll.created_on IS NOT NULL THEN TRY_CAST(enroll.created_on AS DATE)
+# MAGIC                     ELSE TRY_CAST(enroll.enroll_in AS DATE)
+# MAGIC               END AS fec_matricula
 # MAGIC             ,COALESCE(matricula.id_dim_estado_matricula, -1) AS id_dim_estado_matricula
 # MAGIC             ,TRY_CAST('1900-01-01' AS DATE) AS fec_anulacion
 # MAGIC             ,TRY_CAST('1900-01-01' AS DATE) AS fec_finalizacion
@@ -49,8 +53,6 @@
 # MAGIC    LEFT JOIN gold_lakehouse.dim_tipo_negocio tiponegocio ON producto.tipo_Negocio = NULLIF(tiponegocio.tipo_negocio_desc, '')
 # MAGIC    LEFT JOIN gold_lakehouse.dim_pais pais ON UPPER(dim_estudiante.pais) = NULLIF(UPPER(pais.iso2), '')
 # MAGIC    LEFT JOIN gold_lakehouse.dim_estado_matricula matricula ON enroll.enroll_status_id = matricula.cod_estado_matricula;
-# MAGIC
-# MAGIC select * from fct_matricula_temp;
 
 # COMMAND ----------
 
@@ -64,9 +66,7 @@
 # MAGIC            ) AS rn
 # MAGIC     FROM fct_matricula_temp
 # MAGIC ) filtered
-# MAGIC WHERE rn = 1;  -- 🔹 Solo conserva la versión más reciente
-# MAGIC
-# MAGIC select * from fct_matricula_unique_temp;
+# MAGIC WHERE rn = 1;
 
 # COMMAND ----------
 
@@ -84,29 +84,29 @@
 # MAGIC ) AS source
 # MAGIC ON target.cod_matricula = source.cod_matricula
 # MAGIC WHEN MATCHED AND (
-# MAGIC     target.id_origen_SIS <> source.id_origen_SIS OR
-# MAGIC     target.id_dim_estudiante <> source.id_dim_estudiante OR
-# MAGIC     target.id_dim_programa <> source.id_dim_programa OR
-# MAGIC     target.id_dim_modalidad <> source.id_dim_modalidad OR
-# MAGIC     target.id_dim_institucion <> source.id_dim_institucion OR
-# MAGIC     target.id_dim_sede <> source.id_dim_sede OR
-# MAGIC     target.id_dim_producto <> source.id_dim_producto OR
-# MAGIC     target.id_dim_tipo_formacion <> source.id_dim_tipo_formacion OR
-# MAGIC     target.id_dim_tipo_negocio <> source.id_dim_tipo_negocio OR
-# MAGIC     target.id_dim_pais <> source.id_dim_pais OR
-# MAGIC     target.ano_curso <> source.ano_curso OR
-# MAGIC     target.fec_matricula <> source.fec_matricula OR
-# MAGIC     target.id_dim_estado_matricula <> source.id_dim_estado_matricula OR
-# MAGIC     target.fec_anulacion <> source.fec_anulacion OR
-# MAGIC     target.fec_finalizacion <> source.fec_finalizacion OR
-# MAGIC     target.nota_media <> source.nota_media OR
-# MAGIC     target.cod_descuento <> source.cod_descuento OR
-# MAGIC     COALESCE(target.importe_matricula, 0) <> source.importe_matricula OR
-# MAGIC     COALESCE(target.importe_descuento, 0) <> source.importe_descuento OR
-# MAGIC     COALESCE(target.importe_cobros, 0) <> source.importe_cobros OR
-# MAGIC     target.tipo_pago <> source.tipo_pago OR
-# MAGIC     target.edad_acceso <> source.edad_acceso OR
-# MAGIC     target.fec_ultimo_login_LMS <> source.fec_ultimo_login_LMS
+# MAGIC     target.id_origen_SIS IS DISTINCT FROM source.id_origen_SIS OR
+# MAGIC     target.id_dim_estudiante IS DISTINCT FROM source.id_dim_estudiante OR
+# MAGIC     target.id_dim_programa IS DISTINCT FROM source.id_dim_programa OR
+# MAGIC     target.id_dim_modalidad IS DISTINCT FROM source.id_dim_modalidad OR
+# MAGIC     target.id_dim_institucion IS DISTINCT FROM source.id_dim_institucion OR
+# MAGIC     target.id_dim_sede IS DISTINCT FROM source.id_dim_sede OR
+# MAGIC     target.id_dim_producto IS DISTINCT FROM source.id_dim_producto OR
+# MAGIC     target.id_dim_tipo_formacion IS DISTINCT FROM source.id_dim_tipo_formacion OR
+# MAGIC     target.id_dim_tipo_negocio IS DISTINCT FROM source.id_dim_tipo_negocio OR
+# MAGIC     target.id_dim_pais IS DISTINCT FROM source.id_dim_pais OR
+# MAGIC     target.ano_curso IS DISTINCT FROM source.ano_curso OR
+# MAGIC     target.fec_matricula IS DISTINCT FROM source.fec_matricula OR
+# MAGIC     target.id_dim_estado_matricula IS DISTINCT FROM source.id_dim_estado_matricula OR
+# MAGIC     target.fec_anulacion IS DISTINCT FROM source.fec_anulacion OR
+# MAGIC     target.fec_finalizacion IS DISTINCT FROM source.fec_finalizacion OR
+# MAGIC     target.nota_media IS DISTINCT FROM source.nota_media OR
+# MAGIC     target.cod_descuento IS DISTINCT FROM source.cod_descuento OR
+# MAGIC     target.importe_matricula IS DISTINCT FROM source.importe_matricula OR
+# MAGIC     target.importe_descuento IS DISTINCT FROM source.importe_descuento OR
+# MAGIC     target.importe_cobros IS DISTINCT FROM source.importe_cobros OR
+# MAGIC     target.tipo_pago IS DISTINCT FROM source.tipo_pago OR
+# MAGIC     target.edad_acceso IS DISTINCT FROM source.edad_acceso OR
+# MAGIC     target.fec_ultimo_login_LMS IS DISTINCT FROM source.fec_ultimo_login_LMS
 # MAGIC ) THEN 
 # MAGIC     UPDATE SET
 # MAGIC         target.id_origen_SIS = source.id_origen_SIS,

@@ -11,8 +11,6 @@
 # MAGIC     FROM gold_lakehouse.dim_producto
 # MAGIC     WHERE vertical IS NOT NULL 
 # MAGIC     AND vertical != '';
-# MAGIC
-# MAGIC select * from dim_vertical_view;
 
 # COMMAND ----------
 

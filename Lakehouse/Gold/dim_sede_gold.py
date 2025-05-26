@@ -5,19 +5,54 @@
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC CREATE OR REPLACE TEMPORARY VIEW dim_sede_view AS
-# MAGIC SELECT DISTINCT 
-# MAGIC     CASE WHEN producto.codigo_sede IS NULL THEN 0
-# MAGIC          ELSE producto.codigo_sede
-# MAGIC           END number_codigo_sede,
-# MAGIC     UPPER(REGEXP_REPLACE(try_element_at(SPLIT(cod_Producto, '-'), 3), '[0-9]', '')) AS codigo_sede,
-# MAGIC     CASE WHEN producto.sede IS NULL THEN 'NO REGISTRA'
-# MAGIC          ELSE producto.sede
-# MAGIC          END nombre_sede
-# MAGIC FROM gold_lakehouse.dim_producto producto
-# MAGIC WHERE producto.cod_Producto IS NOT NULL
-# MAGIC   AND producto.codigo_sede IS NOT NULL
-# MAGIC   AND producto.sede <> 'n/a';
+# MAGIC CREATE OR REPLACE TEMP VIEW dim_sede_view AS
+# MAGIC WITH sede_rankeada AS (
+# MAGIC     SELECT DISTINCT 
+# MAGIC          TRY_CAST(producto.codigo_sede AS INT) AS number_codigo_sede,
+# MAGIC          CASE UPPER(producto.sede)
+# MAGIC              WHEN 'ALICANTE' THEN 'ALI'
+# MAGIC              WHEN 'BARCELONA' THEN 'BCN'
+# MAGIC              WHEN 'BILBAO' THEN 'BIL'
+# MAGIC              WHEN 'GIJÓN' THEN 'GIJ'
+# MAGIC              WHEN 'IRUN' THEN 'IRN'
+# MAGIC              WHEN 'LA CORUÑA' THEN 'LCR'
+# MAGIC              WHEN 'LAS PALMAS DE GRAN CANARIA' THEN 'PGC'
+# MAGIC              WHEN 'LOGROÑO' THEN 'LOG'
+# MAGIC              WHEN 'MADRID' THEN 'MAD'
+# MAGIC              WHEN 'MÁLAGA' THEN 'MLG'
+# MAGIC              WHEN 'MALAGA' THEN 'MLG'
+# MAGIC              WHEN 'MURCIA' THEN 'MUR'
+# MAGIC              WHEN 'ONLINE' THEN 'ONL'
+# MAGIC              WHEN 'PALMA DE MALLORCA' THEN 'MLL'
+# MAGIC              WHEN 'SANTA CRUZ DE TENERIFE' THEN 'SCT'
+# MAGIC              WHEN 'SANTANDER' THEN 'SAN'
+# MAGIC              WHEN 'SEVILLA' THEN 'SEV'
+# MAGIC              WHEN 'VALENCIA' THEN 'VLC'
+# MAGIC              WHEN 'VITORIA-GASTEIZ' THEN 'VIT'
+# MAGIC              WHEN 'ZARAGOZA' THEN 'ZGZ'
+# MAGIC              ELSE NULL
+# MAGIC          END AS codigo_sede,
+# MAGIC          CASE 
+# MAGIC              WHEN producto.sede IS NULL THEN 'NO REGISTRA'
+# MAGIC              ELSE producto.sede
+# MAGIC          END AS nombre_sede,
+# MAGIC          ROW_NUMBER() OVER (PARTITION BY producto.sede ORDER BY TRY_CAST(producto.codigo_sede AS INT)) AS rn
+# MAGIC     FROM gold_lakehouse.dim_producto producto
+# MAGIC     WHERE producto.cod_producto IS NOT NULL
+# MAGIC       AND producto.sede IS NOT NULL
+# MAGIC       AND producto.sede <> 'n/a'
+# MAGIC )
+# MAGIC SELECT number_codigo_sede, codigo_sede, nombre_sede
+# MAGIC FROM sede_rankeada
+# MAGIC WHERE rn = 1;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC   SELECT number_codigo_sede, COUNT(*)
+# MAGIC     FROM dim_sede_view
+# MAGIC GROUP BY number_codigo_sede
+# MAGIC   HAVING COUNT(*) > 1;
 
 # COMMAND ----------
 
@@ -33,18 +68,15 @@
 # MAGIC     INSERT (number_codigo_sede, nombre_sede, codigo_sede)
 # MAGIC     VALUES (-1, 'n/a', 'n/a');
 # MAGIC
-# MAGIC -- 2️⃣ 🔹 Realizar el MERGE para actualizar o insertar nuevos registros de `dim_sede_view`
 # MAGIC MERGE INTO gold_lakehouse.dim_sede AS target
 # MAGIC USING (
 # MAGIC     SELECT DISTINCT number_codigo_sede, nombre_sede, codigo_sede FROM dim_sede_view
 # MAGIC ) AS source
 # MAGIC ON target.nombre_sede = source.nombre_sede
 # MAGIC
-# MAGIC -- 🔹 Si el registro ya existe, actualiza su código
 # MAGIC WHEN MATCHED THEN 
 # MAGIC     UPDATE SET target.codigo_sede = source.codigo_sede
 # MAGIC
-# MAGIC -- 🔹 Si el registro no existe, se inserta sin tocar el ID
 # MAGIC WHEN NOT MATCHED THEN
 # MAGIC     INSERT (number_codigo_sede, nombre_sede, codigo_sede, ETLcreatedDate, ETLupdatedDate)
 # MAGIC     VALUES (source.number_codigo_sede, source.nombre_sede, source.codigo_sede, current_timestamp(), current_timestamp());

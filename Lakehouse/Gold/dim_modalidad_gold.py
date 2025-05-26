@@ -12,8 +12,6 @@
 # MAGIC WHERE modalidad IS NOT NULL
 # MAGIC   AND modalidad <> ''
 # MAGIC   AND modalidad <> 'n/a';
-# MAGIC
-# MAGIC SELECT * FROM modalidad_sales_view;
 
 # COMMAND ----------
 
@@ -53,8 +51,3 @@
 # MAGIC DELETE FROM gold_lakehouse.dim_modalidad
 # MAGIC WHERE nombre_modalidad = 'n/a' AND id_dim_modalidad <> -1;
 # MAGIC
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from gold_lakehouse.dim_modalidad

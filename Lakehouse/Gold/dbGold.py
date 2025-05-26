@@ -666,35 +666,35 @@ spark.sql(sql_query)
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC **Tabla fct_budget**
+# MAGIC **Tabla fct_budget_old**
 
 # COMMAND ----------
 
-# DBTITLE 1,fct_budget
+# DBTITLE 1,old_fct_budget
 
-sql_query = f"""
-CREATE TABLE IF NOT EXISTS gold_lakehouse.fct_budget
-(
-id_budget BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
-fec_budget date,
-id_dim_escenario_budget	BIGINT,
-id_dim_titulacion_budget BIGINT,
-centro string,
-sede string,
-modalidad string,	
-num_leads_netos	integer,
-num_leads_brutos integer,
-num_matriculas integer,
-importe_venta_neta double,
-importe_venta_bruta double,
-importe_captacion	double,
-fec_procesamiento timestamp
-)
-USING DELTA
-LOCATION 'abfss://gold@{storage_account_name}.dfs.core.windows.net/lakehouse/fct_budget';
-"""
-
-spark.sql(sql_query)
+###sql_query = f"""
+###CREATE TABLE IF NOT EXISTS gold_lakehouse.fct_budget
+###(
+###id_budget BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 1 INCREMENT BY 1),
+###fec_budget date,
+###id_dim_escenario_budget	BIGINT,
+###id_dim_titulacion_budget BIGINT,
+###centro string,
+###sede string,
+###modalidad string,	
+###num_leads_netos	integer,
+###num_leads_brutos integer,
+###num_matriculas integer,
+###importe_venta_neta double,
+###importe_venta_bruta double,
+###importe_captacion	double,
+###fec_procesamiento timestamp
+###)
+###USING DELTA
+###LOCATION 'abfss://gold@{storage_account_name}.dfs.core.windows.net/lakehouse/fct_budget';
+###"""
+###
+###spark.sql(sql_query)
 
 # COMMAND ----------
 
@@ -946,8 +946,8 @@ sql_query = f"""
 CREATE TABLE IF NOT EXISTS gold_lakehouse.fctventa
 (
     id_venta BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 0 INCREMENT BY 1),
-    cod_lead BIGINT,
-    cod_oportunidad BIGINT,
+    cod_lead STRING,
+    cod_oportunidad STRING,
     nombre string,
     email string,
     telefono string,
@@ -1167,5 +1167,79 @@ CREATE TABLE IF NOT EXISTS gold_lakehouse.fct_recibos
 )
 USING DELTA
 LOCATION 'abfss://gold@{storage_account_name}.dfs.core.windows.net/lakehouse/fct_recibos';
+"""
+spark.sql(sql_query)
+
+# COMMAND ----------
+
+# DBTITLE 1,auxiliar_periodificacion
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS gold_lakehouse.auxiliar_periodificacion
+(
+    fecha_devengo DATE,
+    tipo_cargo STRING,
+    id_fct_matricula INT,
+    id_dim_estudiante INT,
+    id_dim_producto INT,
+    id_dim_programa INT,
+    id_dim_modalidad INT,
+    id_dim_institucion INT,
+    id_dim_sede INT,
+    id_dim_tipo_formacion INT,
+    id_dim_tipo_negocio INT,
+    fecha_inicio DATE,
+    fecha_fin DATE,
+    dias_duracion INT,
+    modalidad STRING,
+    importe DECIMAL(18,2),
+    importe_diario DECIMAL(18,2)
+)
+USING DELTA
+LOCATION 'abfss://gold@{storage_account_name}.dfs.core.windows.net/lakehouse/auxiliar_periodificacion';
+"""
+spark.sql(sql_query)
+
+# COMMAND ----------
+
+# DBTITLE 1,dim_escenario_presupuesto
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS gold_lakehouse.dim_escenario_presupuesto
+(
+    id_dim_escenario_presupuesto BIGINT GENERATED ALWAYS AS IDENTITY (START WITH -1 INCREMENT BY 1) PRIMARY KEY
+    ,nombre_escenario STRING
+    ,etlcreateddate TIMESTAMP
+    ,etlupdateddate TIMESTAMP
+)
+USING DELTA
+LOCATION 'abfss://gold@{storage_account_name}.dfs.core.windows.net/lakehouse/dim_escenario_presupuesto';
+"""
+spark.sql(sql_query)
+
+# COMMAND ----------
+
+# DBTITLE 1,fct_budget
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS gold_lakehouse.fct_budget
+(
+     id_fct_budget BIGINT GENERATED ALWAYS AS IDENTITY (START WITH 0 INCREMENT BY 1)
+    ,id_dim_fecha_budget DATE
+    ,id_dim_escenario_presupuesto INT
+    ,id_Dim_Producto INT
+    ,escenario STRING
+    ,producto STRING
+    ,num_Leads_Netos BIGINT
+    ,num_Leads_Brutos BIGINT
+    ,num_Matriculas BIGINT
+    ,importe_matriculacion DECIMAL(10,2)
+    ,importe_Captacion DECIMAL(10,2)
+    ,id_Dim_Programa INT
+    ,id_dim_modalidad INT
+    ,id_dim_institucion INT
+    ,id_dim_sede INT
+    ,id_dim_tipo_formacion INT
+    ,id_dim_tipo_negocio INT
+)
+USING DELTA
+LOCATION 'abfss://gold@{storage_account_name}.dfs.core.windows.net/lakehouse/fct_budget';
 """
 spark.sql(sql_query)

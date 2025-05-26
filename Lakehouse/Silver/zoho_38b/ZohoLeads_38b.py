@@ -6,7 +6,7 @@
 from pyspark.sql import SparkSession
 
 table_prefix = "JsaZohoLeads_"
-file_pattern = f"{bronze_folder_path}/lakehouse/zoho/{current_date}/{table_prefix}*.json"
+file_pattern = f"{bronze_folder_path}/lakehouse/zoho_38b/{current_date}/{table_prefix}*.json"
 
 print(f"Leyendo archivos desde: {file_pattern}")
 

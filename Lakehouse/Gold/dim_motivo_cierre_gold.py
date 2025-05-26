@@ -4,8 +4,6 @@
 # MAGIC     SELECT 
 # MAGIC         DISTINCT motivo_cierre AS motivo_cierre
 # MAGIC     FROM silver_lakehouse.sales;
-# MAGIC
-# MAGIC select * from motivo_cierre_sales_view;
 
 # COMMAND ----------
 

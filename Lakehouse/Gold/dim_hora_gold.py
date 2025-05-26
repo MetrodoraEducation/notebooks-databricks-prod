@@ -34,9 +34,3 @@
 # MAGIC     WHERE dim_hora.id_dim_hora = hora * 100 + minuto
 # MAGIC ); --id_dim_hora 2359
 # MAGIC
-
-# COMMAND ----------
-
-# DBTITLE 1,Select dim_hora
-# MAGIC %sql
-# MAGIC SELECT * FROM gold_lakehouse.dim_hora;

@@ -5,8 +5,6 @@
 # MAGIC     DISTINCT 
 # MAGIC     institucion AS nombre_institucion
 # MAGIC   FROM silver_lakehouse.sales;
-# MAGIC
-# MAGIC select * from institucion_sales_view;
 
 # COMMAND ----------
 
@@ -45,8 +43,6 @@
 # MAGIC                     ELSE 'n/a'
 # MAGIC                     END nombre_institucion
 # MAGIC FROM gold_lakehouse.dim_producto;
-# MAGIC
-# MAGIC select * from entidad_legal_view;
 
 # COMMAND ----------
 

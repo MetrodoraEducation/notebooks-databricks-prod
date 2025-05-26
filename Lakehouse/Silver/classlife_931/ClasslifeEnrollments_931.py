@@ -1,13 +1,13 @@
 # Databricks notebook source
 # DBTITLE 1,ulac
-# MAGIC %run "../Silver/configuration"
+# MAGIC %run "/Repos/production_repository/notebooks-databricks-prod/Lakehouse/Silver/configuration"
 
 # COMMAND ----------
 
 endpoint_process_name = "enrollments"
 table_name = "JsaClassLifeEnrollments"
 
-classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife/{endpoint_process_name}/{current_date}/{table_name}.json")
+classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/{table_name}.json")
 classlifetitulaciones_df
 
 # COMMAND ----------
@@ -95,44 +95,46 @@ if "metas" in classlifetitulaciones_df.columns:
             *[col(f"metas.{c}").alias(f"metas_{c}") for c in metas_cols]  
         ).drop("metas")
 
+display(classlifetitulaciones_df)
+
 # COMMAND ----------
 
 # DBTITLE 1,Desanida fees
-from pyspark.sql.functions import col, explode, first, when, coalesce, lit
-
-# 📌 Desanidar fees si es un ArrayType
-if "fees" in classlifetitulaciones_df.columns:
-    fees_schema = classlifetitulaciones_df.schema["fees"].dataType
-
-    if hasattr(fees_schema, "elementType"):  # Es un ArrayType
-        classlifetitulaciones_df = classlifetitulaciones_df.withColumn("fees", explode(col("fees")))
-
-    # 📌 Extraer los campos de la estructura fees si es un StructType
-    fees_schema = classlifetitulaciones_df.schema["fees"].dataType
-    if hasattr(fees_schema, "fields"):  # Es un StructType
-        fees_cols = [f.name for f in fees_schema.fields]
-
-        classlifetitulaciones_df = classlifetitulaciones_df.select(
-            "*", 
-            *[col(f"fees.{c}").alias(f"{c}") for c in fees_cols]  # Renombramos con el mismo nombre
-        ).drop("fees")
-
-# 📌 Crear fee_title_matricula y fee_title_docencia con valores específicos
-classlifetitulaciones_df = classlifetitulaciones_df.withColumn(
-    "fee_title_matricula", when(col("fee_title") == "Matrícula", col("fee_amount"))
-).withColumn(
-    "fee_title_docencia", when(col("fee_title") == "Docencia", col("fee_amount"))
-)
-
-# 📌 Obtener todas las columnas originales excepto las eliminadas
-columnas_originales = [c for c in classlifetitulaciones_df.columns if c not in ["fee_title", "fee_amount", "enroll_id"]]
-
-# 📌 Consolidar registros por enroll_id y mantener todas las columnas originales
-classlifetitulaciones_df = classlifetitulaciones_df.groupBy("enroll_id").agg(
-    *[first(col(c), ignorenulls=True).alias(c) for c in columnas_originales if c not in ["fee_title_matricula", "fee_title_docencia"]],
-    coalesce(first("fee_title_matricula", ignorenulls=True), lit(0)).alias("fee_title_matricula"),
-    coalesce(first("fee_title_docencia", ignorenulls=True), lit(0)).alias("fee_title_docencia")
-)
+##from pyspark.sql.functions import col, explode, first, when, coalesce, lit
+##
+### 📌 Desanidar fees si es un ArrayType
+##if "fees" in classlifetitulaciones_df.columns:
+##    fees_schema = classlifetitulaciones_df.schema["fees"].dataType
+##
+##    if hasattr(fees_schema, "elementType"):  # Es un ArrayType
+##        classlifetitulaciones_df = classlifetitulaciones_df.withColumn("fees", explode(col("fees")))
+##
+##    # 📌 Extraer los campos de la estructura fees si es un StructType
+##    fees_schema = classlifetitulaciones_df.schema["fees"].dataType
+##    if hasattr(fees_schema, "fields"):  # Es un StructType
+##        fees_cols = [f.name for f in fees_schema.fields]
+##
+##        classlifetitulaciones_df = classlifetitulaciones_df.select(
+##            "*", 
+##            *[col(f"fees.{c}").alias(f"{c}") for c in fees_cols]  # Renombramos con el mismo nombre
+##        ).drop("fees")
+##
+### 📌 Crear fee_title_matricula y fee_title_docencia con valores específicos
+##classlifetitulaciones_df = classlifetitulaciones_df.withColumn(
+##    "fee_title_matricula", when(col("fee_title") == "Matrícula", col("fee_amount"))
+##).withColumn(
+##    "fee_title_docencia", when(col("fee_title") == "Docencia", col("fee_amount"))
+##)
+##
+### 📌 Obtener todas las columnas originales excepto las eliminadas
+##columnas_originales = [c for c in classlifetitulaciones_df.columns if c not in ["fee_title", "fee_amount", "enroll_id"]]
+##
+### 📌 Consolidar registros por enroll_id y mantener todas las columnas originales
+##classlifetitulaciones_df = classlifetitulaciones_df.groupBy("enroll_id").agg(
+##    *[first(col(c), ignorenulls=True).alias(c) for c in columnas_originales if c not in ["fee_title_matricula", "fee_title_docencia"]],
+##    coalesce(first("fee_title_matricula", ignorenulls=True), lit(0)).alias("fee_title_matricula"),
+##    coalesce(first("fee_title_docencia", ignorenulls=True), lit(0)).alias("fee_title_docencia")
+##)
 
 # COMMAND ----------
 
@@ -208,7 +210,17 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
 from pyspark.sql.functions import col, to_date, to_timestamp, lit, current_timestamp
 from pyspark.sql.types import StringType, IntegerType
 
-# 📌 Lista de columnas con transformaciones
+# Lista de columnas que podrían no existir y deben agregarse como NULL
+columnas_a_forzar_null = [
+    "admisiones","codigo_promocion_id","paymentmethod","modalidad","lead_admission","lead_segment","lead_asnew","lead_date","lead_message_read","lead_phone","lead_lastname","lead_status","lead_name","lead_source","paymentmethodwannme","newsletter", "school_id_2", "codigo_promocion", "created_on", "enroll_stage"
+]
+
+# Crear columnas como NULL si no existen en el DataFrame
+for col_name in columnas_a_forzar_null:
+    if col_name not in classlifetitulaciones_df.columns:
+        classlifetitulaciones_df = classlifetitulaciones_df.withColumn(col_name, lit(None).cast(StringType()))
+
+# Lista completa con transformaciones
 columnas_con_tipo = [
     ("processdate", current_timestamp()), 
     ("sourcesystem", lit("ClasslifeEnrollments")), 
@@ -278,14 +290,13 @@ columnas_con_tipo = [
     ("fee_title_matricula", col("fee_title_matricula").cast(StringType()))
 ]
 
-# 📌 Aplicar transformaciones
+# Aplicar transformaciones
 classlifetitulaciones_df = classlifetitulaciones_df.select(
-    [expr.alias(nombre) for nombre, expr in columnas_con_tipo]
+    *[expr.alias(nombre) for nombre, expr in columnas_con_tipo]
 )
 
-# 📌 Mostrar solo las columnas que acabas de definir
-columnas_a_mostrar = [nombre for nombre, _ in columnas_con_tipo]
-#display(classlifetitulaciones_df.select(columnas_a_mostrar))
+# Mostrar resultado
+display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
