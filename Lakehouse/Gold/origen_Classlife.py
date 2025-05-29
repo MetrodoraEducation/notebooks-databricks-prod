@@ -5,6 +5,11 @@
 # COMMAND ----------
 
 # MAGIC %sql
+# MAGIC select * from gold_lakehouse.origenClasslife;
+
+# COMMAND ----------
+
+# MAGIC %sql
 # MAGIC -- 1️⃣ 🔹 Asegurar que el registro `id_Dim_Origen_SIS = -1` existe solo una vez con valores `n/a`
 # MAGIC MERGE INTO gold_lakehouse.origenClasslife AS target
 # MAGIC USING (

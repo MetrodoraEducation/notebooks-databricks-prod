@@ -209,7 +209,49 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC MERGE INTO silver_lakehouse.ClasslifeAdmissions AS target
 # MAGIC USING classlifetitulaciones_view AS source
 # MAGIC ON target.id = source.id
-# MAGIC WHEN MATCHED THEN 
-# MAGIC     UPDATE SET *
+# MAGIC
+# MAGIC WHEN MATCHED AND (
+# MAGIC        target.student_phone IS DISTINCT FROM source.student_phone
+# MAGIC     OR target.comercial IS DISTINCT FROM source.comercial
+# MAGIC     OR target.student_email IS DISTINCT FROM source.student_email
+# MAGIC     OR target.ini_date IS DISTINCT FROM source.ini_date
+# MAGIC     OR target.zoho_deal_id IS DISTINCT FROM source.zoho_deal_id
+# MAGIC     OR target.enroll_group IS DISTINCT FROM source.enroll_group
+# MAGIC     OR target.ciclo_title IS DISTINCT FROM source.ciclo_title
+# MAGIC     OR target.student_dni IS DISTINCT FROM source.student_dni
+# MAGIC     OR target.registration_date IS DISTINCT FROM source.registration_date
+# MAGIC     OR target.year_id IS DISTINCT FROM source.year_id
+# MAGIC     OR target.student_full_name IS DISTINCT FROM source.student_full_name
+# MAGIC     OR target.area_title IS DISTINCT FROM source.area_title
+# MAGIC     OR target.school_name IS DISTINCT FROM source.school_name
+# MAGIC     OR target.end_date IS DISTINCT FROM source.end_date
+# MAGIC     OR target.sourcesystem IS DISTINCT FROM source.sourcesystem
+# MAGIC ) THEN 
+# MAGIC     UPDATE SET
+# MAGIC        student_phone       = source.student_phone,
+# MAGIC        comercial           = source.comercial,
+# MAGIC        student_email       = source.student_email,
+# MAGIC        ini_date            = source.ini_date,
+# MAGIC        zoho_deal_id        = source.zoho_deal_id,
+# MAGIC        enroll_group        = source.enroll_group,
+# MAGIC        ciclo_title         = source.ciclo_title,
+# MAGIC        student_dni         = source.student_dni,
+# MAGIC        registration_date   = source.registration_date,
+# MAGIC        year_id             = source.year_id,
+# MAGIC        student_full_name   = source.student_full_name,
+# MAGIC        area_title          = source.area_title,
+# MAGIC        school_name         = source.school_name,
+# MAGIC        end_date            = source.end_date,
+# MAGIC        sourcesystem        = source.sourcesystem
+# MAGIC
 # MAGIC WHEN NOT MATCHED THEN 
-# MAGIC     INSERT *;
+# MAGIC     INSERT (
+# MAGIC         student_phone, comercial, student_email, ini_date, zoho_deal_id,
+# MAGIC         enroll_group, ciclo_title, id, student_dni, registration_date,
+# MAGIC         year_id, student_full_name, area_title, school_name, end_date
+# MAGIC     )
+# MAGIC     VALUES (
+# MAGIC         source.student_phone, source.comercial, source.student_email, source.ini_date, source.zoho_deal_id,
+# MAGIC         source.enroll_group, source.ciclo_title, source.id, source.student_dni, source.registration_date,
+# MAGIC         source.year_id, source.student_full_name, source.area_title, source.school_name, source.end_date
+# MAGIC     );

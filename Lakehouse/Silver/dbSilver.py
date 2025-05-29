@@ -1213,6 +1213,7 @@ spark.sql(sql_query)
 
 # COMMAND ----------
 
+# DBTITLE 1,budget_ff
 sql_query = f"""
 CREATE TABLE IF NOT EXISTS silver_lakehouse.budget_ff
 (
@@ -1230,4 +1231,115 @@ LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/b
 """
 
 # Ejecutar la consulta SQL con Spark
+spark.sql(sql_query)
+
+# COMMAND ----------
+
+# DBTITLE 1,ClasslifeEnrollments_931
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS silver_lakehouse.ClasslifeEnrollments_931
+(
+     area_id STRING
+    ,area_title STRING
+    ,ciclo_id STRING
+    ,ciclo_title STRING
+    ,degree_id STRING
+    ,degree_title STRING
+    ,enroll_alias STRING
+    ,enroll_end STRING
+    ,enroll_group STRING
+    ,enroll_id STRING
+    ,enroll_in STRING
+    ,enroll_ini STRING
+    ,enroll_status STRING
+    ,enroll_status_id STRING
+    ,school_id STRING
+    ,school_name STRING
+    ,section_id STRING
+    ,section_title STRING
+    ,student_full_name STRING
+    ,student_id STRING
+    ,term_id STRING
+    ,term_title STRING
+    ,updated_at STRING
+    ,year STRING
+    ,about_agent_code__c STRING
+    ,admisionesmodalidad STRING
+    ,totalenroll STRING
+    ,totalfinal STRING
+    ,totalfinaldocencia STRING
+    ,totalfinalmatricula STRING
+    ,id_contacto STRING
+    ,processdate TIMESTAMP
+    ,sourcesystem STRING
+)
+USING DELTA
+LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/ClasslifeEnrollments_931';
+"""
+
+# Ejecutar la consulta SQL con Spark
+spark.sql(sql_query)
+
+# COMMAND ----------
+
+# DBTITLE 1,classlifetitulaciones_931
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS silver_lakehouse.classlifetitulaciones_931
+(
+    admisionsino STRING,
+    degree_title STRING,
+    horas_acreditadas STRING,
+    plazas STRING,
+    codigo_programa STRING,
+    area_title STRING,
+    fecha_inicio_cuotas STRING,
+    enroll_group_id STRING,
+    tarifa_ampliacion STRING,
+    tarifa_euneiz STRING,
+    term_title STRING,
+    especialidad STRING,
+    fecha_fin STRING,
+    enroll_group_id_2 STRING,
+    fecha_fin_cuotas STRING,
+    ano_inicio_docencia STRING,
+    fecha_fin_reconocimiento_ingresos STRING,
+    term_id STRING,
+    fecha_inicio_reconocimiento_ingresos STRING,
+    group_vertical STRING,
+    tarifa_matricula STRING,
+    zoho_id STRING,
+    nombre_del_programa_oficial_completo STRING,
+    codigo_entidad_legal STRING,
+    fecha_fin_docencia STRING,
+    nombreweb STRING,
+    area_codigo_vertical STRING,
+    enroll_end STRING,
+    area_entidad_legal STRING,
+    ciclo_title STRING,
+    school_id STRING,
+    ultima_actualizacion STRING,
+    horas_acreditadas_2 STRING,
+    tiponegocio STRING,
+    enroll_group_name STRING,
+    enroll_alias STRING,
+    school_name STRING,
+    nombre_antiguo_de_programa STRING,
+    group_entidad_legal STRING,
+    area_vertical STRING,
+    section_id STRING,
+    section_title STRING,
+    area_entidad_legal_codigo STRING,
+    group_sede STRING,
+    fecha_creacion STRING,
+    tarifa_docencia STRING,
+    total_tarifas STRING,
+    group_codigo_vertical STRING,
+    processdate TIMESTAMP,
+    sourcesystem STRING
+)
+USING DELTA
+LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/classlifetitulaciones_931';
+"""
+
+# Ejecutar creación de tabla
 spark.sql(sql_query)

@@ -22,35 +22,35 @@
 # MAGIC                         leads.Apellido_2 AS Apellido2,
 # MAGIC                         leads.Email AS email,
 # MAGIC                         leads.Mobile AS telefono1,
-# MAGIC                         COALESCE(leads.Nacionalidad, deals.Nacionalidad1) AS nacionalidad,
+# MAGIC                         COALESCE(deals.Nacionalidad1, leads.Nacionalidad) AS nacionalidad,
 # MAGIC                         leads.Phone AS telefono2,
 # MAGIC                         leads.Provincia AS provincia,
-# MAGIC                         COALESCE(leads.Residencia, deals.Residencia1) AS residencia,
+# MAGIC                         COALESCE(deals.Residencia1, leads.Residencia) AS residencia,
 # MAGIC                         leads.Sexo AS sexo,
-# MAGIC                         COALESCE(leads.lead_rating, deals.br_rating) AS lead_Rating,
-# MAGIC                         COALESCE(try_cast(leads.lead_scoring AS DOUBLE), try_cast(deals.br_score AS DOUBLE)) AS leadScoring,
-# MAGIC                         COALESCE(leads.Lead_Status, deals.etapa) AS etapa,
-# MAGIC                         COALESCE(leads.Motivos_perdida, deals.Motivo_perdida_B2B, deals.Motivo_perdida_B2C) AS motivo_Perdida,
+# MAGIC                         COALESCE(deals.br_rating, leads.lead_rating) AS lead_Rating,
+# MAGIC                         COALESCE(try_cast(deals.br_score AS DOUBLE), try_cast(leads.lead_scoring AS DOUBLE)) AS leadScoring,
+# MAGIC                         COALESCE(deals.etapa, leads.Lead_Status) AS etapa,
+# MAGIC                         COALESCE(deals.Motivo_perdida_B2C, deals.Motivo_perdida_B2B, leads.Motivos_perdida) AS motivo_Perdida,
 # MAGIC                         deals.Probabilidad AS probabilidad_Conversion,
 # MAGIC                         deals.Pipeline AS flujo_Venta,
 # MAGIC                         deals.Profesion_Estudiante AS profesion_Estudiante,
 # MAGIC                         deals.Competencia AS competencia,
-# MAGIC                         COALESCE(leads.Tipologia_cliente, deals.Tipologia_cliente) AS tipo_Cliente_lead,
+# MAGIC                         COALESCE(deals.Tipologia_cliente, leads.Tipologia_cliente) AS tipo_Cliente_lead,
 # MAGIC                         leads.tipo_conversion as tipo_conversion_lead,
-# MAGIC                         COALESCE(leads.utm_ad_id, deals.utm_ad_id) AS utm_ad_id,
-# MAGIC                         COALESCE(leads.utm_adset_id, deals.utm_adset_id) AS utm_adset_id,
-# MAGIC                         COALESCE(leads.utm_campaign_id, deals.utm_campaign_id) AS utm_campaign_id,
-# MAGIC                         COALESCE(leads.utm_campaign_name, deals.utm_campaign_name) AS utm_campaign_name,
-# MAGIC                         COALESCE(leads.utm_channel, deals.utm_channel) AS utm_channel,
-# MAGIC                         COALESCE(leads.utm_strategy, deals.utm_strategy) AS utm_estrategia,
-# MAGIC                         COALESCE(leads.utm_medium, deals.utm_medium) AS utm_medium,
-# MAGIC                         COALESCE(leads.utm_profile, deals.utm_profile) AS utm_perfil,
-# MAGIC                         COALESCE(leads.utm_source, deals.utm_source) AS utm_source,
-# MAGIC                         COALESCE(leads.utm_term, deals.utm_term) AS utm_term,
-# MAGIC                         COALESCE(leads.utm_type, deals.utm_type) AS utm_type,
-# MAGIC                         COALESCE(leads.Owner_id, deals.Owner_id) AS cod_Owner,
-# MAGIC                         COALESCE(leads.id_producto, deals.ID_Producto) AS cod_Producto,
-# MAGIC                         COALESCE(leads.lead_correlation_id, deals.lead_correlation_id) AS lead_Correlation,
+# MAGIC                         COALESCE(deals.utm_ad_id, leads.utm_ad_id) AS utm_ad_id,
+# MAGIC                         COALESCE(deals.utm_adset_id, leads.utm_adset_id) AS utm_adset_id,
+# MAGIC                         COALESCE(deals.utm_campaign_id, leads.utm_campaign_id) AS utm_campaign_id,
+# MAGIC                         COALESCE(deals.utm_campaign_name, leads.utm_campaign_name) AS utm_campaign_name,
+# MAGIC                         COALESCE(deals.utm_channel, leads.utm_channel) AS utm_channel,
+# MAGIC                         COALESCE(deals.utm_strategy, leads.utm_strategy) AS utm_estrategia,
+# MAGIC                         COALESCE(deals.utm_medium, leads.utm_medium) AS utm_medium,
+# MAGIC                         COALESCE(deals.utm_profile, leads.utm_profile) AS utm_perfil,
+# MAGIC                         COALESCE(deals.utm_source, leads.utm_source) AS utm_source,
+# MAGIC                         COALESCE(deals.utm_term, leads.utm_term) AS utm_term,
+# MAGIC                         COALESCE(deals.utm_type, leads.utm_type) AS utm_type,
+# MAGIC                         COALESCE(deals.Owner_id, leads.Owner_id) AS cod_Owner,
+# MAGIC                         COALESCE(deals.ID_Producto, leads.id_producto) AS cod_Producto,
+# MAGIC                         COALESCE(deals.lead_correlation_id, leads.lead_correlation_id) AS lead_Correlation,
 # MAGIC                         leads.Created_Time AS fecha_Creacion_Lead, --leads.Created_Time
 # MAGIC                         leads.Modified_Time AS fecha_Modificacion_Lead,
 # MAGIC                         CASE WHEN deals.etapa = 'Perdido' THEN 'PERDIDA'
@@ -272,10 +272,12 @@
 # MAGIC MERGE INTO silver_lakehouse.tablon_leads_and_deals AS target
 # MAGIC USING staging_tablon AS source
 # MAGIC ON COALESCE(target.cod_Oportunidad, '') = COALESCE(source.cod_Oportunidad, '')
-# MAGIC    AND COALESCE(target.cod_Lead, '') = COALESCE(source.cod_Lead, '')  -- para cubrir registros sin lead
+# MAGIC    AND COALESCE(target.cod_Lead, '') = COALESCE(source.cod_Lead, '')
 # MAGIC
-# MAGIC -- Aquí detectamos que hay cambios, aunque no cambie el estado
-# MAGIC WHEN MATCHED AND source.fecha_Modificacion_Oportunidad > target.fecha_Modificacion_Oportunidad THEN
+# MAGIC WHEN MATCHED AND (
+# MAGIC     source.fecha_Modificacion_Oportunidad > target.fecha_Modificacion_Oportunidad
+# MAGIC     OR source.etapa IS DISTINCT FROM target.etapa
+# MAGIC ) THEN
 # MAGIC UPDATE SET
 # MAGIC     target.fecha_hora_Pagado = source.fecha_hora_Pagado,
 # MAGIC     target.fecha_hora_Anulacion = source.fecha_hora_Anulacion,

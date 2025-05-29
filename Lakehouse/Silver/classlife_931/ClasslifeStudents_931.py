@@ -1,6 +1,6 @@
 # Databricks notebook source
 # DBTITLE 1,ulac
-# MAGIC %run "../Silver/configuration"
+# MAGIC %run "../configuration"
 
 # COMMAND ----------
 
@@ -164,41 +164,87 @@ display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
-from pyspark.sql.functions import col, lit, current_timestamp
-from pyspark.sql.types import StringType, IntegerType, DoubleType
+from pyspark.sql.functions import col, lit, current_timestamp, to_timestamp, to_date
+from pyspark.sql.types import StringType, IntegerType
 
-# 📌 Aplicar transformaciones y selección solo de columnas definidas
-classlifetitulaciones_df = classlifetitulaciones_df \
-    .select(
-        "centredeprocedencia", "modalidad", "profesion", "fiscaladmit_codipais", "lead_phone", "lead_name",
-        "factura_correo", "cip", "lead_source", "anydepreinscripcio", "degree_id", "newsletter",
-        "foce_create_lead", "student_language", "fiscaladmit_direccion", "language", "year_id", "direccion",
-        "databaixaacademica", "fiscaladmit_iban", "codipaisnaixement", "titulouniversitariofisioterapia",
-        "lead_alias", "basephone", "colegiadoprofesional", "ciudad", "seguridadsocial", "factura_pais",
-        "lastname", "datosacceso_ultim_estudi_matriculat", "certificadouniversitariosolicitudtitulo",
-        "dnumero", "codipreinscripcio", "student_blocked", "student_phone", "student_email", "student_uid",
-        "descala", "dplanta", "fiscaladmit_movil", "student_active", "student_lastname", "email2",
-        "ncolegiado", "term_id", "phone", "admit_dni_front", "classlife_uid", "dtipus", "factura_ciudad",
-        "lead_lastnameend", "fiscaladmit_cif", "area_id", "lead_area", "enroll_ref", "lead_email", "zoho_id",
-        "excludesecurityarraymetas", "dpuerta", "politicas", "sexo", "lead_segment", "student_id",
-        "datosacceso_curs_ultim_estudi_matriculat", "lead_lastname", "lead_status", "nommunicipinaixementfora",
-        "school_id", "fiscaladmit_lastnameend", "student_lastnameend", "fiscaladmit_correo", "dbloc",
-        "factura_numfiscal", "lead_count", "nia", "factura_nomfactura", "edad", "incompany", "telefono",
-        "fiscaladmit_codigo", "comunidadautonoma", "admit_dni_back", "codigo", "lastnameend",
-        "lead_admission", "lead_asnew", "email", "student_name", "name", "pais", "school_id_2",
-        "datosacceso_pais_ultim_curs_matriculat", "medicas", "lead_id", "ciclo_id", "section_id",
-        "factura_movil", "codinacionalitat", "factura_direccion", "provincia", "codiprovincianaixement",
-        "telefono2", "codimunicipinaixement", "matricula4gradofisioterapia", "fiscaladmit_ciudad",
-        "student_key", "fiscaladmit_titular", "codipais", "lead_language", "student_full_name",
-        "tipusdocument", "factura_codigo", "lead_message_read", "group", "nacimiento", "lead_date",
-        "created_on", "updated_at", "dataingres", "student_registration_date"
-    ) \
-    .withColumn("processdate", current_timestamp()) \
-    .withColumn("sourcesystem", lit("ClasslifeEnrollments"))
+# 📌 Lista de columnas que podrían no existir y deben agregarse como NULL
+columnas_a_forzar_null = [
+    "admisiones","codigo_promocion_id","paymentmethod","modalidad","lead_admission","lead_segment",
+    "lead_asnew","lead_date","lead_message_read","lead_phone","lead_lastname","lead_status",
+    "lead_name","lead_source","paymentmethodwannme","newsletter", "school_id_2", "codigo_promocion",
+    "created_on", "enroll_stage", "lead_id", "lead_lastnameend", "tipopagador", "lead_area",
+    "acceso_euneiz", "lead_email", "lead_count", "lead_alias", "suma_descuentos", "incompany",
+    "enroll_step", "lead_language", "updated_at_2", "zoho_deal_id", "first_activate_enroll", "degree_title", "degree_id", "term_id", "updated_at", "centredeprocedencia", "fiscaladmit_codipais", "factura_correo", "cip", "anydepreinscripcio", "foce_create_lead"
+]
 
-# ✅ Mostrar el dataframe limpio
+# 🔧 Crear columnas nulas si no existen
+for col_name in columnas_a_forzar_null:
+    if col_name not in classlifetitulaciones_df.columns:
+        classlifetitulaciones_df = classlifetitulaciones_df.withColumn(col_name, lit(None).cast(StringType()))
+
+# 📌 Transformación de columnas
+columnas_con_tipo = [
+    ("processdate", current_timestamp()), 
+    ("sourcesystem", lit("classlifeStudents_931")),
+    ("centredeprocedencia", col("centredeprocedencia").cast(StringType())),
+    ("profesion", col("profesion").cast(StringType())),
+    ("foce_create_lead", col("foce_create_lead").cast(StringType())),
+    ("fiscaladmit_codipais", col("fiscaladmit_codipais").cast(StringType())),
+    ("cip", col("cip").cast(StringType())),
+    ("anydepreinscripcio", col("anydepreinscripcio").cast(StringType())),
+    ("factura_correo", col("factura_correo").cast(StringType())),
+    ("student_id", col("student_id").cast(StringType())),
+    ("student_phone", col("student_phone").cast(StringType())),
+    ("student_email", col("student_email").cast(StringType())),
+    ("student_full_name", col("student_full_name").cast(StringType())),
+    ("school_id", col("school_id").cast(StringType())),
+    ("school_id_2", col("school_id_2").cast(StringType())),
+    ("lead_id", col("lead_id").cast(StringType())),
+    ("lead_alias", col("lead_alias").cast(StringType())),
+    ("lead_name", col("lead_name").cast(StringType())),
+    ("lead_lastname", col("lead_lastname").cast(StringType())),
+    ("lead_lastnameend", col("lead_lastnameend").cast(StringType())),
+    ("lead_email", col("lead_email").cast(StringType())),
+    ("lead_phone", col("lead_phone").cast(StringType())),
+    ("lead_status", col("lead_status").cast(StringType())),
+    ("lead_segment", col("lead_segment").cast(StringType())),
+    ("lead_language", col("lead_language").cast(StringType())),
+    ("lead_admission", col("lead_admission").cast(StringType())),
+    ("lead_asnew", col("lead_asnew").cast(StringType())),
+    ("lead_message_read", col("lead_message_read").cast(StringType())),
+    ("lead_count", col("lead_count").cast(IntegerType())),
+    ("lead_source", col("lead_source").cast(StringType())),
+    ("admisiones", col("admisiones").cast(StringType())),
+    ("modalidad", col("modalidad").cast(StringType())),
+    ("codigo_promocion", col("codigo_promocion").cast(StringType())),
+    ("codigo_promocion_id", col("codigo_promocion_id").cast(StringType())),
+    ("degree_title", col("degree_title").cast(StringType())),
+    ("degree_id", col("degree_id").cast(StringType())),
+    ("term_id", col("term_id").cast(StringType())),
+    ("enroll_stage", col("enroll_stage").cast(StringType())),
+    ("incompany", col("incompany").cast(StringType())),
+    ("newsletter", col("newsletter").cast(StringType())),
+    ("acceso_euneiz", col("acceso_euneiz").cast(StringType())),
+    ("tipopagador", col("tipopagador").cast(StringType())),
+    ("lead_area", col("lead_area").cast(StringType())),
+    ("suma_descuentos", col("suma_descuentos").cast(StringType())),
+    ("enroll_step", col("enroll_step").cast(StringType())),
+    ("created_on", to_timestamp(col("created_on"))),
+    ("updated_at", to_timestamp(col("updated_at"))),
+    ("updated_at_2", to_timestamp(col("updated_at_2"))),
+    ("zoho_deal_id", col("zoho_deal_id").cast(StringType())),
+    ("first_activate_enroll", col("first_activate_enroll").cast(StringType())),
+    ("fee_title_docencia", col("fee_title_docencia").cast(StringType())),
+    ("fee_title_matricula", col("fee_title_matricula").cast(StringType())),
+]
+
+# ✅ Aplicar las transformaciones
+classlifetitulaciones_df = classlifetitulaciones_df.select(
+    *[expr.alias(nombre) for nombre, expr in columnas_con_tipo]
+)
+
+# 👉 Mostrar el resultado
 display(classlifetitulaciones_df)
-
 
 # COMMAND ----------
 
@@ -210,8 +256,16 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 
 # COMMAND ----------
 
+#%sql
+#CREATE TABLE silver_lakehouse.classlifeStudents_backup
+#AS
+#SELECT * FROM silver_lakehouse.classlifeStudents
+#WHERE 1 = 0;
+
+# COMMAND ----------
+
 # MAGIC %sql
-# MAGIC MERGE INTO silver_lakehouse.classlifeStudents AS target
+# MAGIC MERGE INTO silver_lakehouse.classlifeStudents_backup AS target
 # MAGIC USING classlifetitulaciones_view AS source
 # MAGIC ON target.student_id = source.student_id
 # MAGIC
@@ -220,17 +274,12 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC         target.centredeprocedencia IS DISTINCT FROM source.centredeprocedencia OR
 # MAGIC         target.modalidad IS DISTINCT FROM source.modalidad OR
 # MAGIC         target.profesion IS DISTINCT FROM source.profesion OR
-# MAGIC         target.fiscaladmit_codipais IS DISTINCT FROM source.fiscaladmit_codipais OR
-# MAGIC         target.lead_phone IS DISTINCT FROM source.lead_phone OR
-# MAGIC         target.lead_name IS DISTINCT FROM source.lead_name OR
-# MAGIC         target.factura_correo IS DISTINCT FROM source.factura_correo OR
 # MAGIC         target.cip IS DISTINCT FROM source.cip OR
-# MAGIC         target.lead_source IS DISTINCT FROM source.lead_source OR
-# MAGIC         target.anydepreinscripcio IS DISTINCT FROM source.anydepreinscripcio OR
+# MAGIC         target.anydepreinscripcio IS DISTINCT FROM NULL OR
 # MAGIC         target.degree_id IS DISTINCT FROM source.degree_id OR
 # MAGIC         target.newsletter IS DISTINCT FROM source.newsletter OR
 # MAGIC         target.foce_create_lead IS DISTINCT FROM source.foce_create_lead OR
-# MAGIC         target.student_language IS DISTINCT FROM source.student_language OR
+# MAGIC         target.student_language IS DISTINCT FROM NULL OR
 # MAGIC         target.fiscaladmit_direccion IS DISTINCT FROM source.fiscaladmit_direccion OR
 # MAGIC         target.language IS DISTINCT FROM source.language OR
 # MAGIC         target.nacimiento IS DISTINCT FROM source.nacimiento OR
@@ -269,18 +318,14 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC         target.classlife_uid IS DISTINCT FROM source.classlife_uid OR
 # MAGIC         target.dtipus IS DISTINCT FROM source.dtipus OR
 # MAGIC         target.factura_ciudad IS DISTINCT FROM source.factura_ciudad OR
-# MAGIC         target.lead_lastnameend IS DISTINCT FROM source.lead_lastnameend OR
 # MAGIC         target.fiscaladmit_cif IS DISTINCT FROM source.fiscaladmit_cif OR
 # MAGIC         target.area_id IS DISTINCT FROM source.area_id OR
-# MAGIC         target.lead_area IS DISTINCT FROM source.lead_area OR
 # MAGIC         target.enroll_ref IS DISTINCT FROM source.enroll_ref OR
-# MAGIC         target.lead_email IS DISTINCT FROM source.lead_email OR
 # MAGIC         target.zoho_id IS DISTINCT FROM source.zoho_id OR
 # MAGIC         target.excludesecurityarraymetas IS DISTINCT FROM source.excludesecurityarraymetas OR
 # MAGIC         target.dpuerta IS DISTINCT FROM source.dpuerta OR
 # MAGIC         target.politicas IS DISTINCT FROM source.politicas OR
 # MAGIC         target.sexo IS DISTINCT FROM source.sexo OR
-# MAGIC         target.lead_segment IS DISTINCT FROM source.lead_segment OR
 # MAGIC         target.student_id IS DISTINCT FROM source.student_id OR
 # MAGIC         target.datosacceso_curs_ultim_estudi_matriculat IS DISTINCT FROM source.datosacceso_curs_ultim_estudi_matriculat OR
 # MAGIC         target.lead_lastname IS DISTINCT FROM source.lead_lastname OR
@@ -331,11 +376,9 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC         target.student_key IS DISTINCT FROM source.student_key OR
 # MAGIC         target.fiscaladmit_titular IS DISTINCT FROM source.fiscaladmit_titular OR
 # MAGIC         target.codipais IS DISTINCT FROM source.codipais OR
-# MAGIC         target.lead_language IS DISTINCT FROM source.lead_language OR
 # MAGIC         target.student_full_name IS DISTINCT FROM source.student_full_name OR
 # MAGIC         target.tipusdocument IS DISTINCT FROM source.tipusdocument OR
-# MAGIC         target.factura_codigo IS DISTINCT FROM source.factura_codigo OR
-# MAGIC         target.lead_message_read IS DISTINCT FROM source.lead_message_read
+# MAGIC         target.factura_codigo IS DISTINCT FROM source.factura_codigo
 # MAGIC     ) 
 # MAGIC THEN 
 # MAGIC     UPDATE SET *

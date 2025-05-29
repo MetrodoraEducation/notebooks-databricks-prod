@@ -1,6 +1,6 @@
 # Databricks notebook source
 # DBTITLE 1,ulac
-# MAGIC %run "../Silver/configuration"
+# MAGIC %run "../configuration"
 
 # COMMAND ----------
 
@@ -9,12 +9,6 @@ table_name = "JsaClassLifeReceipts"
 
 classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/{table_name}.json")
 classlifetitulaciones_df
-
-# 📌 Inspeccionar el esquema inicial
-print("📌 Esquema inicial antes de limpieza:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -47,19 +41,11 @@ def clean_column_names(df):
     
     return df
 
-display(classlifetitulaciones_df)
-
 # COMMAND ----------
 
 # 📌 Extraer el contenido de `data` si existe
 if "data" in classlifetitulaciones_df.columns:
     classlifetitulaciones_df = classlifetitulaciones_df.selectExpr("data.*")
-
-# 📌 Inspeccionar después de extraer `data`
-print("📌 Esquema después de seleccionar `data.*`:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -70,8 +56,6 @@ if "items" in classlifetitulaciones_df.columns:
     # Si `items` es un array de estructuras, lo explotamos
     if isinstance(classlifetitulaciones_df.schema["items"].dataType, ArrayType):
         classlifetitulaciones_df = classlifetitulaciones_df.withColumn("items", explode(col("items")))
-    
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -88,8 +72,6 @@ if "items" in classlifetitulaciones_df.columns:
 
     # 📌 Extraer columnas de `items` y renombrarlas
     classlifetitulaciones_df = classlifetitulaciones_df.select(*[col(c).alias(c.replace("items.", "")) for c in clean_subcolumns])
-
-    display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -148,9 +130,6 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
     *[col(c).alias(c.strip().replace("`", "")) for c in columnas_seleccionadas]
 )
 
-# 📌 Mostrar los primeros registros
-display(classlifetitulaciones_df)
-
 # COMMAND ----------
 
 from pyspark.sql.functions import col, to_timestamp, lit, current_timestamp
@@ -159,7 +138,7 @@ from pyspark.sql.types import StringType, IntegerType, DoubleType
 # 📌 Aplicar transformaciones a las columnas con nombres corregidos y tipos de datos adecuados
 classlifetitulaciones_df = classlifetitulaciones_df \
     .withColumn("processdate", current_timestamp()) \
-    .withColumn("sourcesystem", lit("ReceiptSystem")) \
+    .withColumn("sourcesystem", lit("ReceiptSystem_931")) \
     .withColumn("receipt_id", col("receipt_id").cast(StringType())) \
     .withColumn("receipt_tax_per", col("receipt_tax_per").cast(DoubleType())) \
     .withColumn("payment_method", col("payment_method").cast(StringType())) \

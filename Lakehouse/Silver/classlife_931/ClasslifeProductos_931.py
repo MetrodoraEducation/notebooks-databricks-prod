@@ -1,6 +1,6 @@
 # Databricks notebook source
 # DBTITLE 1,ulac
-# MAGIC %run "../Silver/configuration"
+# MAGIC %run "../configuration"
 
 # COMMAND ----------
 
@@ -9,12 +9,6 @@ table_name = "JsaClassLifeProductos"
 
 classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/{table_name}.json")
 classlifetitulaciones_df
-
-# 📌 Inspeccionar el esquema inicial
-print("📌 Esquema inicial antes de limpieza:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -29,8 +23,6 @@ display(classlifetitulaciones_df)
 # 📌 Inspeccionar Esquema Inicial
 print("📌 Esquema inicial antes de limpieza:")
 classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -64,12 +56,6 @@ display(classlifetitulaciones_df)
 if "data" in classlifetitulaciones_df.columns:
     classlifetitulaciones_df = classlifetitulaciones_df.selectExpr("data.*")
 
-# 📌 Inspeccionar después de extraer `data`
-print("📌 Esquema después de seleccionar `data.*`:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
-
 # COMMAND ----------
 
 # DBTITLE 1,Explota items
@@ -99,20 +85,11 @@ if "items" in classlifetitulaciones_df.columns:
     # 📌 Extraer columnas de `items` y renombrarlas
     classlifetitulaciones_df = classlifetitulaciones_df.select(*[col(c).alias(c.replace("items.", "")) for c in clean_subcolumns])
 
-    display(classlifetitulaciones_df)
-
 # COMMAND ----------
 
 # DBTITLE 1,Clean columns
-# 📌 Inspeccionar después de desanidar `items`
-print("📌 Esquema después de desanidar `items`:")
-classlifetitulaciones_df.printSchema()
-
-
 # 📌 Aplicar limpieza de nombres de columnas
 classlifetitulaciones_df = clean_column_names(classlifetitulaciones_df)
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -125,8 +102,6 @@ if "counters" in classlifetitulaciones_df.columns:
 if "metas" in classlifetitulaciones_df.columns:
     metas_cols = classlifetitulaciones_df.select("metas.*").columns
     classlifetitulaciones_df = classlifetitulaciones_df.select("*", *[col(f"metas.{c}").alias(f"metas_{c}") for c in metas_cols]).drop("metas")
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -208,39 +183,41 @@ display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
-from pyspark.sql.functions import col, to_date, to_timestamp, lit, current_timestamp
-from pyspark.sql.types import IntegerType, DoubleType
+from pyspark.sql.functions import col, lit, current_timestamp
+from pyspark.sql.types import StringType
 
-# Agrega campos de auditoría
-classlifetitulaciones_df = classlifetitulaciones_df \
-    .withColumn("processdate", current_timestamp()) \
-    .withColumn("sourcesystem", lit("classlifetitulaciones"))
-
-# Lista completa de columnas tipo string
-string_columns = [
-    "modalidad", "fecha_inicio_docencia", "fecha_inicio", "meses_cursos_open", "admisionsino", "grupo",
-    "meses_duracion", "horas_acreditadas", "plazas", "horas_presenciales_2", "codigo_programa", "area_title",
-    "fecha_inicio_cuotas", "enroll_group_id", "tarifa_euneiz", "term_title", "certificado_euneiz_incluido_2",
-    "especialidad", "fecha_fin", "creditos", "enroll_group_id_2", "counters_pre_enrolled", "fecha_fin_cuotas",
+# 🧱 Columnas específicas a mostrar
+columnas_requeridas = [
+    "admisionsino", "degree_title", "horas_acreditadas", "plazas", "codigo_programa",
+    "area_title", "fecha_inicio_cuotas", "enroll_group_id", "tarifa_ampliacion", "tarifa_euneiz",
+    "term_title", "especialidad", "fecha_fin", "enroll_group_id_2", "fecha_fin_cuotas",
     "ano_inicio_docencia", "fecha_fin_reconocimiento_ingresos", "term_id", "fecha_inicio_reconocimiento_ingresos",
-    "group_vertical", "tarifa_matricula", "area_id", "admisionsino_2", "year", "codigo_sede", "zoho_id",
-    "ano_inicio_docencia_2", "mesesampliacion", "nombre_del_programa_oficial_completo", "codigo_entidad_legal",
-    "fecha_fin_docencia", "nombreweb", "area_codigo_vertical", "tiponegocio_2", "enroll_end", "area_entidad_legal",
-    "ciclo_title", "school_id", "grupo_2", "counters_availables", "ultima_actualizacion", "mes_inicio_docencia_2",
-    "counters_enrolled", "horas_acreditadas_2", "receipts_count", "tiponegocio", "horas_presenciales",
-    "enroll_group_name", "enroll_alias", "school_name", "cuotas_docencia", "enroll_ini", "acreditado",
-    "descripcion_calendario", "destinatarios", "certificado_euneiz_incluido", "group_entidad_legal", "area_vertical",
-    "group_entidad_legal_codigo", "counters_seats", "codigo_especialidad", "descripcion_calendario_2", "ciclo_id",
-    "section_id", "codigo_vertical", "mes_inicio_docencia", "section_title", "area_entidad_legal_codigo",
-    "group_sede", "fecha_creacion", "tarifa_docencia", "total_tarifas", "group_codigo_vertical", "roaster_ind"
+    "group_vertical", "tarifa_matricula", "zoho_id", "nombre_del_programa_oficial_completo",
+    "codigo_entidad_legal", "fecha_fin_docencia", "nombreweb", "area_codigo_vertical", "enroll_end",
+    "area_entidad_legal", "ciclo_title", "school_id", "ultima_actualizacion", "horas_acreditadas_2",
+    "tiponegocio", "enroll_group_name", "enroll_alias", "school_name", "nombre_antiguo_de_programa",
+    "group_entidad_legal", "area_vertical", "section_id", "section_title", "area_entidad_legal_codigo",
+    "group_sede", "fecha_creacion", "tarifa_docencia", "total_tarifas", "group_codigo_vertical"
 ]
 
-# Aplicar el cast
-for col_name in string_columns:
-    if col_name in classlifetitulaciones_df.columns:
-        classlifetitulaciones_df = classlifetitulaciones_df.withColumn(col_name, col(col_name).cast(StringType()))
+# 🧽 1. Limpiar nombres de columnas
+classlifetitulaciones_df = clean_column_names(classlifetitulaciones_df)
 
-# Mostrar resultado
+# 🧱 2. Crear columnas faltantes como NULL
+for columna in columnas_requeridas:
+    if columna not in classlifetitulaciones_df.columns:
+        classlifetitulaciones_df = classlifetitulaciones_df.withColumn(
+            columna, lit(None).cast(StringType())
+        )
+
+# 🧠 3. Seleccionar columnas y agregar las nuevas
+classlifetitulaciones_df = classlifetitulaciones_df.select(
+    *[col(c).cast(StringType()).alias(c) for c in columnas_requeridas],
+    current_timestamp().alias("processdate"),
+    lit("classlifetitulaciones_931").alias("sourcesystem")
+)
+
+# 👁️ 4. Mostrar resultado
 display(classlifetitulaciones_df)
 
 # COMMAND ----------
@@ -251,22 +228,112 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC MERGE INTO silver_lakehouse.classlifetitulaciones AS target
+# MAGIC MERGE INTO silver_lakehouse.classlifetitulaciones_931 AS target
 # MAGIC USING classlifetitulaciones_view AS source
 # MAGIC ON target.enroll_group_id = source.enroll_group_id
-# MAGIC
 # MAGIC WHEN MATCHED AND (
-# MAGIC      target.fecha_inicio_reconocimiento_ingresos IS DISTINCT FROM source.fecha_inicio_reconocimiento_ingresos
-# MAGIC   OR target.fecha_fin_reconocimiento_ingresos IS DISTINCT FROM source.fecha_fin_reconocimiento_ingresos
-# MAGIC   OR target.fecha_inicio IS DISTINCT FROM source.fecha_inicio
-# MAGIC   OR target.fecha_Fin IS DISTINCT FROM source.fecha_Fin
-# MAGIC ) THEN
-# MAGIC   UPDATE SET
-# MAGIC     target.fecha_inicio_reconocimiento_ingresos = source.fecha_inicio_reconocimiento_ingresos,
+# MAGIC     target.admisionsino IS DISTINCT FROM source.admisionsino OR
+# MAGIC     target.degree_title IS DISTINCT FROM source.degree_title OR
+# MAGIC     target.horas_acreditadas IS DISTINCT FROM source.horas_acreditadas OR
+# MAGIC     target.plazas IS DISTINCT FROM source.plazas OR
+# MAGIC     target.codigo_programa IS DISTINCT FROM source.codigo_programa OR
+# MAGIC     target.area_title IS DISTINCT FROM source.area_title OR
+# MAGIC     target.fecha_inicio_cuotas IS DISTINCT FROM source.fecha_inicio_cuotas OR
+# MAGIC     target.tarifa_ampliacion IS DISTINCT FROM source.tarifa_ampliacion OR
+# MAGIC     target.tarifa_euneiz IS DISTINCT FROM source.tarifa_euneiz OR
+# MAGIC     target.term_title IS DISTINCT FROM source.term_title OR
+# MAGIC     target.especialidad IS DISTINCT FROM source.especialidad OR
+# MAGIC     target.fecha_fin IS DISTINCT FROM source.fecha_fin OR
+# MAGIC     target.enroll_group_id_2 IS DISTINCT FROM source.enroll_group_id_2 OR
+# MAGIC     target.fecha_fin_cuotas IS DISTINCT FROM source.fecha_fin_cuotas OR
+# MAGIC     target.ano_inicio_docencia IS DISTINCT FROM source.ano_inicio_docencia OR
+# MAGIC     target.fecha_fin_reconocimiento_ingresos IS DISTINCT FROM source.fecha_fin_reconocimiento_ingresos OR
+# MAGIC     target.term_id IS DISTINCT FROM source.term_id OR
+# MAGIC     target.fecha_inicio_reconocimiento_ingresos IS DISTINCT FROM source.fecha_inicio_reconocimiento_ingresos OR
+# MAGIC     target.group_vertical IS DISTINCT FROM source.group_vertical OR
+# MAGIC     target.tarifa_matricula IS DISTINCT FROM source.tarifa_matricula OR
+# MAGIC     target.zoho_id IS DISTINCT FROM source.zoho_id OR
+# MAGIC     target.nombre_del_programa_oficial_completo IS DISTINCT FROM source.nombre_del_programa_oficial_completo OR
+# MAGIC     target.codigo_entidad_legal IS DISTINCT FROM source.codigo_entidad_legal OR
+# MAGIC     target.fecha_fin_docencia IS DISTINCT FROM source.fecha_fin_docencia OR
+# MAGIC     target.nombreweb IS DISTINCT FROM source.nombreweb OR
+# MAGIC     target.area_codigo_vertical IS DISTINCT FROM source.area_codigo_vertical OR
+# MAGIC     target.enroll_end IS DISTINCT FROM source.enroll_end OR
+# MAGIC     target.area_entidad_legal IS DISTINCT FROM source.area_entidad_legal OR
+# MAGIC     target.ciclo_title IS DISTINCT FROM source.ciclo_title OR
+# MAGIC     target.school_id IS DISTINCT FROM source.school_id OR
+# MAGIC     target.ultima_actualizacion IS DISTINCT FROM source.ultima_actualizacion OR
+# MAGIC     target.horas_acreditadas_2 IS DISTINCT FROM source.horas_acreditadas_2 OR
+# MAGIC     target.tiponegocio IS DISTINCT FROM source.tiponegocio OR
+# MAGIC     target.enroll_group_name IS DISTINCT FROM source.enroll_group_name OR
+# MAGIC     target.enroll_alias IS DISTINCT FROM source.enroll_alias OR
+# MAGIC     target.school_name IS DISTINCT FROM source.school_name OR
+# MAGIC     target.nombre_antiguo_de_programa IS DISTINCT FROM source.nombre_antiguo_de_programa OR
+# MAGIC     target.group_entidad_legal IS DISTINCT FROM source.group_entidad_legal OR
+# MAGIC     target.area_vertical IS DISTINCT FROM source.area_vertical OR
+# MAGIC     target.section_id IS DISTINCT FROM source.section_id OR
+# MAGIC     target.section_title IS DISTINCT FROM source.section_title OR
+# MAGIC     target.area_entidad_legal_codigo IS DISTINCT FROM source.area_entidad_legal_codigo OR
+# MAGIC     target.group_sede IS DISTINCT FROM source.group_sede OR
+# MAGIC     target.fecha_creacion IS DISTINCT FROM source.fecha_creacion OR
+# MAGIC     target.tarifa_docencia IS DISTINCT FROM source.tarifa_docencia OR
+# MAGIC     target.total_tarifas IS DISTINCT FROM source.total_tarifas OR
+# MAGIC     target.group_codigo_vertical IS DISTINCT FROM source.group_codigo_vertical
+# MAGIC )
+# MAGIC THEN UPDATE SET
+# MAGIC     target.admisionsino = source.admisionsino,
+# MAGIC     target.degree_title = source.degree_title,
+# MAGIC     target.horas_acreditadas = source.horas_acreditadas,
+# MAGIC     target.plazas = source.plazas,
+# MAGIC     target.codigo_programa = source.codigo_programa,
+# MAGIC     target.area_title = source.area_title,
+# MAGIC     target.fecha_inicio_cuotas = source.fecha_inicio_cuotas,
+# MAGIC     target.enroll_group_id = source.enroll_group_id,
+# MAGIC     target.tarifa_ampliacion = source.tarifa_ampliacion,
+# MAGIC     target.tarifa_euneiz = source.tarifa_euneiz,
+# MAGIC     target.term_title = source.term_title,
+# MAGIC     target.especialidad = source.especialidad,
+# MAGIC     target.fecha_fin = source.fecha_fin,
+# MAGIC     target.enroll_group_id_2 = source.enroll_group_id_2,
+# MAGIC     target.fecha_fin_cuotas = source.fecha_fin_cuotas,
+# MAGIC     target.ano_inicio_docencia = source.ano_inicio_docencia,
 # MAGIC     target.fecha_fin_reconocimiento_ingresos = source.fecha_fin_reconocimiento_ingresos,
-# MAGIC     target.fecha_inicio = source.fecha_inicio,
-# MAGIC     target.fecha_Fin = source.fecha_Fin
-# MAGIC
-# MAGIC WHEN NOT MATCHED THEN
-# MAGIC   INSERT *;
-# MAGIC
+# MAGIC     target.term_id = source.term_id,
+# MAGIC     target.fecha_inicio_reconocimiento_ingresos = source.fecha_inicio_reconocimiento_ingresos,
+# MAGIC     target.group_vertical = source.group_vertical,
+# MAGIC     target.tarifa_matricula = source.tarifa_matricula,
+# MAGIC     target.zoho_id = source.zoho_id,
+# MAGIC     target.nombre_del_programa_oficial_completo = source.nombre_del_programa_oficial_completo,
+# MAGIC     target.codigo_entidad_legal = source.codigo_entidad_legal,
+# MAGIC     target.fecha_fin_docencia = source.fecha_fin_docencia,
+# MAGIC     target.nombreweb = source.nombreweb,
+# MAGIC     target.area_codigo_vertical = source.area_codigo_vertical,
+# MAGIC     target.enroll_end = source.enroll_end,
+# MAGIC     target.area_entidad_legal = source.area_entidad_legal,
+# MAGIC     target.ciclo_title = source.ciclo_title,
+# MAGIC     target.school_id = source.school_id,
+# MAGIC     target.ultima_actualizacion = source.ultima_actualizacion,
+# MAGIC     target.horas_acreditadas_2 = source.horas_acreditadas_2,
+# MAGIC     target.tiponegocio = source.tiponegocio,
+# MAGIC     target.enroll_group_name = source.enroll_group_name,
+# MAGIC     target.enroll_alias = source.enroll_alias,
+# MAGIC     target.school_name = source.school_name,
+# MAGIC     target.nombre_antiguo_de_programa = source.nombre_antiguo_de_programa,
+# MAGIC     target.group_entidad_legal = source.group_entidad_legal,
+# MAGIC     target.area_vertical = source.area_vertical,
+# MAGIC     target.section_id = source.section_id,
+# MAGIC     target.section_title = source.section_title,
+# MAGIC     target.area_entidad_legal_codigo = source.area_entidad_legal_codigo,
+# MAGIC     target.group_sede = source.group_sede,
+# MAGIC     target.fecha_creacion = source.fecha_creacion,
+# MAGIC     target.tarifa_docencia = source.tarifa_docencia,
+# MAGIC     target.total_tarifas = source.total_tarifas,
+# MAGIC     target.group_codigo_vertical = source.group_codigo_vertical,
+# MAGIC     target.processdate = source.processdate,
+# MAGIC     target.sourcesystem = source.sourcesystem
+# MAGIC WHEN NOT MATCHED THEN INSERT *;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from silver_lakehouse.classlifetitulaciones_931;

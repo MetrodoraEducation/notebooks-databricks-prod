@@ -60,6 +60,8 @@
 # MAGIC    LEFT JOIN gold_lakehouse.dim_tipo_formacion formacion ON producto.tipo_Producto = NULLIF(formacion.tipo_formacion_desc, '')
 # MAGIC    LEFT JOIN gold_lakehouse.dim_tipo_negocio tiponegocio ON producto.tipo_Negocio = NULLIF(tiponegocio.tipo_negocio_desc, '')
 # MAGIC    where origen.id_Dim_Origen_SIS IS NOT NULL;
+# MAGIC
+# MAGIC SELECT * FROM fct_recibos_temp; 
 
 # COMMAND ----------
 

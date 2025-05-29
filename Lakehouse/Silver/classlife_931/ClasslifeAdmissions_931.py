@@ -1,6 +1,6 @@
 # Databricks notebook source
 # DBTITLE 1,ulac
-# MAGIC %run "/Repos/production_repository/notebooks-databricks-prod/Lakehouse/Silver/configuration"
+# MAGIC %run "../configuration"
 
 # COMMAND ----------
 
@@ -162,7 +162,7 @@ if "zoho_deal_id" not in classlifetitulaciones_df.columns:
 # 📌 Selección de columnas y transformaciones
 classlifetitulaciones_df = classlifetitulaciones_df \
     .withColumn("processdate", current_timestamp()) \
-    .withColumn("sourcesystem", lit("AdmissionsSystem")) \
+    .withColumn("sourcesystem", lit("AdmissionsSystem_931")) \
     .withColumn("student_phone", col("student_phone").cast(StringType())) \
     .withColumn("comercial", col("comercial").cast(StringType())) \
     .withColumn("student_email", col("student_email").cast(StringType())) \
@@ -216,8 +216,16 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 
 # COMMAND ----------
 
+#%sql
+#CREATE TABLE silver_lakehouse.ClasslifeAdmissions_931
+#AS
+#SELECT * FROM silver_lakehouse.ClasslifeAdmissions
+#WHERE 1 = 0;
+
+# COMMAND ----------
+
 # MAGIC %sql
-# MAGIC MERGE INTO silver_lakehouse.ClasslifeAdmissions AS target
+# MAGIC MERGE INTO silver_lakehouse.ClasslifeAdmissions_931 AS target
 # MAGIC USING classlifetitulaciones_view AS source
 # MAGIC ON target.id = source.id
 # MAGIC
@@ -257,11 +265,14 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC     INSERT (
 # MAGIC         student_phone, comercial, student_email, ini_date, zoho_deal_id,
 # MAGIC         enroll_group, ciclo_title, id, student_dni, registration_date,
-# MAGIC         year_id, student_full_name, area_title, school_name, end_date
+# MAGIC         year_id, student_full_name, area_title, school_name, end_date, processdate, sourcesystem
 # MAGIC     )
 # MAGIC     VALUES (
 # MAGIC         source.student_phone, source.comercial, source.student_email, source.ini_date, source.zoho_deal_id,
 # MAGIC         source.enroll_group, source.ciclo_title, source.id, source.student_dni, source.registration_date,
-# MAGIC         source.year_id, source.student_full_name, source.area_title, source.school_name, source.end_date
+# MAGIC         source.year_id, source.student_full_name, source.area_title, source.school_name, source.end_date, source.processdate, source.sourcesystem
 # MAGIC     );
-# MAGIC
+
+# COMMAND ----------
+
+# MAGIC %sql select * from silver_lakehouse.ClasslifeAdmissions_931;

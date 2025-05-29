@@ -120,9 +120,9 @@
 
 # DBTITLE 1,Count duplicate view source
 # MAGIC %sql
-# MAGIC SELECT cod_Producto_Origen, COUNT(*)
+# MAGIC SELECT cod_Programa, COUNT(*)
 # MAGIC FROM dim_producto_view
-# MAGIC GROUP BY cod_Producto_Origen
+# MAGIC GROUP BY cod_Programa
 # MAGIC HAVING COUNT(*) > 1; --1061
 
 # COMMAND ----------

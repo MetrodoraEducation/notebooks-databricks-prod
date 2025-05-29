@@ -194,7 +194,7 @@ classlifetitulaciones_df = classlifetitulaciones_df \
         "created_on", "updated_at", "dataingres", "student_registration_date"
     ) \
     .withColumn("processdate", current_timestamp()) \
-    .withColumn("sourcesystem", lit("ClasslifeEnrollments"))
+    .withColumn("sourcesystem", lit("classlifeStudents"))
 
 # ✅ Mostrar el dataframe limpio
 display(classlifetitulaciones_df)
@@ -335,7 +335,7 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC         target.student_full_name IS DISTINCT FROM source.student_full_name OR
 # MAGIC         target.tipusdocument IS DISTINCT FROM source.tipusdocument OR
 # MAGIC         target.factura_codigo IS DISTINCT FROM source.factura_codigo OR
-# MAGIC         target.lead_message_read IS DISTINCT FROM source.lead_message_read
+# MAGIC         target.lead_message_read IS DISTINCT FROM source.lead_message_read 
 # MAGIC     ) 
 # MAGIC THEN 
 # MAGIC     UPDATE SET *

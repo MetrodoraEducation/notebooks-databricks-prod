@@ -10,12 +10,6 @@ table_name = "JsaClassLifeProductos"
 classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife/{endpoint_process_name}/{current_date}/{table_name}.json")
 classlifetitulaciones_df
 
-# 📌 Inspeccionar el esquema inicial
-print("📌 Esquema inicial antes de limpieza:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
-
 # COMMAND ----------
 
 # MAGIC %md
