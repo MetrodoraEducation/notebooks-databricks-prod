@@ -1235,6 +1235,45 @@ spark.sql(sql_query)
 
 # COMMAND ----------
 
+# MAGIC %md
+# MAGIC ## **CLASSLIFE_931**
+
+# COMMAND ----------
+
+# DBTITLE 1,ClasslifeAdmissions_931
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS silver_lakehouse.ClasslifeAdmissions_931 (
+    student_phone STRING,
+    comercial STRING,
+    student_email STRING,
+    ini_date STRING,
+    zoho_deal_id STRING,
+    enroll_group STRING,
+    ciclo_title STRING,
+    id STRING,
+    student_dni STRING,
+    registration_date STRING,
+    year_id STRING,
+    student_full_name STRING,
+    area_title STRING,
+    school_name STRING,
+    end_date STRING,
+    suma_docencia STRING,
+    total_Enroll STRING,
+    total_Final STRING,
+    total_FinalDocencia STRING,
+    total_FinalMatricula STRING,
+    processdate TIMESTAMP,
+    sourcesystem STRING
+)
+USING DELTA
+LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/ClasslifeAdmissions_931';
+"""
+
+spark.sql(sql_query)
+
+# COMMAND ----------
+
 # DBTITLE 1,ClasslifeEnrollments_931
 sql_query = f"""
 CREATE TABLE IF NOT EXISTS silver_lakehouse.ClasslifeEnrollments_931
@@ -1342,4 +1381,277 @@ LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/c
 """
 
 # Ejecutar creación de tabla
+spark.sql(sql_query)
+
+# COMMAND ----------
+
+# DBTITLE 1,ClasslifeReceipts_931
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS silver_lakehouse.ClasslifeReceipts_931 (
+    receipt_id STRING,
+    receipt_tax_per STRING,
+    payment_method STRING,
+    receipt_tax STRING,
+    student_id STRING,
+    enroll_id STRING,
+    remittance_id STRING,
+    receipt_total STRING,
+    invoice_id STRING,
+    emission_date STRING,
+    expiry_date STRING,
+    receipt_status STRING,
+    payment_method_id STRING,
+    receipt_advanced STRING,
+    collection_date TIMESTAMP,
+    receipt_concept STRING,
+    receipt_status_id STRING,
+    student_full_name STRING,
+    receipt_price STRING,
+    processdate TIMESTAMP,
+    sourcesystem STRING
+)
+USING DELTA
+LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/ClasslifeReceipts_931';
+"""
+
+spark.sql(sql_query)
+
+# COMMAND ----------
+
+# DBTITLE 1,ClasslifeStudents_931
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS silver_lakehouse.ClasslifeStudents_931 (
+    paisnacimiento STRING,
+    zenddesk_id STRING,
+    factura_correo STRING,
+    student_language STRING,
+    fiscal_codigo STRING,
+    language STRING,
+    nacimiento STRING,
+    direccion STRING,
+    ciudad STRING,
+    factura_telefono STRING,
+    student_phone STRING,
+    fiscal_iban STRING,
+    student_email STRING,
+    student_uid STRING,
+    fiscal_dpuerta STRING,
+    student_active STRING,
+    student_lastname STRING,
+    zoho_id STRING,
+    factura_dni STRING,
+    sexo STRING,
+    student_id STRING,
+    school_id STRING,
+    edad STRING,
+    student_registration_date STRING,
+    student_name STRING,
+    student_full_name STRING,
+    processdate TIMESTAMP,
+    sourcesystem STRING
+)
+USING DELTA
+LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/ClasslifeStudents_931';
+"""
+
+spark.sql(sql_query)
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## **ZOHO_38B**
+
+# COMMAND ----------
+
+# DBTITLE 1,zohodeals_38b
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS silver_lakehouse.zohodeals_38b (
+    id STRING,
+    id_producto STRING,
+    importe STRING,
+    codigo_descuento STRING,
+    fecha_cierre STRING,
+    competencia STRING,
+    fecha_creacion STRING,
+    nombre_oportunidad STRING,
+    descuento STRING,
+    fecha_hora_anulacion STRING,
+    fecha_hora_documentacion_completada STRING,
+    fecha_hora_pagado STRING,
+    id_classlife STRING,
+    id_lead STRING,
+    importe_pagado STRING,
+    linea_de_negocio STRING,
+    fecha_modificacion STRING,
+    motivo_perdida_b2b STRING,
+    motivo_perdida_b2c STRING,
+    nacionalidad STRING,
+    flujo_venta STRING,
+    probabilidad_conversion STRING,
+    profesion_estudiante STRING,
+    residencia STRING,
+    etapa STRING,
+    tipologia_cliente STRING,
+    tipologia_alumno STRING,
+    rating STRING,
+    scoring STRING,
+    id_unico STRING,
+    lead_correlation_id STRING,
+    network STRING,
+    tipo_conversion STRING,
+    utm_ad_id STRING,
+    utm_adset_id STRING,
+    utm_campaign_id STRING,
+    utm_campaign_name STRING,
+    utm_channel STRING,
+    utm_estrategia STRING,
+    utm_medium STRING,
+    utm_perfil STRING,
+    utm_source STRING,
+    utm_term STRING,
+    utm_type STRING,
+    contact_name_id STRING,
+    contact_name STRING,
+    owner_email STRING,
+    owner_id STRING,
+    owner_name STRING,
+    processdate TIMESTAMP,
+    sourcesystem STRING
+)
+USING DELTA
+LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/zohodeals_38b';
+"""
+
+spark.sql(sql_query)
+
+# COMMAND ----------
+
+# DBTITLE 1,ZohoLeads_38b
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS silver_lakehouse.ZohoLeads_38b (
+    id STRING,
+    apellido_2 STRING,
+    fecha_creacion STRING,
+    descripcion STRING,
+    email STRING,
+    nombre STRING,
+    linea_de_negocio STRING,
+    apellido_1 STRING,
+    lead_source STRING,
+    lead_status STRING,
+    telefono_movil STRING,
+    fecha_modificacion STRING,
+    motivos_perdida STRING,
+    nacionalidad STRING,
+    telefono STRING,
+    provincia STRING,
+    residencia STRING,
+    sexo STRING,
+    tipologia_cliente STRING,
+    tipo_conversion STRING,
+    dispositivo STRING,
+    fbclid STRING,
+    gclid STRING,
+    id_producto STRING,
+    id_programa STRING,
+    lead_correlation_id STRING,
+    lead_rating STRING,
+    lead_scoring STRING,
+    source STRING,
+    utm_ad_id STRING,
+    utm_adset_id STRING,
+    utm_campaign_id STRING,
+    utm_campaign_name STRING,
+    utm_channel STRING,
+    utm_estrategia STRING,
+    utm_medium STRING,
+    utm_perfil STRING,
+    utm_source STRING,
+    utm_term STRING,
+    utm_type STRING,
+    owner_email STRING,
+    owner_id STRING,
+    owner_name STRING,
+    processdate TIMESTAMP,
+    sourcesystem STRING
+)
+USING DELTA
+LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/ZohoLeads_38b';
+"""
+
+# Ejecutar en Spark
+spark.sql(sql_query)
+
+# COMMAND ----------
+
+# DBTITLE 1,ZohoUsers_38b
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS silver_lakehouse.ZohoUsers_38b (
+    id STRING,
+    status STRING,
+    isonline STRING,
+    linea_de_negocio STRING,
+    modified_time TIMESTAMP,
+    city STRING,
+    confirm STRING,
+    country STRING,
+    country_locale STRING,
+    created_time TIMESTAMP,
+    email STRING,
+    first_name STRING,
+    full_name STRING,
+    language STRING,
+    last_name STRING,
+    mobile STRING,
+    modified_by_id STRING,
+    modified_by_name STRING,
+    created_by_id STRING,
+    created_by_name STRING,
+    role_id STRING,
+    role_name STRING,
+    processdate TIMESTAMP,
+    sourcesystem STRING
+)
+USING DELTA
+LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/ZohoUsers_38b';
+"""
+
+spark.sql(sql_query)
+
+# COMMAND ----------
+
+# DBTITLE 1,ZohoContacts_38b
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS silver_lakehouse.ZohoContacts_38b (
+    last_name STRING,
+    dni STRING,
+    date_birth STRING,
+    email STRING,
+    first_name STRING,
+    id_classlife STRING,
+    mailing_city STRING,
+    mailing_street STRING,
+    mailing_zip STRING,
+    mobile STRING,
+    modified_time STRING,
+    nacionalidad STRING,
+    other_city STRING,
+    other_country STRING,
+    other_state STRING,
+    other_street STRING,
+    other_zip STRING,
+    phone STRING,
+    residencia STRING,
+    sexo STRING,
+    tipo_cliente STRING,
+    tipo_contacto STRING,
+    id STRING,
+    ultima_linea_de_negocio STRING,
+    sourcesystem STRING,
+    processdate STRING
+)
+USING DELTA
+LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/ZohoContacts_38b';
+"""
+
 spark.sql(sql_query)

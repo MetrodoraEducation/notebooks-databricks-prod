@@ -178,12 +178,9 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
     *[col(c).alias(c.strip().replace("`", "")) for c in columnas_seleccionadas]
 )
 
-# 📌 Mostrar los primeros registros
-display(classlifetitulaciones_df)
-
 # COMMAND ----------
 
-from pyspark.sql.functions import col, lit, current_timestamp
+from pyspark.sql.functions import col, lit, current_timestamp, when
 from pyspark.sql.types import StringType
 
 # 🧱 Columnas específicas a mostrar
@@ -196,8 +193,8 @@ columnas_requeridas = [
     "codigo_entidad_legal", "fecha_fin_docencia", "nombreweb", "area_codigo_vertical", "enroll_end",
     "area_entidad_legal", "ciclo_title", "school_id", "ultima_actualizacion", "horas_acreditadas_2",
     "tiponegocio", "enroll_group_name", "enroll_alias", "school_name", "nombre_antiguo_de_programa",
-    "group_entidad_legal", "area_vertical", "section_id", "section_title", "area_entidad_legal_codigo",
-    "group_sede", "fecha_creacion", "tarifa_docencia", "total_tarifas", "group_codigo_vertical"
+    "group_entidad_legal", "area_vertical", "section_id", "section_title", "area_entidad_legal_codigo", "group_sede", "fecha_creacion", "tarifa_docencia", "total_tarifas",
+    "group_codigo_vertical"
 ]
 
 # 🧽 1. Limpiar nombres de columnas
@@ -210,15 +207,18 @@ for columna in columnas_requeridas:
             columna, lit(None).cast(StringType())
         )
 
-# 🧠 3. Seleccionar columnas y agregar las nuevas
+# 🛠️ 3. Reemplazo en area_entidad_legal
+classlifetitulaciones_df = classlifetitulaciones_df.withColumn(
+    "area_entidad_legal",
+    when(col("area_entidad_legal") == "METRODORA LEARNING", "METRODORA FP").otherwise(col("area_entidad_legal"))
+)
+
+# 📋 4. Seleccionar columnas requeridas + processdate + sourcesystem
 classlifetitulaciones_df = classlifetitulaciones_df.select(
     *[col(c).cast(StringType()).alias(c) for c in columnas_requeridas],
     current_timestamp().alias("processdate"),
     lit("classlifetitulaciones_931").alias("sourcesystem")
 )
-
-# 👁️ 4. Mostrar resultado
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -331,9 +331,5 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC     target.group_codigo_vertical = source.group_codigo_vertical,
 # MAGIC     target.processdate = source.processdate,
 # MAGIC     target.sourcesystem = source.sourcesystem
+# MAGIC     
 # MAGIC WHEN NOT MATCHED THEN INSERT *;
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from silver_lakehouse.classlifetitulaciones_931;

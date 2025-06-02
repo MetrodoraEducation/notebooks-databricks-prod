@@ -1,5 +1,5 @@
 # Databricks notebook source
-# MAGIC %run "../Silver/configuration"
+# MAGIC %run "../configuration" 
 
 # COMMAND ----------
 
@@ -11,8 +11,6 @@ file_pattern = f"{bronze_folder_path}/lakehouse/zoho_38b/{current_date}/{table_p
 print(f"Leyendo archivos desde: {file_pattern}")
 
 zohodeals_df = spark.read.json(file_pattern)
-
-display(zohodeals_df)
 
 # COMMAND ----------
 
@@ -48,136 +46,74 @@ for col in zohodeals_df.columns:
 
 # COMMAND ----------
 
-from pyspark.sql.functions import col
+from pyspark.sql.functions import col, current_timestamp, lit
+from pyspark.sql.types import StringType
 
-# Diccionario para mapear las columnas con nombres más entendibles
 columns_mapping = {
+    "data_id": "id",
+    "data_id_producto": "id_producto",
     "data_amount": "importe",
     "data_c_digo_descuento": "codigo_descuento",
     "data_closing_date": "fecha_cierre",
     "data_competencia": "competencia",
-    "data_currency": "currency",
-    "data_deal_name": "deal_name",
+    "data_created_time": "fecha_creacion",
+    "data_deal_name": "nombre_oportunidad",
     "data_descuento": "descuento",
-    "data_exchange_rate": "exchange_rate",
     "data_fecha_hora_anulaci_n": "fecha_hora_anulacion",
     "data_fecha_hora_documentaci_n_completada": "fecha_hora_documentacion_completada",
     "data_fecha_hora_pagado_ne": "fecha_hora_pagado",
     "data_id_classlife": "id_classlife",
     "data_id_lead": "id_lead",
-    "data_id_producto": "id_producto",
     "data_importe_pagado": "importe_pagado",
-    "data_modified_time": "modified_time",
-    "data_created_time": "Created_Time",
+    "data_l_nea_de_negocio": "linea_de_negocio",
+    "data_modified_time": "fecha_modificacion",
     "data_motivo_p_rdida_b2b": "motivo_perdida_b2b",
     "data_motivo_p_rdida_b2c": "motivo_perdida_b2c",
-    "data_pipeline": "pipeline",
-    "data_probability": "probabilidad",
+    "data_nacionalidad1": "nacionalidad",
+    "data_pipeline": "flujo_venta",
+    "data_probability": "probabilidad_conversion",
     "data_profesion_estudiante": "profesion_estudiante",
-    "data_residencia1": "residencia1",
+    "data_residencia1": "residencia",
     "data_stage": "etapa",
     "data_tipolog_a_de_cliente": "tipologia_cliente",
-    "data_br_rating": "br_rating",
-    "data_br_score": "br_score",
-    "data_id": "id",
+    "data_tipolog_a_del_alumno1": "tipologia_alumno",
+    "data_br_rating": "rating",
+    "data_br_score": "scoring",
+    "data_id_unico": "id_unico",
+    "data_lead_correlation_id": "lead_correlation_id",
     "data_network": "network",
     "data_tipo_conversion": "tipo_conversion",
     "data_utm_ad_id": "utm_ad_id",
     "data_utm_adset_id": "utm_adset_id",
-    "data_utm_campaign_id": "utm_campana_id",
-    "data_utm_campaign_name": "utm_campana_nombre",
-    "data_utm_channel": "utm_canal",
+    "data_utm_campaign_id": "utm_campaign_id",
+    "data_utm_campaign_name": "utm_campaign_name",
+    "data_utm_channel": "utm_channel",
     "data_utm_estrategia": "utm_estrategia",
-    "data_utm_medium": "utm_medio",
+    "data_utm_medium": "utm_medium",
     "data_utm_perfil": "utm_perfil",
-    "data_utm_source": "utm_fuente",
-    "data_utm_term": "utm_termino",
-    "data_utm_type": "utm_tipo",
+    "data_utm_source": "utm_source",
+    "data_utm_term": "utm_term",
+    "data_utm_type": "utm_type",
+    "data_contact_name_id": "contact_name_id",
+    "data_contact_name_name": "contact_name",
     "data_owner_email": "owner_email",
     "data_owner_id": "owner_id",
-    "data_owner_name": "owner_name",
-    "data_lead_correlation_id": "lead_correlation_id",
-    "data_nacionalidad1": "nacionalidad1",
-    "data_id_unico": "id_unico",
-    "data_tipolog_a_del_alumno1": "Tipologia_alumno1",
-    "data_contact_name_id": "Contact_Name_id",
-    "data_l_nea_de_negocio": "linea_de_negocio"
+    "data_owner_name": "owner_name"
 }
 
-# Filtrar solo las columnas que existen en el DataFrame antes de renombrarlas
-existing_columns = [col for col in columns_mapping.keys() if col in zohodeals_df.columns]
+# Renombrar columnas si existen
+for old, new in columns_mapping.items():
+    if old in zohodeals_df.columns:
+        zohodeals_df = zohodeals_df.withColumnRenamed(old, new)
 
-# Aplicar renombrado solo a las columnas que existen
-for old_col in existing_columns:
-    zohodeals_df = zohodeals_df.withColumnRenamed(old_col, columns_mapping[old_col])
+# Cast y columnas adicionales
+for col_name in columns_mapping.values():
+    zohodeals_df = zohodeals_df.withColumn(col_name, col(col_name).cast(StringType()))
 
-# Seleccionar solo las columnas renombradas
-zohodeals_df = zohodeals_df.select([col(new_col) for new_col in columns_mapping.values() if new_col in zohodeals_df.columns])
-
-# Mostrar el DataFrame resultante
-display(zohodeals_df)
-
-# COMMAND ----------
-
-from pyspark.sql.types import *
-from pyspark.sql.functions import *
-
-# Ajuste del DataFrame con validación de columnas
 zohodeals_df = zohodeals_df \
-    .withColumn("importe", col("importe").cast(DoubleType())) \
-    .withColumn("codigo_descuento", col("codigo_descuento").cast(StringType())) \
-    .withColumn("fecha_cierre", to_date(col("fecha_cierre"), "yyyy-MM-dd")) \
-    .withColumn("competencia", col("competencia").cast(StringType())) \
-    .withColumn("currency", col("currency").cast(StringType())) \
-    .withColumn("deal_name", col("deal_name").cast(StringType())) \
-    .withColumn("descuento", col("descuento").cast(DoubleType())) \
-    .withColumn("tipo_cambio", col("exchange_rate").cast(DoubleType())) \
-    .withColumn("fecha_hora_anulacion", to_timestamp(col("fecha_hora_anulacion"), "yyyy-MM-dd'T'HH:mm:ssXXX")) \
-    .withColumn("fecha_hora_documentacion_completada", to_timestamp(col("fecha_hora_documentacion_completada"), "yyyy-MM-dd'T'HH:mm:ssXXX")) \
-    .withColumn("fecha_hora_pagado", to_timestamp(col("fecha_hora_pagado"), "yyyy-MM-dd'T'HH:mm:ssXXX")) \
-    .withColumn("id_classlife", col("id_classlife").cast(StringType())) \
-    .withColumn("id_lead", col("id_lead").cast(StringType())) \
-    .withColumn("id_producto", col("id_producto").cast(StringType())) \
-    .withColumn("importe_pagado", col("importe_pagado").cast(DoubleType())) \
-    .withColumn("modified_time", to_timestamp(col("modified_time"), "yyyy-MM-dd'T'HH:mm:ssXXX")) \
-    .withColumn("Created_Time", to_timestamp(col("Created_Time"), "yyyy-MM-dd'T'HH:mm:ssXXX")) \
-    .withColumn("motivo_perdida_b2b", col("motivo_perdida_b2b").cast(StringType())) \
-    .withColumn("motivo_perdida_b2c", col("motivo_perdida_b2c").cast(StringType())) \
-    .withColumn("pipeline", col("pipeline").cast(StringType())) \
-    .withColumn("probabilidad", col("probabilidad").cast(IntegerType())) \
-    .withColumn("profesion_estudiante", col("profesion_estudiante").cast(StringType())) \
-    .withColumn("residencia1", col("residencia1").cast(StringType())) \
-    .withColumn("etapa", col("etapa").cast(StringType())) \
-    .withColumn("tipologia_cliente", col("tipologia_cliente").cast(StringType())) \
-    .withColumn("br_rating", col("br_rating").cast(StringType())) \
-    .withColumn("br_score", col("br_score").cast(DoubleType())) \
-    .withColumn("id", col("id").cast(StringType())) \
-    .withColumn("network", col("network").cast(StringType())) \
-    .withColumn("tipo_conversion", col("tipo_conversion").cast(StringType())) \
-    .withColumn("utm_ad_id", col("utm_ad_id").cast(StringType())) \
-    .withColumn("utm_adset_id", col("utm_adset_id").cast(StringType())) \
-    .withColumn("utm_campaign_id", col("utm_campana_id").cast(StringType())) \
-    .withColumn("utm_campaign_name", col("utm_campana_nombre").cast(StringType())) \
-    .withColumn("utm_channel", col("utm_canal").cast(StringType())) \
-    .withColumn("utm_strategy", col("utm_estrategia").cast(StringType())) \
-    .withColumn("utm_medium", col("utm_medio").cast(StringType())) \
-    .withColumn("utm_profile", col("utm_perfil").cast(StringType())) \
-    .withColumn("utm_source", col("utm_fuente").cast(StringType())) \
-    .withColumn("utm_term", col("utm_termino").cast(StringType())) \
-    .withColumn("utm_type", col("utm_tipo").cast(StringType())) \
-    .withColumn("owner_email", col("owner_email").cast(StringType())) \
-    .withColumn("owner_id", col("owner_id").cast(StringType())) \
-    .withColumn("owner_name", col("owner_name").cast(StringType())) \
-    .withColumn("lead_correlation_id", col("lead_correlation_id").cast(StringType())) \
-    .withColumn("nacionalidad1", col("nacionalidad1").cast(StringType())) \
-    .withColumn("id_unico", col("id_unico")) \
-    .withColumn("Contact_Name_id", col("Contact_Name_id").cast(StringType())) \
-    .withColumn("Tipologia_alumno1", col("Tipologia_alumno1").cast(StringType())) \
-    .withColumn("linea_de_negocio", col("linea_de_negocio").cast(StringType())) \
     .withColumn("processdate", current_timestamp()) \
-    .withColumn("sourcesystem", lit("zoho_Deals")) 
+    .withColumn("sourcesystem", lit("zoho_deals_38b"))
 
-# Mostrar el DataFrame final
 display(zohodeals_df)
 
 # COMMAND ----------
@@ -200,9 +136,6 @@ for t in zohodeals_df.dtypes:
     elif column_type == 'timestamp' or column_type == 'date':
         zohodeals_df = zohodeals_df.withColumn(column_name, coalesce(col(column_name), lit(None)))
 
-# Muestra el DataFrame resultante
-display(zohodeals_df)
-
 # COMMAND ----------
 
 zohodeals_df = zohodeals_df.dropDuplicates()
@@ -212,7 +145,7 @@ zohodeals_df = zohodeals_df.dropDuplicates()
 zohodeals_df.createOrReplaceTempView("zohodeals_source_view")
 
 zohodeals_df_filtered = zohodeals_df.filter(
-    (col("linea_de_negocio").isin("FisioFocus")) &  # Solo esos valores
+    (col("linea_de_negocio").isin("MetrodoraFP", "Océano")) &  # Solo esos valores
     (col("linea_de_negocio").isNotNull()) &  # Que no sea NULL
     (col("linea_de_negocio") != "")  # Que no sea blanco
 )
@@ -223,87 +156,115 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC MERGE INTO silver_lakehouse.zohodeals AS target
+# MAGIC MERGE INTO silver_lakehouse.zohodeals_38b AS target
 # MAGIC USING zohodeals_source_view AS source
 # MAGIC ON target.id = source.id
 # MAGIC AND target.id_producto = source.id_producto
 # MAGIC
 # MAGIC WHEN MATCHED AND (
-# MAGIC        target.fecha_hora_pagado IS DISTINCT FROM source.fecha_hora_pagado
-# MAGIC     OR target.Nacionalidad1 IS DISTINCT FROM source.Nacionalidad1
-# MAGIC     OR target.Residencia1 IS DISTINCT FROM source.Residencia1
-# MAGIC     OR target.br_rating IS DISTINCT FROM source.br_rating
-# MAGIC     OR target.br_score IS DISTINCT FROM source.br_score
-# MAGIC     OR target.Motivo_perdida_B2B IS DISTINCT FROM source.Motivo_perdida_B2B
-# MAGIC     OR target.Motivo_perdida_B2C IS DISTINCT FROM source.Motivo_perdida_B2C
-# MAGIC     OR target.Probabilidad IS DISTINCT FROM source.Probabilidad
-# MAGIC     OR target.Pipeline IS DISTINCT FROM source.Pipeline
-# MAGIC     OR target.Profesion_Estudiante IS DISTINCT FROM source.Profesion_Estudiante
-# MAGIC     OR target.Competencia IS DISTINCT FROM source.Competencia
-# MAGIC     OR target.Tipologia_cliente IS DISTINCT FROM source.Tipologia_cliente
-# MAGIC     OR target.utm_ad_id IS DISTINCT FROM source.utm_ad_id
-# MAGIC     OR target.utm_adset_id IS DISTINCT FROM source.utm_adset_id
-# MAGIC     OR target.utm_campaign_id IS DISTINCT FROM source.utm_campaign_id
-# MAGIC     OR target.utm_campaign_name IS DISTINCT FROM source.utm_campaign_name
-# MAGIC     OR target.utm_channel IS DISTINCT FROM source.utm_channel
-# MAGIC     OR target.utm_strategy IS DISTINCT FROM source.utm_strategy
-# MAGIC     OR target.utm_medium IS DISTINCT FROM source.utm_medium
-# MAGIC     OR target.utm_profile IS DISTINCT FROM source.utm_profile
-# MAGIC     OR target.utm_source IS DISTINCT FROM source.utm_source
-# MAGIC     OR target.utm_term IS DISTINCT FROM source.utm_term
-# MAGIC     OR target.utm_type IS DISTINCT FROM source.utm_type
-# MAGIC     OR target.deal_name IS DISTINCT FROM source.deal_name
-# MAGIC     OR target.fecha_Cierre IS DISTINCT FROM source.fecha_Cierre
-# MAGIC     OR target.Exchange_Rate IS DISTINCT FROM source.Exchange_Rate
-# MAGIC     OR target.Currency IS DISTINCT FROM source.Currency
-# MAGIC     OR target.Importe_pagado IS DISTINCT FROM source.Importe_pagado
-# MAGIC     OR target.Codigo_descuento IS DISTINCT FROM source.Codigo_descuento
-# MAGIC     OR target.Descuento IS DISTINCT FROM source.Descuento
-# MAGIC     OR target.importe IS DISTINCT FROM source.importe
-# MAGIC     OR target.Tipologia_alumno1 IS DISTINCT FROM source.Tipologia_alumno1
-# MAGIC     OR target.tipo_conversion IS DISTINCT FROM source.tipo_conversion
-# MAGIC     OR target.Created_Time IS DISTINCT FROM source.Created_Time
-# MAGIC     OR target.Modified_Time IS DISTINCT FROM source.Modified_Time
-# MAGIC     OR target.fecha_hora_anulacion IS DISTINCT FROM source.fecha_hora_anulacion
+# MAGIC     source.importe IS DISTINCT FROM target.importe OR
+# MAGIC     source.codigo_descuento IS DISTINCT FROM target.codigo_descuento OR
+# MAGIC     source.fecha_cierre IS DISTINCT FROM target.fecha_cierre OR
+# MAGIC     source.competencia IS DISTINCT FROM target.competencia OR
+# MAGIC     source.fecha_creacion IS DISTINCT FROM target.fecha_creacion OR
+# MAGIC     source.nombre_oportunidad IS DISTINCT FROM target.nombre_oportunidad OR
+# MAGIC     source.descuento IS DISTINCT FROM target.descuento OR
+# MAGIC     source.fecha_hora_anulacion IS DISTINCT FROM target.fecha_hora_anulacion OR
+# MAGIC     source.fecha_hora_documentacion_completada IS DISTINCT FROM target.fecha_hora_documentacion_completada OR
+# MAGIC     source.fecha_hora_pagado IS DISTINCT FROM target.fecha_hora_pagado OR
+# MAGIC     source.id_classlife IS DISTINCT FROM target.id_classlife OR
+# MAGIC     source.id_lead IS DISTINCT FROM target.id_lead OR
+# MAGIC     source.importe_pagado IS DISTINCT FROM target.importe_pagado OR
+# MAGIC     source.linea_de_negocio IS DISTINCT FROM target.linea_de_negocio OR
+# MAGIC     source.fecha_modificacion IS DISTINCT FROM target.fecha_modificacion OR
+# MAGIC     source.motivo_perdida_b2b IS DISTINCT FROM target.motivo_perdida_b2b OR
+# MAGIC     source.motivo_perdida_b2c IS DISTINCT FROM target.motivo_perdida_b2c OR
+# MAGIC     source.nacionalidad IS DISTINCT FROM target.nacionalidad OR
+# MAGIC     source.flujo_venta IS DISTINCT FROM target.flujo_venta OR
+# MAGIC     source.probabilidad_conversion IS DISTINCT FROM target.probabilidad_conversion OR
+# MAGIC     source.profesion_estudiante IS DISTINCT FROM target.profesion_estudiante OR
+# MAGIC     source.residencia IS DISTINCT FROM target.residencia OR
+# MAGIC     source.etapa IS DISTINCT FROM target.etapa OR
+# MAGIC     source.tipologia_cliente IS DISTINCT FROM target.tipologia_cliente OR
+# MAGIC     source.tipologia_alumno IS DISTINCT FROM target.tipologia_alumno OR
+# MAGIC     source.rating IS DISTINCT FROM target.rating OR
+# MAGIC     source.scoring IS DISTINCT FROM target.scoring OR
+# MAGIC     source.id_unico IS DISTINCT FROM target.id_unico OR
+# MAGIC     source.lead_correlation_id IS DISTINCT FROM target.lead_correlation_id OR
+# MAGIC     source.network IS DISTINCT FROM target.network OR
+# MAGIC     source.tipo_conversion IS DISTINCT FROM target.tipo_conversion OR
+# MAGIC     source.utm_ad_id IS DISTINCT FROM target.utm_ad_id OR
+# MAGIC     source.utm_adset_id IS DISTINCT FROM target.utm_adset_id OR
+# MAGIC     source.utm_campaign_id IS DISTINCT FROM target.utm_campaign_id OR
+# MAGIC     source.utm_campaign_name IS DISTINCT FROM target.utm_campaign_name OR
+# MAGIC     source.utm_channel IS DISTINCT FROM target.utm_channel OR
+# MAGIC     source.utm_estrategia IS DISTINCT FROM target.utm_estrategia OR
+# MAGIC     source.utm_medium IS DISTINCT FROM target.utm_medium OR
+# MAGIC     source.utm_perfil IS DISTINCT FROM target.utm_perfil OR
+# MAGIC     source.utm_source IS DISTINCT FROM target.utm_source OR
+# MAGIC     source.utm_term IS DISTINCT FROM target.utm_term OR
+# MAGIC     source.utm_type IS DISTINCT FROM target.utm_type OR
+# MAGIC     source.contact_name_id IS DISTINCT FROM target.contact_name_id OR
+# MAGIC     source.contact_name IS DISTINCT FROM target.contact_name OR
+# MAGIC     source.owner_email IS DISTINCT FROM target.owner_email OR
+# MAGIC     source.owner_id IS DISTINCT FROM target.owner_id OR
+# MAGIC     source.owner_name IS DISTINCT FROM target.owner_name
 # MAGIC )
 # MAGIC THEN UPDATE SET
+# MAGIC     target.importe = source.importe,
+# MAGIC     target.codigo_descuento = source.codigo_descuento,
+# MAGIC     target.fecha_cierre = source.fecha_cierre,
+# MAGIC     target.competencia = source.competencia,
+# MAGIC     target.fecha_creacion = source.fecha_creacion,
+# MAGIC     target.nombre_oportunidad = source.nombre_oportunidad,
+# MAGIC     target.descuento = source.descuento,
+# MAGIC     target.fecha_hora_anulacion = source.fecha_hora_anulacion,
+# MAGIC     target.fecha_hora_documentacion_completada = source.fecha_hora_documentacion_completada,
 # MAGIC     target.fecha_hora_pagado = source.fecha_hora_pagado,
-# MAGIC     target.Nacionalidad1 = source.Nacionalidad1,
-# MAGIC     target.Residencia1 = source.Residencia1,
-# MAGIC     target.br_rating = source.br_rating,
-# MAGIC     target.br_score = source.br_score,
-# MAGIC     target.Motivo_perdida_B2B = source.Motivo_perdida_B2B,
-# MAGIC     target.Motivo_perdida_B2C = source.Motivo_perdida_B2C,
-# MAGIC     target.Probabilidad = source.Probabilidad,
-# MAGIC     target.Pipeline = source.Pipeline,
-# MAGIC     target.Profesion_Estudiante = source.Profesion_Estudiante,
-# MAGIC     target.Competencia = source.Competencia,
-# MAGIC     target.Tipologia_cliente = source.Tipologia_cliente,
+# MAGIC     target.id_classlife = source.id_classlife,
+# MAGIC     target.id_lead = source.id_lead,
+# MAGIC     target.importe_pagado = source.importe_pagado,
+# MAGIC     target.linea_de_negocio = source.linea_de_negocio,
+# MAGIC     target.fecha_modificacion = source.fecha_modificacion,
+# MAGIC     target.motivo_perdida_b2b = source.motivo_perdida_b2b,
+# MAGIC     target.motivo_perdida_b2c = source.motivo_perdida_b2c,
+# MAGIC     target.nacionalidad = source.nacionalidad,
+# MAGIC     target.flujo_venta = source.flujo_venta,
+# MAGIC     target.probabilidad_conversion = source.probabilidad_conversion,
+# MAGIC     target.profesion_estudiante = source.profesion_estudiante,
+# MAGIC     target.residencia = source.residencia,
+# MAGIC     target.etapa = source.etapa,
+# MAGIC     target.tipologia_cliente = source.tipologia_cliente,
+# MAGIC     target.tipologia_alumno = source.tipologia_alumno,
+# MAGIC     target.rating = source.rating,
+# MAGIC     target.scoring = source.scoring,
+# MAGIC     target.id_unico = source.id_unico,
+# MAGIC     target.lead_correlation_id = source.lead_correlation_id,
+# MAGIC     target.network = source.network,
+# MAGIC     target.tipo_conversion = source.tipo_conversion,
 # MAGIC     target.utm_ad_id = source.utm_ad_id,
 # MAGIC     target.utm_adset_id = source.utm_adset_id,
 # MAGIC     target.utm_campaign_id = source.utm_campaign_id,
 # MAGIC     target.utm_campaign_name = source.utm_campaign_name,
 # MAGIC     target.utm_channel = source.utm_channel,
-# MAGIC     target.utm_strategy = source.utm_strategy,
+# MAGIC     target.utm_estrategia = source.utm_estrategia,
 # MAGIC     target.utm_medium = source.utm_medium,
-# MAGIC     target.utm_profile = source.utm_profile,
+# MAGIC     target.utm_perfil = source.utm_perfil,
 # MAGIC     target.utm_source = source.utm_source,
 # MAGIC     target.utm_term = source.utm_term,
 # MAGIC     target.utm_type = source.utm_type,
-# MAGIC     target.deal_name = source.deal_name,
-# MAGIC     target.fecha_Cierre = source.fecha_Cierre,
-# MAGIC     target.Exchange_Rate = source.Exchange_Rate,
-# MAGIC     target.Currency = source.Currency,
-# MAGIC     target.Importe_pagado = source.Importe_pagado,
-# MAGIC     target.Codigo_descuento = source.Codigo_descuento,
-# MAGIC     target.Descuento = source.Descuento,
-# MAGIC     target.importe = source.importe,
-# MAGIC     target.Tipologia_alumno1 = source.Tipologia_alumno1,
-# MAGIC     target.tipo_conversion = source.tipo_conversion,
-# MAGIC     target.Created_Time = source.Created_Time,
-# MAGIC     target.Modified_Time = source.Modified_Time,
-# MAGIC     target.fecha_hora_anulacion = source.fecha_hora_anulacion
-# MAGIC
+# MAGIC     target.contact_name_id = source.contact_name_id,
+# MAGIC     target.contact_name = source.contact_name,
+# MAGIC     target.owner_email = source.owner_email,
+# MAGIC     target.owner_id = source.owner_id,
+# MAGIC     target.owner_name = source.owner_name,
+# MAGIC     target.processdate = current_timestamp(),
+# MAGIC     target.sourcesystem = source.sourcesystem
 # MAGIC
 # MAGIC WHEN NOT MATCHED THEN
 # MAGIC   INSERT *;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from silver_lakehouse.zohodeals_38b 

@@ -130,15 +130,15 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
     *[col(c).alias(c.strip().replace("`", "")) for c in columnas_seleccionadas]
 )
 
+display(classlifetitulaciones_df)
+
 # COMMAND ----------
 
 from pyspark.sql.functions import col, to_timestamp, lit, current_timestamp
-from pyspark.sql.types import StringType, IntegerType, DoubleType
+from pyspark.sql.types import StringType, DoubleType
 
-# 📌 Aplicar transformaciones a las columnas con nombres corregidos y tipos de datos adecuados
+# 🧼 Normalización y casting de columnas
 classlifetitulaciones_df = classlifetitulaciones_df \
-    .withColumn("processdate", current_timestamp()) \
-    .withColumn("sourcesystem", lit("ReceiptSystem_931")) \
     .withColumn("receipt_id", col("receipt_id").cast(StringType())) \
     .withColumn("receipt_tax_per", col("receipt_tax_per").cast(DoubleType())) \
     .withColumn("payment_method", col("payment_method").cast(StringType())) \
@@ -148,20 +148,21 @@ classlifetitulaciones_df = classlifetitulaciones_df \
     .withColumn("remittance_id", col("remittance_id").cast(StringType())) \
     .withColumn("receipt_total", col("receipt_total").cast(DoubleType())) \
     .withColumn("invoice_id", col("invoice_id").cast(StringType())) \
+    .withColumn("emission_date", col("emission_date").cast(StringType())) \
+    .withColumn("expiry_date", col("expiry_date").cast(StringType())) \
+    .withColumn("receipt_status", col("receipt_status").cast(StringType())) \
+    .withColumn("payment_method_id", col("payment_method_id").cast(StringType())) \
+    .withColumn("receipt_advanced", col("receipt_advanced").cast(DoubleType())) \
+    .withColumn("collection_date", to_timestamp(col("collection_date"), "yyyy-MM-dd")) \
     .withColumn("receipt_concept", col("receipt_concept").cast(StringType())) \
     .withColumn("receipt_status_id", col("receipt_status_id").cast(StringType())) \
     .withColumn("student_full_name", col("student_full_name").cast(StringType())) \
     .withColumn("receipt_price", col("receipt_price").cast(DoubleType())) \
-    .withColumn("receipt_status", col("receipt_status").cast(StringType())) \
-    .withColumn("payment_method_id", col("payment_method_id").cast(StringType())) \
-    .withColumn("receipt_advanced", col("receipt_advanced").cast(DoubleType())) \
-    .withColumn("emission_date", to_timestamp(col("emission_date"), "yyyy-MM-dd HH:mm:ss")) \
-    .withColumn("expiry_date", to_timestamp(col("expiry_date"), "yyyy-MM-dd HH:mm:ss")) \
-    .withColumn("collection_date", to_timestamp(col("collection_date"), "yyyy-MM-dd HH:mm:ss"))
+    .withColumn("processdate", current_timestamp()) \
+    .withColumn("sourcesystem", lit("ClasslifeReceipts_931"))
 
-# 📌 Mostrar los primeros registros con todas las columnas
+# 👁️ Mostrar resultado
 display(classlifetitulaciones_df)
-
 
 # COMMAND ----------
 
@@ -182,98 +183,64 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC MERGE INTO silver_lakehouse.ClasslifeReceipts AS target
+# MAGIC MERGE INTO silver_lakehouse.ClasslifeReceipts_931 AS target
 # MAGIC USING classlifetitulaciones_view AS source
 # MAGIC ON target.receipt_id = source.receipt_id
 # MAGIC
-# MAGIC WHEN MATCHED AND 
-# MAGIC     (
-# MAGIC         target.receipt_tax_per <> source.receipt_tax_per OR
-# MAGIC         target.payment_method <> source.payment_method OR
-# MAGIC         target.receipt_tax <> source.receipt_tax OR
-# MAGIC         target.student_id <> source.student_id OR
-# MAGIC         target.enroll_id <> source.enroll_id OR
-# MAGIC         target.remittance_id <> source.remittance_id OR
-# MAGIC         target.receipt_total <> source.receipt_total OR
-# MAGIC         target.invoice_id <> source.invoice_id OR
-# MAGIC         target.receipt_concept <> source.receipt_concept OR
-# MAGIC         target.receipt_status_id <> source.receipt_status_id OR
-# MAGIC         target.student_full_name <> source.student_full_name OR
-# MAGIC         target.receipt_price <> source.receipt_price OR
-# MAGIC         target.receipt_status <> source.receipt_status OR
-# MAGIC         target.payment_method_id <> source.payment_method_id OR
-# MAGIC         target.receipt_advanced <> source.receipt_advanced OR
-# MAGIC         target.emission_date <> source.emission_date OR
-# MAGIC         target.expiry_date <> source.expiry_date OR
-# MAGIC         target.collection_date <> source.collection_date
-# MAGIC     ) 
-# MAGIC THEN 
-# MAGIC     UPDATE SET 
-# MAGIC         target.receipt_tax_per = source.receipt_tax_per,
-# MAGIC         target.payment_method = source.payment_method,
-# MAGIC         target.receipt_tax = source.receipt_tax,
-# MAGIC         target.student_id = source.student_id,
-# MAGIC         target.enroll_id = source.enroll_id,
-# MAGIC         target.remittance_id = source.remittance_id,
-# MAGIC         target.receipt_total = source.receipt_total,
-# MAGIC         target.invoice_id = source.invoice_id,
-# MAGIC         target.receipt_concept = source.receipt_concept,
-# MAGIC         target.receipt_status_id = source.receipt_status_id,
-# MAGIC         target.student_full_name = source.student_full_name,
-# MAGIC         target.receipt_price = source.receipt_price,
-# MAGIC         target.receipt_status = source.receipt_status,
-# MAGIC         target.payment_method_id = source.payment_method_id,
-# MAGIC         target.receipt_advanced = source.receipt_advanced,
-# MAGIC         target.emission_date = source.emission_date,
-# MAGIC         target.expiry_date = source.expiry_date,
-# MAGIC         target.collection_date = source.collection_date,
-# MAGIC         target.processdate = current_timestamp()
+# MAGIC WHEN MATCHED AND (
+# MAGIC        target.receipt_tax_per IS DISTINCT FROM source.receipt_tax_per OR
+# MAGIC        target.payment_method IS DISTINCT FROM source.payment_method OR
+# MAGIC        target.receipt_tax IS DISTINCT FROM source.receipt_tax OR
+# MAGIC        target.student_id IS DISTINCT FROM source.student_id OR
+# MAGIC        target.enroll_id IS DISTINCT FROM source.enroll_id OR
+# MAGIC        target.remittance_id IS DISTINCT FROM source.remittance_id OR
+# MAGIC        target.receipt_total IS DISTINCT FROM source.receipt_total OR
+# MAGIC        target.invoice_id IS DISTINCT FROM source.invoice_id OR
+# MAGIC        target.emission_date IS DISTINCT FROM source.emission_date OR
+# MAGIC        target.expiry_date IS DISTINCT FROM source.expiry_date OR
+# MAGIC        target.receipt_status IS DISTINCT FROM source.receipt_status OR
+# MAGIC        target.payment_method_id IS DISTINCT FROM source.payment_method_id OR
+# MAGIC        target.receipt_advanced IS DISTINCT FROM source.receipt_advanced OR
+# MAGIC        target.collection_date IS DISTINCT FROM source.collection_date OR
+# MAGIC        target.receipt_concept IS DISTINCT FROM source.receipt_concept OR
+# MAGIC        target.receipt_status_id IS DISTINCT FROM source.receipt_status_id OR
+# MAGIC        target.student_full_name IS DISTINCT FROM source.student_full_name OR
+# MAGIC        target.receipt_price IS DISTINCT FROM source.receipt_price
+# MAGIC ) THEN 
+# MAGIC UPDATE SET
+# MAGIC     receipt_tax_per = source.receipt_tax_per,
+# MAGIC     payment_method = source.payment_method,
+# MAGIC     receipt_tax = source.receipt_tax,
+# MAGIC     student_id = source.student_id,
+# MAGIC     enroll_id = source.enroll_id,
+# MAGIC     remittance_id = source.remittance_id,
+# MAGIC     receipt_total = source.receipt_total,
+# MAGIC     invoice_id = source.invoice_id,
+# MAGIC     emission_date = source.emission_date,
+# MAGIC     expiry_date = source.expiry_date,
+# MAGIC     receipt_status = source.receipt_status,
+# MAGIC     payment_method_id = source.payment_method_id,
+# MAGIC     receipt_advanced = source.receipt_advanced,
+# MAGIC     collection_date = source.collection_date,
+# MAGIC     receipt_concept = source.receipt_concept,
+# MAGIC     receipt_status_id = source.receipt_status_id,
+# MAGIC     student_full_name = source.student_full_name,
+# MAGIC     receipt_price = source.receipt_price,
+# MAGIC     processdate = source.processdate,
+# MAGIC     sourcesystem = source.sourcesystem
 # MAGIC
 # MAGIC WHEN NOT MATCHED THEN 
-# MAGIC     INSERT (
-# MAGIC         processdate,
-# MAGIC         sourcesystem,
-# MAGIC         receipt_id,
-# MAGIC         receipt_tax_per,
-# MAGIC         payment_method,
-# MAGIC         receipt_tax,
-# MAGIC         student_id,
-# MAGIC         enroll_id,
-# MAGIC         remittance_id,
-# MAGIC         receipt_total,
-# MAGIC         invoice_id,
-# MAGIC         receipt_concept,
-# MAGIC         receipt_status_id,
-# MAGIC         student_full_name,
-# MAGIC         receipt_price,
-# MAGIC         receipt_status,
-# MAGIC         payment_method_id,
-# MAGIC         receipt_advanced,
-# MAGIC         emission_date,
-# MAGIC         expiry_date,
-# MAGIC         collection_date
-# MAGIC     )
-# MAGIC     VALUES (
-# MAGIC         current_timestamp(), 
-# MAGIC         'ReceiptSystem', 
-# MAGIC         source.receipt_id,
-# MAGIC         source.receipt_tax_per,
-# MAGIC         source.payment_method,
-# MAGIC         source.receipt_tax,
-# MAGIC         source.student_id,
-# MAGIC         source.enroll_id,
-# MAGIC         source.remittance_id,
-# MAGIC         source.receipt_total,
-# MAGIC         source.invoice_id,
-# MAGIC         source.receipt_concept,
-# MAGIC         source.receipt_status_id,
-# MAGIC         source.student_full_name,
-# MAGIC         source.receipt_price,
-# MAGIC         source.receipt_status,
-# MAGIC         source.payment_method_id,
-# MAGIC         source.receipt_advanced,
-# MAGIC         source.emission_date,
-# MAGIC         source.expiry_date,
-# MAGIC         source.collection_date
-# MAGIC     );
-# MAGIC
+# MAGIC INSERT (
+# MAGIC     receipt_id, receipt_tax_per, payment_method, receipt_tax, student_id,
+# MAGIC     enroll_id, remittance_id, receipt_total, invoice_id, emission_date,
+# MAGIC     expiry_date, receipt_status, payment_method_id, receipt_advanced,
+# MAGIC     collection_date, receipt_concept, receipt_status_id, student_full_name,
+# MAGIC     receipt_price, processdate, sourcesystem
+# MAGIC )
+# MAGIC VALUES (
+# MAGIC     source.receipt_id, source.receipt_tax_per, source.payment_method, source.receipt_tax, source.student_id,
+# MAGIC     source.enroll_id, source.remittance_id, source.receipt_total, source.invoice_id, source.emission_date,
+# MAGIC     source.expiry_date, source.receipt_status, source.payment_method_id, source.receipt_advanced,
+# MAGIC     source.collection_date, source.receipt_concept, source.receipt_status_id, source.student_full_name,
+# MAGIC     source.receipt_price, source.processdate, source.sourcesystem
+# MAGIC );

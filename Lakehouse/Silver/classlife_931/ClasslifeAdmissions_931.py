@@ -150,6 +150,8 @@ if "metas" in classlifetitulaciones_df.columns:
     # 🧩 Combinar todas las columnas
     classlifetitulaciones_df = classlifetitulaciones_df.select(*other_columns, *metas_exploded_cols)
 
+display(classlifetitulaciones_df)
+
 # COMMAND ----------
 
 from pyspark.sql.functions import col, lit, current_timestamp
@@ -160,24 +162,30 @@ if "zoho_deal_id" not in classlifetitulaciones_df.columns:
     classlifetitulaciones_df = classlifetitulaciones_df.withColumn("zoho_deal_id", lit(None).cast(StringType()))
 
 # 📌 Selección de columnas y transformaciones
-classlifetitulaciones_df = classlifetitulaciones_df \
-    .withColumn("processdate", current_timestamp()) \
-    .withColumn("sourcesystem", lit("AdmissionsSystem_931")) \
-    .withColumn("student_phone", col("student_phone").cast(StringType())) \
-    .withColumn("comercial", col("comercial").cast(StringType())) \
-    .withColumn("student_email", col("student_email").cast(StringType())) \
-    .withColumn("ini_date", col("ini_date").cast(StringType())) \
-    .withColumn("zoho_deal_id", col("zoho_deal_id").cast(StringType())) \
-    .withColumn("enroll_group", col("enroll_group").cast(StringType())) \
-    .withColumn("ciclo_title", col("ciclo_title").cast(StringType())) \
-    .withColumn("id", col("id").cast(StringType())) \
-    .withColumn("student_dni", col("student_dni").cast(StringType())) \
-    .withColumn("registration_date", col("registration_date").cast(StringType())) \
-    .withColumn("year_id", col("year_id").cast(StringType())) \
-    .withColumn("student_full_name", col("student_full_name").cast(StringType())) \
-    .withColumn("area_title", col("area_title").cast(StringType())) \
-    .withColumn("school_name", col("school_name").cast(StringType())) \
-    .withColumn("end_date", col("end_date").cast(StringType())) \
+classlifetitulaciones_df = (
+    classlifetitulaciones_df
+    .withColumn("processdate", current_timestamp())
+    .withColumn("sourcesystem", lit("AdmissionsSystem_931"))
+    .withColumn("student_phone", col("student_phone").cast(StringType()))
+    .withColumn("comercial", col("comercial").cast(StringType()))
+    .withColumn("student_email", col("student_email").cast(StringType()))
+    .withColumn("ini_date", col("ini_date").cast(StringType()))
+    .withColumn("zoho_deal_id", col("zoho_deal_id").cast(StringType()))
+    .withColumn("enroll_group", col("enroll_group").cast(StringType()))
+    .withColumn("ciclo_title", col("ciclo_title").cast(StringType()))
+    .withColumn("id", col("id").cast(StringType()))
+    .withColumn("student_dni", col("student_dni").cast(StringType()))
+    .withColumn("registration_date", col("registration_date").cast(StringType()))
+    .withColumn("year_id", col("year_id").cast(StringType()))
+    .withColumn("student_full_name", col("student_full_name").cast(StringType()))
+    .withColumn("area_title", col("area_title").cast(StringType()))
+    .withColumn("school_name", col("school_name").cast(StringType()))
+    .withColumn("end_date", col("end_date").cast(StringType()))
+    .withColumn("suma_docencia", col("sumadocencia").cast(StringType()))
+    .withColumn("total_Enroll", col("totalEnroll").cast(StringType()))
+    .withColumn("total_Final", col("totalFinal").cast(StringType()))
+    .withColumn("total_FinalDocencia", col("totalFinalDocencia").cast(StringType()))
+    .withColumn("total_FinalMatricula", col("totalFinalMatricula").cast(StringType()))
     .select(
         "student_phone",
         "comercial",
@@ -194,9 +202,15 @@ classlifetitulaciones_df = classlifetitulaciones_df \
         "area_title",
         "school_name",
         "end_date",
+        "suma_docencia",
+        "total_Enroll",
+        "total_Final",
+        "total_FinalDocencia",
+        "total_FinalMatricula",
         "processdate",
         "sourcesystem"
     )
+)
 
 # COMMAND ----------
 
@@ -216,63 +230,67 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 
 # COMMAND ----------
 
-#%sql
-#CREATE TABLE silver_lakehouse.ClasslifeAdmissions_931
-#AS
-#SELECT * FROM silver_lakehouse.ClasslifeAdmissions
-#WHERE 1 = 0;
-
-# COMMAND ----------
-
 # MAGIC %sql
 # MAGIC MERGE INTO silver_lakehouse.ClasslifeAdmissions_931 AS target
 # MAGIC USING classlifetitulaciones_view AS source
 # MAGIC ON target.id = source.id
 # MAGIC
 # MAGIC WHEN MATCHED AND (
-# MAGIC        target.student_phone IS DISTINCT FROM source.student_phone
-# MAGIC     OR target.comercial IS DISTINCT FROM source.comercial
-# MAGIC     OR target.student_email IS DISTINCT FROM source.student_email
-# MAGIC     OR target.ini_date IS DISTINCT FROM source.ini_date
-# MAGIC     OR target.zoho_deal_id IS DISTINCT FROM source.zoho_deal_id
-# MAGIC     OR target.enroll_group IS DISTINCT FROM source.enroll_group
-# MAGIC     OR target.ciclo_title IS DISTINCT FROM source.ciclo_title
-# MAGIC     OR target.student_dni IS DISTINCT FROM source.student_dni
-# MAGIC     OR target.registration_date IS DISTINCT FROM source.registration_date
-# MAGIC     OR target.year_id IS DISTINCT FROM source.year_id
-# MAGIC     OR target.student_full_name IS DISTINCT FROM source.student_full_name
-# MAGIC     OR target.area_title IS DISTINCT FROM source.area_title
-# MAGIC     OR target.school_name IS DISTINCT FROM source.school_name
-# MAGIC     OR target.end_date IS DISTINCT FROM source.end_date
+# MAGIC        target.student_phone IS DISTINCT FROM source.student_phone OR
+# MAGIC        target.comercial IS DISTINCT FROM source.comercial OR
+# MAGIC        target.student_email IS DISTINCT FROM source.student_email OR
+# MAGIC        target.ini_date IS DISTINCT FROM source.ini_date OR
+# MAGIC        target.zoho_deal_id IS DISTINCT FROM source.zoho_deal_id OR
+# MAGIC        target.enroll_group IS DISTINCT FROM source.enroll_group OR
+# MAGIC        target.ciclo_title IS DISTINCT FROM source.ciclo_title OR
+# MAGIC        target.student_dni IS DISTINCT FROM source.student_dni OR
+# MAGIC        target.registration_date IS DISTINCT FROM source.registration_date OR
+# MAGIC        target.year_id IS DISTINCT FROM source.year_id OR
+# MAGIC        target.student_full_name IS DISTINCT FROM source.student_full_name OR
+# MAGIC        target.area_title IS DISTINCT FROM source.area_title OR
+# MAGIC        target.school_name IS DISTINCT FROM source.school_name OR
+# MAGIC        target.end_date IS DISTINCT FROM source.end_date OR
+# MAGIC        target.suma_docencia IS DISTINCT FROM source.suma_docencia OR
+# MAGIC        target.total_Enroll IS DISTINCT FROM source.total_Enroll OR
+# MAGIC        target.total_Final IS DISTINCT FROM source.total_Final OR
+# MAGIC        target.total_FinalDocencia IS DISTINCT FROM source.total_FinalDocencia OR
+# MAGIC        target.total_FinalMatricula IS DISTINCT FROM source.total_FinalMatricula
 # MAGIC ) THEN 
-# MAGIC     UPDATE SET
-# MAGIC        student_phone       = source.student_phone,
-# MAGIC        comercial           = source.comercial,
-# MAGIC        student_email       = source.student_email,
-# MAGIC        ini_date            = source.ini_date,
-# MAGIC        zoho_deal_id        = source.zoho_deal_id,
-# MAGIC        enroll_group        = source.enroll_group,
-# MAGIC        ciclo_title         = source.ciclo_title,
-# MAGIC        student_dni         = source.student_dni,
-# MAGIC        registration_date   = source.registration_date,
-# MAGIC        year_id             = source.year_id,
-# MAGIC        student_full_name   = source.student_full_name,
-# MAGIC        area_title          = source.area_title,
-# MAGIC        school_name         = source.school_name,
-# MAGIC        end_date            = source.end_date
+# MAGIC UPDATE SET
+# MAGIC     student_phone         = source.student_phone,
+# MAGIC     comercial             = source.comercial,
+# MAGIC     student_email         = source.student_email,
+# MAGIC     ini_date              = source.ini_date,
+# MAGIC     zoho_deal_id          = source.zoho_deal_id,
+# MAGIC     enroll_group          = source.enroll_group,
+# MAGIC     ciclo_title           = source.ciclo_title,
+# MAGIC     student_dni           = source.student_dni,
+# MAGIC     registration_date     = source.registration_date,
+# MAGIC     year_id               = source.year_id,
+# MAGIC     student_full_name     = source.student_full_name,
+# MAGIC     area_title            = source.area_title,
+# MAGIC     school_name           = source.school_name,
+# MAGIC     end_date              = source.end_date,
+# MAGIC     suma_docencia          = source.suma_docencia,
+# MAGIC     total_Enroll           = source.total_Enroll,
+# MAGIC     total_Final            = source.total_Final,
+# MAGIC     total_FinalDocencia    = source.total_FinalDocencia,
+# MAGIC     total_FinalMatricula   = source.total_FinalMatricula,
+# MAGIC     processdate           = source.processdate,
+# MAGIC     sourcesystem          = source.sourcesystem
 # MAGIC
 # MAGIC WHEN NOT MATCHED THEN 
-# MAGIC     INSERT (
-# MAGIC         student_phone, comercial, student_email, ini_date, zoho_deal_id,
-# MAGIC         enroll_group, ciclo_title, id, student_dni, registration_date,
-# MAGIC         year_id, student_full_name, area_title, school_name, end_date, processdate, sourcesystem
-# MAGIC     )
-# MAGIC     VALUES (
-# MAGIC         source.student_phone, source.comercial, source.student_email, source.ini_date, source.zoho_deal_id,
-# MAGIC         source.enroll_group, source.ciclo_title, source.id, source.student_dni, source.registration_date,
-# MAGIC         source.year_id, source.student_full_name, source.area_title, source.school_name, source.end_date, source.processdate, source.sourcesystem
-# MAGIC     );
-
-# COMMAND ----------
-
-# MAGIC %sql select * from silver_lakehouse.ClasslifeAdmissions_931;
+# MAGIC INSERT (
+# MAGIC     student_phone, comercial, student_email, ini_date, zoho_deal_id,
+# MAGIC     enroll_group, ciclo_title, id, student_dni, registration_date,
+# MAGIC     year_id, student_full_name, area_title, school_name, end_date,
+# MAGIC     suma_docencia, total_Enroll, total_Final, total_FinalDocencia, total_FinalMatricula,
+# MAGIC     processdate, sourcesystem
+# MAGIC )
+# MAGIC VALUES (
+# MAGIC     source.student_phone, source.comercial, source.student_email, source.ini_date, source.zoho_deal_id,
+# MAGIC     source.enroll_group, source.ciclo_title, source.id, source.student_dni, source.registration_date,
+# MAGIC     source.year_id, source.student_full_name, source.area_title, source.school_name, source.end_date,
+# MAGIC     source.suma_docencia, source.total_Enroll, source.total_Final, source.total_FinalDocencia, source.total_FinalMatricula,
+# MAGIC     source.processdate, source.sourcesystem
+# MAGIC );

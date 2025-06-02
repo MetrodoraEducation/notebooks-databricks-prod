@@ -1,5 +1,5 @@
 # Databricks notebook source
-# MAGIC %run "../Silver/configuration"
+# MAGIC %run "../configuration" 
 
 # COMMAND ----------
 
@@ -11,8 +11,6 @@ file_pattern = f"{bronze_folder_path}/lakehouse/zoho_38b/{current_date}/{table_p
 print(f"Leyendo archivos desde: {file_pattern}")
 
 zohocontacts_df = spark.read.json(file_pattern)
-
-display(zohocontacts_df)
 
 # COMMAND ----------
 
@@ -33,9 +31,6 @@ for col_name in zohocontacts_df.columns:
     new_col_name = col_name.replace("data_", "")#.replace("users_", "")
     zohocontacts_df = zohocontacts_df.withColumnRenamed(col_name, new_col_name)
 
-# Muestra el DataFrame procesado
-display(zohocontacts_df)
-
 # COMMAND ----------
 
 # DBTITLE 1,Columnas a minusculas
@@ -44,21 +39,21 @@ for col in zohocontacts_df.columns:
 
 # COMMAND ----------
 
-# Diccionario para mapear las columnas directamente, manteniendo los nombres originales
+from pyspark.sql.functions import col, lit, current_timestamp
+
+# Diccionario de mapeo de columnas a nombres más entendibles
 columns_mapping = {
     "apellidos_2": "last_name",
     "dni": "dni",
     "date_of_birth": "date_birth",
     "email": "email",
-    "estudios": "estudios",
     "first_name": "first_name",
-    "home_phone1": "home_phone",
     "id_classlife": "id_classlife",
     "mailing_city": "mailing_city",
-    "mailing_country": "mailing_country",
     "mailing_street": "mailing_street",
     "mailing_zip": "mailing_zip",
     "mobile": "mobile",
+    "modified_time": "modified_time",
     "nacionalidad": "nacionalidad",
     "other_city": "other_city",
     "other_country": "other_country",
@@ -66,68 +61,30 @@ columns_mapping = {
     "other_street": "other_street",
     "other_zip": "other_zip",
     "phone": "phone",
-    "profesion": "profesion",
-    "provincia": "provincia",
     "residencia": "residencia",
-    "secondary_email": "secondary_email",
     "sexo": "sexo",
     "tipo_de_cliente": "tipo_cliente",
     "tipo_de_contacto": "tipo_contacto",
     "id": "id",
-    "recibir_comunicacion": "recibir_comunicacion",
-    "woztellplatformintegration__whatsapp_opt_out": "woztellplatform_whatsapp_out"
+    "ltima_l_nea_de_negocio": "ultima_linea_de_negocio"
 }
 
-# Renombrar columnas dinámicamente (en este caso, no cambiarán porque el mapeo es 1 a 1)
+# Añadir columnas de trazabilidad
+zohocontacts_df = zohocontacts_df \
+    .withColumn("sourcesystem", lit("zoho_contacts_38b")) \
+    .withColumn("processdate", current_timestamp())
+
+# Renombrar las columnas dinámicamente si existen en el DataFrame
 for old_col, new_col in columns_mapping.items():
     if old_col in zohocontacts_df.columns:
         zohocontacts_df = zohocontacts_df.withColumnRenamed(old_col, new_col)
 
-# Mostrar el DataFrame resultante
-display(zohocontacts_df)
+columnas_finales = list(columns_mapping.values()) + ["sourcesystem", "processdate"]
 
-# COMMAND ----------
+# Seleccionar solo esas columnas
+zohocontacts_df = zohocontacts_df.select(*columnas_finales)
 
-from pyspark.sql.types import *
-from pyspark.sql.functions import *
-
-# Ajuste del DataFrame con validación de columnas para zohocontacts
-zohocontacts_df = zohocontacts_df \
-    .withColumn("processdate", current_timestamp()) \
-    .withColumn("sourcesystem", lit("zoho_Contacts")) \
-    .withColumn("last_name", col("last_name").cast(StringType())) \
-    .withColumn("dni", col("dni").cast(StringType())) \
-    .withColumn("date_birth", to_date(col("date_birth"), "yyyy-MM-dd")) \
-    .withColumn("email", col("email").cast(StringType())) \
-    .withColumn("estudios", col("estudios").cast(StringType())) \
-    .withColumn("first_name", col("first_name").cast(StringType())) \
-    .withColumn("home_phone", col("home_phone").cast(StringType())) \
-    .withColumn("id_classlife", col("id_classlife").cast(StringType())) \
-    .withColumn("mailing_city", col("mailing_city").cast(StringType())) \
-    .withColumn("mailing_country", col("mailing_country").cast(StringType())) \
-    .withColumn("mailing_street", col("mailing_street").cast(StringType())) \
-    .withColumn("mailing_zip", col("mailing_zip").cast(StringType())) \
-    .withColumn("mobile", col("mobile").cast(StringType())) \
-    .withColumn("nacionalidad", col("nacionalidad").cast(StringType())) \
-    .withColumn("other_city", col("other_city").cast(StringType())) \
-    .withColumn("other_country", col("other_country").cast(StringType())) \
-    .withColumn("other_state", col("other_state").cast(StringType())) \
-    .withColumn("other_street", col("other_street").cast(StringType())) \
-    .withColumn("other_zip", col("other_zip").cast(StringType())) \
-    .withColumn("phone", col("phone").cast(StringType())) \
-    .withColumn("profesion", col("profesion").cast(StringType())) \
-    .withColumn("provincia", col("provincia").cast(StringType())) \
-    .withColumn("residencia", col("residencia").cast(StringType())) \
-    .withColumn("secondary_email", col("secondary_email").cast(StringType())) \
-    .withColumn("sexo", col("sexo").cast(StringType())) \
-    .withColumn("tipo_cliente", col("tipo_cliente").cast(StringType())) \
-    .withColumn("tipo_contacto", col("tipo_contacto").cast(StringType())) \
-    .withColumn("id", col("id").cast(StringType())) \
-    .withColumn("recibir_comunicacion", col("recibir_comunicacion").cast(StringType())) \
-    .withColumn("ultima_linea_de_negocio", col("ltima_l_nea_de_negocio").cast(StringType())).drop("ltima_l_nea_de_negocio") \
-    .withColumn("woztellplatform_whatsapp_out", col("woztellplatform_whatsapp_out").cast(BooleanType()))
-
-# Mostrar el DataFrame final
+# Mostrar resultado final
 display(zohocontacts_df)
 
 # COMMAND ----------
@@ -163,7 +120,7 @@ zohocontacts_df = zohocontacts_df.dropDuplicates()
 zohocontacts_df.createOrReplaceTempView("zohocontacts_source_view")
 
 zohocontacts_df_filtered = zohocontacts_df.filter(
-    (col("ultima_linea_de_negocio").isin("FisioFocus")) &  # Solo esos valores
+    (col("ultima_linea_de_negocio").isin("MetrodoraFP", "Oceano")) &  # Solo esos valores
     (col("ultima_linea_de_negocio").isNotNull()) &  # Que no sea NULL
     (col("ultima_linea_de_negocio") != "")  # Que no sea blanco
 )
@@ -174,8 +131,66 @@ zohocontacts_df_filtered.createOrReplaceTempView("zohocontacts_source_view")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC MERGE INTO silver_lakehouse.zohocontacts
-# MAGIC USING zohocontacts_source_view
-# MAGIC ON silver_lakehouse.zohocontacts.id = zohocontacts_source_view.id
+# MAGIC MERGE INTO silver_lakehouse.ZohoContacts_38b AS target
+# MAGIC USING zohocontacts_source_view AS source
+# MAGIC ON target.id = source.id
+# MAGIC
+# MAGIC WHEN MATCHED AND (
+# MAGIC        target.last_name IS DISTINCT FROM source.last_name
+# MAGIC     OR target.dni IS DISTINCT FROM source.dni
+# MAGIC     OR target.date_birth IS DISTINCT FROM source.date_birth
+# MAGIC     OR target.email IS DISTINCT FROM source.email
+# MAGIC     OR target.first_name IS DISTINCT FROM source.first_name
+# MAGIC     OR target.id_classlife IS DISTINCT FROM source.id_classlife
+# MAGIC     OR target.mailing_city IS DISTINCT FROM source.mailing_city
+# MAGIC     OR target.mailing_street IS DISTINCT FROM source.mailing_street
+# MAGIC     OR target.mailing_zip IS DISTINCT FROM source.mailing_zip
+# MAGIC     OR target.mobile IS DISTINCT FROM source.mobile
+# MAGIC     OR target.modified_time IS DISTINCT FROM source.modified_time
+# MAGIC     OR target.nacionalidad IS DISTINCT FROM source.nacionalidad
+# MAGIC     OR target.other_city IS DISTINCT FROM source.other_city
+# MAGIC     OR target.other_country IS DISTINCT FROM source.other_country
+# MAGIC     OR target.other_state IS DISTINCT FROM source.other_state
+# MAGIC     OR target.other_street IS DISTINCT FROM source.other_street
+# MAGIC     OR target.other_zip IS DISTINCT FROM source.other_zip
+# MAGIC     OR target.phone IS DISTINCT FROM source.phone
+# MAGIC     OR target.residencia IS DISTINCT FROM source.residencia
+# MAGIC     OR target.sexo IS DISTINCT FROM source.sexo
+# MAGIC     OR target.tipo_cliente IS DISTINCT FROM source.tipo_cliente
+# MAGIC     OR target.tipo_contacto IS DISTINCT FROM source.tipo_contacto
+# MAGIC     OR target.ultima_linea_de_negocio IS DISTINCT FROM source.ultima_linea_de_negocio
+# MAGIC )
+# MAGIC THEN UPDATE SET
+# MAGIC     last_name = source.last_name,
+# MAGIC     dni = source.dni,
+# MAGIC     date_birth = source.date_birth,
+# MAGIC     email = source.email,
+# MAGIC     first_name = source.first_name,
+# MAGIC     id_classlife = source.id_classlife,
+# MAGIC     mailing_city = source.mailing_city,
+# MAGIC     mailing_street = source.mailing_street,
+# MAGIC     mailing_zip = source.mailing_zip,
+# MAGIC     mobile = source.mobile,
+# MAGIC     modified_time = source.modified_time,
+# MAGIC     nacionalidad = source.nacionalidad,
+# MAGIC     other_city = source.other_city,
+# MAGIC     other_country = source.other_country,
+# MAGIC     other_state = source.other_state,
+# MAGIC     other_street = source.other_street,
+# MAGIC     other_zip = source.other_zip,
+# MAGIC     phone = source.phone,
+# MAGIC     residencia = source.residencia,
+# MAGIC     sexo = source.sexo,
+# MAGIC     tipo_cliente = source.tipo_cliente,
+# MAGIC     tipo_contacto = source.tipo_contacto,
+# MAGIC     ultima_linea_de_negocio = source.ultima_linea_de_negocio,
+# MAGIC     sourcesystem = source.sourcesystem,
+# MAGIC     processdate = source.processdate
+# MAGIC     
 # MAGIC WHEN MATCHED THEN UPDATE SET *
 # MAGIC WHEN NOT MATCHED THEN INSERT *
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from silver_lakehouse.ZohoContacts_38b

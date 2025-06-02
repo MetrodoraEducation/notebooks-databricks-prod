@@ -1,5 +1,5 @@
 # Databricks notebook source
-# MAGIC %run "../Silver/configuration"
+# MAGIC %run "../configuration"
 
 # COMMAND ----------
 
@@ -40,68 +40,43 @@ for col in zohousers_df.columns:
 
 # COMMAND ----------
 
-from pyspark.sql.functions import col, to_date, to_timestamp, lit, current_timestamp
-from pyspark.sql.types import StringType, BooleanType, LongType
+from pyspark.sql.functions import col, to_timestamp, lit, current_timestamp
+from pyspark.sql.types import StringType, BooleanType
 
-# 📌 Lista de columnas con sus tipos de datos correspondientes
-columnas_con_tipo = [
-    ("processdate", current_timestamp()),
-    ("sourcesystem", lit("zoho_Users")),
-    ("next_shift", col("next_shift").cast(StringType())),
-    ("shift_effective_from", to_timestamp(col("shift_effective_from"), "yyyy-MM-dd'T'HH:mm:ssXXX")),
-    ("currency", col("currency").cast(StringType())),
-    ("isonline", col("isonline").cast(BooleanType())),
-    ("modified_time", to_timestamp(col("modified_time"), "yyyy-MM-dd'T'HH:mm:ssXXX")),
-    ("alias", col("alias").cast(StringType())),
-    ("city", col("city").cast(StringType())),
-    ("confirm", col("confirm").cast(BooleanType())),
-    ("country", col("country").cast(StringType())),
-    ("country_locale", col("country_locale").cast(StringType())),
-    ("created_time", to_timestamp(col("created_time"), "yyyy-MM-dd'T'HH:mm:ssXXX")),
-    ("date_format", col("date_format").cast(StringType())),
-    ("decimal_separator", col("decimal_separator").cast(StringType())),
-    ("default_tab_group", col("default_tab_group").cast(StringType())),
-    ("dob", to_date(col("dob"), "yyyy-MM-dd")),
-    ("email", col("email").cast(StringType())),
-    ("fax", col("fax").cast(StringType())),
-    ("first_name", col("first_name").cast(StringType())),
-    ("full_name", col("full_name").cast(StringType())),
-    ("id", col("id").cast(StringType())),
-    ("language", col("language").cast(StringType())),
-    ("last_name", col("last_name").cast(StringType())),
-    ("locale", col("locale").cast(StringType())),
-    ("microsoft", col("microsoft").cast(BooleanType())),
-    ("mobile", col("mobile").cast(StringType())),
-    ("number_separator", col("number_separator").cast(StringType())),
-    ("offset", col("offset").cast(LongType())),
-    ("personal_account", col("personal_account").cast(BooleanType())),
-    ("phone", col("phone").cast(StringType())),
-    ("sandboxdeveloper", col("sandboxdeveloper").cast(BooleanType())),
-    ("signature", col("signature").cast(StringType())),
-    ("state", col("state").cast(StringType())),
-    ("status", col("status").cast(StringType())),
-    ("street", col("street").cast(StringType())),
-    ("time_format", col("time_format").cast(StringType())),
-    ("time_zone", col("time_zone").cast(StringType())),
-    ("website", col("website").cast(StringType())),
-    ("zip", col("zip").cast(StringType())),
-    ("zuid", col("zuid").cast(StringType())),
-    ("modified_by_id", col("modified_by_id").cast(StringType())),
-    ("modified_by_name", col("modified_by_name").cast(StringType())),
-    ("created_by_id", col("created_by_id").cast(StringType())),
-    ("created_by_name", col("created_by_name").cast(StringType())),
-    ("profile_id", col("profile_id").cast(StringType())),
-    ("profile_name", col("profile_name").cast(StringType())),
-    ("role_id", col("role_id").cast(StringType())),
-    ("role_name", col("role_name").cast(StringType())),
-]
+# 🧱 Aplicar transformaciones y seleccionar SOLO columnas indicadas
+zohousers_df = zohousers_df \
+    .withColumn("processdate", current_timestamp()) \
+    .withColumn("sourcesystem", lit("zoho_Users_38b")) \
+    .withColumn("status", col("Estado").cast(StringType())) \
+    .withColumn("isonline", col("Isonline").cast(BooleanType())) \
+    .withColumn("linea_de_negocio", col("L_nea_de_Negocio").cast(StringType())) \
+    .withColumn("modified_time", to_timestamp(col("Modified_Time"), "yyyy-MM-dd'T'HH:mm:ssXXX")) \
+    .withColumn("created_time", to_timestamp(col("created_time"), "yyyy-MM-dd'T'HH:mm:ssXXX")) \
+    .withColumn("city", col("city").cast(StringType())) \
+    .withColumn("confirm", col("confirm").cast(BooleanType())) \
+    .withColumn("country", col("country").cast(StringType())) \
+    .withColumn("country_locale", col("country_locale").cast(StringType())) \
+    .withColumn("email", col("email").cast(StringType())) \
+    .withColumn("first_name", col("first_name").cast(StringType())) \
+    .withColumn("full_name", col("full_name").cast(StringType())) \
+    .withColumn("id", col("id").cast(StringType())) \
+    .withColumn("language", col("language").cast(StringType())) \
+    .withColumn("last_name", col("last_name").cast(StringType())) \
+    .withColumn("mobile", col("mobile").cast(StringType())) \
+    .withColumn("modified_by_id", col("Modified_By_id").cast(StringType())) \
+    .withColumn("modified_by_name", col("Modified_By_name").cast(StringType())) \
+    .withColumn("created_by_id", col("created_by_id").cast(StringType())) \
+    .withColumn("created_by_name", col("created_by_name").cast(StringType())) \
+    .withColumn("role_id", col("role_id").cast(StringType())) \
+    .withColumn("role_name", col("role_name").cast(StringType())) \
+    .select(
+         "id", "status", "isonline", "linea_de_negocio", "modified_time", "created_time", "city", "confirm",
+        "country", "country_locale", "email", "first_name", "full_name", "language", "last_name",
+        "mobile", "modified_by_id", "modified_by_name", "created_by_id", "created_by_name",
+        "role_id", "role_name", "processdate", "sourcesystem"
+    )
 
-# 📌 Aplicar transformaciones y seleccionar solo las columnas especificadas
-zohousers_df = zohousers_df.select(
-    [expr.alias(nombre) for nombre, expr in columnas_con_tipo]
-)
-
-# 📌 Mostrar el DataFrame final
+# 👁️ Mostrar resultado
 display(zohousers_df)
 
 # COMMAND ----------
@@ -134,14 +109,74 @@ zohousers_df = zohousers_df.dropDuplicates()
 
 # COMMAND ----------
 
+zohousers_df = zohousers_df.filter(
+    (col("linea_de_negocio").isin("MetrodoraFP", "Océano", "Oceano")) &  # Solo esos valores
+    (col("linea_de_negocio").isNotNull()) &  # Que no sea NULL
+    (col("linea_de_negocio") != "")  # Que no sea blanco
+)
+
+# Crear la vista temporal con datos ya filtrados
 zohousers_df.createOrReplaceTempView("zohousers_source_view")
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC MERGE INTO silver_lakehouse.zohousers
-# MAGIC USING zohousers_source_view
-# MAGIC ON silver_lakehouse.zohousers.id = zohousers_source_view.id
-# MAGIC    --AND silver_lakehouse.zohousers.email = zohousers_source_view.email
+# MAGIC MERGE INTO silver_lakehouse.ZohoUsers_38b AS target
+# MAGIC USING zohousers_source_view AS source
+# MAGIC ON target.id = source.id
+# MAGIC
+# MAGIC WHEN MATCHED AND (
+# MAGIC     target.status IS DISTINCT FROM source.status OR
+# MAGIC     target.isonline IS DISTINCT FROM source.isonline OR
+# MAGIC     target.linea_de_negocio IS DISTINCT FROM source.linea_de_negocio OR
+# MAGIC     target.modified_time IS DISTINCT FROM source.modified_time OR
+# MAGIC     target.created_time IS DISTINCT FROM source.created_time OR
+# MAGIC     target.city IS DISTINCT FROM source.city OR
+# MAGIC     target.confirm IS DISTINCT FROM source.confirm OR
+# MAGIC     target.country IS DISTINCT FROM source.country OR
+# MAGIC     target.country_locale IS DISTINCT FROM source.country_locale OR
+# MAGIC     target.email IS DISTINCT FROM source.email OR
+# MAGIC     target.first_name IS DISTINCT FROM source.first_name OR
+# MAGIC     target.full_name IS DISTINCT FROM source.full_name OR
+# MAGIC     target.language IS DISTINCT FROM source.language OR
+# MAGIC     target.last_name IS DISTINCT FROM source.last_name OR
+# MAGIC     target.mobile IS DISTINCT FROM source.mobile OR
+# MAGIC     target.modified_by_id IS DISTINCT FROM source.modified_by_id OR
+# MAGIC     target.modified_by_name IS DISTINCT FROM source.modified_by_name OR
+# MAGIC     target.created_by_id IS DISTINCT FROM source.created_by_id OR
+# MAGIC     target.created_by_name IS DISTINCT FROM source.created_by_name OR
+# MAGIC     target.role_id IS DISTINCT FROM source.role_id OR
+# MAGIC     target.role_name IS DISTINCT FROM source.role_name
+# MAGIC )
+# MAGIC THEN UPDATE SET
+# MAGIC     target.status = source.status,
+# MAGIC     target.isonline = source.isonline,
+# MAGIC     target.linea_de_negocio = source.linea_de_negocio,
+# MAGIC     target.modified_time = source.modified_time,
+# MAGIC     target.created_time = source.created_time,
+# MAGIC     target.city = source.city,
+# MAGIC     target.confirm = source.confirm,
+# MAGIC     target.country = source.country,
+# MAGIC     target.country_locale = source.country_locale,
+# MAGIC     target.email = source.email,
+# MAGIC     target.first_name = source.first_name,
+# MAGIC     target.full_name = source.full_name,
+# MAGIC     target.language = source.language,
+# MAGIC     target.last_name = source.last_name,
+# MAGIC     target.mobile = source.mobile,
+# MAGIC     target.modified_by_id = source.modified_by_id,
+# MAGIC     target.modified_by_name = source.modified_by_name,
+# MAGIC     target.created_by_id = source.created_by_id,
+# MAGIC     target.created_by_name = source.created_by_name,
+# MAGIC     target.role_id = source.role_id,
+# MAGIC     target.role_name = source.role_name,
+# MAGIC     target.processdate = source.processdate,
+# MAGIC     target.sourcesystem = source.sourcesystem
+# MAGIC     
 # MAGIC WHEN MATCHED THEN UPDATE SET *
 # MAGIC WHEN NOT MATCHED THEN INSERT *
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from silver_lakehouse.ZohoUsers_38b

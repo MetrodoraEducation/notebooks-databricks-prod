@@ -1,5 +1,5 @@
 # Databricks notebook source
-# MAGIC %run "../Silver/configuration"
+# MAGIC %run "../configuration"
 
 # COMMAND ----------
 
@@ -33,10 +33,6 @@ for col_name in zoholeads_df.columns:
     new_col_name = col_name.replace(" ", "_")
     zoholeads_df = zoholeads_df.withColumnRenamed(col_name, new_col_name)
 
-# Muestra el DataFrame procesado
-display(zoholeads_df)
-
-
 # COMMAND ----------
 
 for col in zoholeads_df.columns:
@@ -49,30 +45,32 @@ for col in zoholeads_df.columns:
 
 # COMMAND ----------
 
+from pyspark.sql.functions import col
+
 # Diccionario para mapear las columnas con nombres más entendibles
 columns_mapping = {
     "data_apellido_2": "apellido_2",
-    "data_description": "description",
+    "data_created_time": "fecha_creacion",
+    "data_description": "descripcion",
     "data_email": "email",
-    "data_first_name": "first_name",
-    "data_last_name": "last_name",
+    "data_first_name": "nombre",
+    "data_l_nea_de_negocio": "linea_de_negocio",
+    "data_last_name": "apellido_1",
     "data_lead_source": "lead_source",
     "data_lead_status": "lead_status",
-    "data_mobile": "mobile",
-    "data_modified_time": "modified_time",
-    "data_created_time": "Created_Time",
+    "data_mobile": "telefono_movil",
+    "data_modified_time": "fecha_modificacion",
     "data_motivos_de_perdida": "motivos_perdida",
     "data_nacionalidad": "nacionalidad",
-    "data_phone": "phone",
+    "data_phone": "telefono",
     "data_provincia": "provincia",
     "data_residencia": "residencia",
     "data_sexo": "sexo",
     "data_tipolog_a_de_cliente": "tipologia_cliente",
     "data_typo_conversion": "tipo_conversion",
-    "data_visitor_score": "visitor_score",
-    "data_device": "device",
-    "data_fbclid": "facebook_click_id",
-    "data_gclid1": "google_click_id",
+    "data_device": "dispositivo",
+    "data_fbclid": "fbclid",
+    "data_gclid1": "gclid",
     "data_id": "id",
     "data_id_producto": "id_producto",
     "data_id_programa": "id_programa",
@@ -85,9 +83,9 @@ columns_mapping = {
     "data_utm_campaign_id": "utm_campaign_id",
     "data_utm_campaign_name": "utm_campaign_name",
     "data_utm_channel": "utm_channel",
-    "data_utm_estrategia": "utm_strategy",
+    "data_utm_estrategia": "utm_estrategia",
     "data_utm_medium": "utm_medium",
-    "data_utm_perfil": "utm_profile",
+    "data_utm_perfil": "utm_perfil",
     "data_utm_source": "utm_source",
     "data_utm_term": "utm_term",
     "data_utm_type": "utm_type",
@@ -96,70 +94,17 @@ columns_mapping = {
     "data_owner_name": "owner_name"
 }
 
-
-# Renombrar columnas dinámicamente
+# Añadir columnas de trazabilidad
+zoholeads_df = zoholeads_df \
+    .withColumn("sourcesystem", lit("zoho_Leads_38b")) \
+    .withColumn("processdate", current_timestamp()) 
+    
+# Renombrar columnas si existen
 for old_col, new_col in columns_mapping.items():
     if old_col in zoholeads_df.columns:
         zoholeads_df = zoholeads_df.withColumnRenamed(old_col, new_col)
 
-# Mostrar el DataFrame resultante
-display(zoholeads_df)
-
-# COMMAND ----------
-
-# DBTITLE 1,Nombrar columnas
-from pyspark.sql.types import *
-from pyspark.sql.functions import *
-
-zoholeads_df = zoholeads_df \
-    .withColumn("processdate", current_timestamp()) \
-    .withColumn("sourcesystem", lit("zoho_Leads")) \
-    .withColumn("id", col("id").cast(StringType())) \
-    .withColumn("first_name", col("first_name").cast(StringType())) \
-    .withColumn("last_name", col("last_name").cast(StringType())) \
-    .withColumn("apellido_2", col("apellido_2").cast(StringType())) \
-    .withColumn("email", col("email").cast(StringType())) \
-    .withColumn("mobile", col("mobile").cast(StringType())) \
-    .withColumn("modified_time", to_timestamp(col("modified_time"), "yyyy-MM-dd'T'HH:mm:ssXXX")) \
-    .withColumn("Created_Time", to_timestamp(col("Created_Time"), "yyyy-MM-dd'T'HH:mm:ssXXX")) \
-    .withColumn("lead_source", col("lead_source").cast(StringType())) \
-    .withColumn("lead_status", col("lead_status").cast(StringType())) \
-    .withColumn("lead_rating", col("lead_rating").cast(StringType())) \
-    .withColumn("lead_scoring", col("lead_scoring").cast(StringType())) \
-    .withColumn("visitor_score", col("visitor_score").cast(StringType())) \
-    .withColumn("sexo", col("sexo").cast(StringType())) \
-    .withColumn("tipologia_cliente", col("tipologia_cliente").cast(StringType())) \
-    .withColumn("tipo_conversion", col("tipo_conversion").cast(StringType())) \
-    .withColumn("residencia", col("residencia").cast(StringType())) \
-    .withColumn("provincia", col("provincia").cast(StringType())) \
-    .withColumn("motivos_perdida", col("motivos_perdida").cast(StringType())) \
-    .withColumn("nacionalidad", col("nacionalidad").cast(StringType())) \
-    .withColumn("utm_source", col("utm_source").cast(StringType())) \
-    .withColumn("utm_medium", col("utm_medium").cast(StringType())) \
-    .withColumn("utm_campaign_id", col("utm_campaign_id").cast(StringType())) \
-    .withColumn("utm_campaign_name", col("utm_campaign_name").cast(StringType())) \
-    .withColumn("utm_ad_id", col("utm_ad_id").cast(StringType())) \
-    .withColumn("utm_adset_id", col("utm_adset_id").cast(StringType())) \
-    .withColumn("utm_term", col("utm_term").cast(StringType())) \
-    .withColumn("utm_channel", col("utm_channel").cast(StringType())) \
-    .withColumn("utm_type", col("utm_type").cast(StringType())) \
-    .withColumn("utm_strategy", col("utm_strategy").cast(StringType())) \
-    .withColumn("utm_profile", col("utm_profile").cast(StringType())) \
-    .withColumn("google_click_id", col("google_click_id").cast(StringType())) \
-    .withColumn("facebook_click_id", col("facebook_click_id").cast(StringType())) \
-    .withColumn("id_producto", col("id_producto").cast(StringType())) \
-    .withColumn("id_programa", col("id_programa").cast(StringType())) \
-    .withColumn("lead_correlation_id", col("lead_correlation_id").cast(StringType())) \
-    .withColumn("description", col("description").cast(StringType())) \
-    .withColumn("phone", col("phone").cast(StringType())) \
-    .withColumn("device", col("device").cast(StringType())) \
-    .withColumn("source", col("source").cast(StringType())) \
-    .withColumn("owner_email", col("owner_email").cast(StringType())) \
-    .withColumn("owner_id", col("owner_id").cast(StringType())) \
-    .withColumn("linea_de_negocio", col("data_l_nea_de_negocio").cast(StringType())).drop("data_l_nea_de_negocio") \
-    .withColumn("owner_name", col("owner_name").cast(StringType())) 
-
-# Display final DataFrame
+# Mostrar DataFrame con nombres normalizados
 display(zoholeads_df)
 
 # COMMAND ----------
@@ -190,7 +135,7 @@ zoholeads_df = zoholeads_df.dropDuplicates()
 
 # DBTITLE 1,Filter FisioFocus, CESIF, ISEP
 zoholeads_df_filtered = zoholeads_df.filter(
-    (col("linea_de_negocio").isin("FisioFocus")) &  # Solo esos valores , "CESIF", "ISEP"
+    (col("linea_de_negocio").isin("MetrodoraFP", "Océano")) &  # Solo esos valores
     (col("linea_de_negocio").isNotNull()) &  # Que no sea NULL
     (col("linea_de_negocio") != "")  # Que no sea blanco
 )
@@ -201,80 +146,104 @@ zoholeads_df_filtered.createOrReplaceTempView("zoholeads_source_view")
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC MERGE INTO silver_lakehouse.zoholeads AS target
+# MAGIC MERGE INTO silver_lakehouse.ZohoLeads_38b AS target
 # MAGIC USING zoholeads_source_view AS source
 # MAGIC ON target.id = source.id
 # MAGIC
 # MAGIC WHEN MATCHED AND (
-# MAGIC     target.Description IS DISTINCT FROM source.Description
-# MAGIC  OR target.First_Name IS DISTINCT FROM source.First_Name
-# MAGIC  OR target.Last_Name IS DISTINCT FROM source.Last_Name  
-# MAGIC  OR target.Apellido_2 IS DISTINCT FROM source.Apellido_2
-# MAGIC  OR target.Email IS DISTINCT FROM source.Email
-# MAGIC  OR target.Mobile IS DISTINCT FROM source.Mobile
-# MAGIC  OR target.Nacionalidad IS DISTINCT FROM source.Nacionalidad
-# MAGIC  OR target.Phone IS DISTINCT FROM source.Phone
-# MAGIC  OR target.Provincia IS DISTINCT FROM source.Provincia
-# MAGIC  OR target.Residencia IS DISTINCT FROM source.Residencia
-# MAGIC  OR target.Sexo IS DISTINCT FROM source.Sexo
-# MAGIC  OR target.lead_rating IS DISTINCT FROM source.lead_rating
-# MAGIC  OR target.lead_scoring IS DISTINCT FROM source.lead_scoring
-# MAGIC  OR target.Lead_Status IS DISTINCT FROM source.Lead_Status
-# MAGIC  OR target.Motivos_perdida IS DISTINCT FROM source.Motivos_perdida
-# MAGIC  OR target.Tipologia_cliente IS DISTINCT FROM source.Tipologia_cliente
-# MAGIC  OR target.tipo_conversion IS DISTINCT FROM source.tipo_conversion
-# MAGIC  OR target.utm_ad_id IS DISTINCT FROM source.utm_ad_id
-# MAGIC  OR target.utm_adset_id IS DISTINCT FROM source.utm_adset_id
-# MAGIC  OR target.utm_campaign_id IS DISTINCT FROM source.utm_campaign_id
-# MAGIC  OR target.utm_campaign_name IS DISTINCT FROM source.utm_campaign_name
-# MAGIC  OR target.utm_channel IS DISTINCT FROM source.utm_channel
-# MAGIC  OR target.utm_strategy IS DISTINCT FROM source.utm_strategy
-# MAGIC  OR target.utm_medium IS DISTINCT FROM source.utm_medium
-# MAGIC  OR target.utm_profile IS DISTINCT FROM source.utm_profile
-# MAGIC  OR target.utm_source IS DISTINCT FROM source.utm_source
-# MAGIC  OR target.utm_term IS DISTINCT FROM source.utm_term
-# MAGIC  OR target.utm_type IS DISTINCT FROM source.utm_type
-# MAGIC  OR target.Owner_id IS DISTINCT FROM source.Owner_id
-# MAGIC  OR target.id_producto IS DISTINCT FROM source.id_producto
-# MAGIC  OR target.lead_correlation_id IS DISTINCT FROM source.lead_correlation_id
-# MAGIC  OR target.Created_Time IS DISTINCT FROM source.Created_Time
-# MAGIC  OR target.Modified_Time IS DISTINCT FROM source.Modified_Time
+# MAGIC     target.apellido_2 IS DISTINCT FROM source.apellido_2 OR
+# MAGIC     target.fecha_creacion IS DISTINCT FROM source.fecha_creacion OR
+# MAGIC     target.descripcion IS DISTINCT FROM source.descripcion OR
+# MAGIC     target.email IS DISTINCT FROM source.email OR
+# MAGIC     target.nombre IS DISTINCT FROM source.nombre OR
+# MAGIC     target.linea_de_negocio IS DISTINCT FROM source.linea_de_negocio OR
+# MAGIC     target.apellido_1 IS DISTINCT FROM source.apellido_1 OR
+# MAGIC     target.lead_source IS DISTINCT FROM source.lead_source OR
+# MAGIC     target.lead_status IS DISTINCT FROM source.lead_status OR
+# MAGIC     target.telefono_movil IS DISTINCT FROM source.telefono_movil OR
+# MAGIC     target.fecha_modificacion IS DISTINCT FROM source.fecha_modificacion OR
+# MAGIC     target.motivos_perdida IS DISTINCT FROM source.motivos_perdida OR
+# MAGIC     target.nacionalidad IS DISTINCT FROM source.nacionalidad OR
+# MAGIC     target.telefono IS DISTINCT FROM source.telefono OR
+# MAGIC     target.provincia IS DISTINCT FROM source.provincia OR
+# MAGIC     target.residencia IS DISTINCT FROM source.residencia OR
+# MAGIC     target.sexo IS DISTINCT FROM source.sexo OR
+# MAGIC     target.tipologia_cliente IS DISTINCT FROM source.tipologia_cliente OR
+# MAGIC     target.tipo_conversion IS DISTINCT FROM source.tipo_conversion OR
+# MAGIC     target.dispositivo IS DISTINCT FROM source.dispositivo OR
+# MAGIC     target.fbclid IS DISTINCT FROM source.fbclid OR
+# MAGIC     target.gclid IS DISTINCT FROM source.gclid OR
+# MAGIC     target.id_producto IS DISTINCT FROM source.id_producto OR
+# MAGIC     target.id_programa IS DISTINCT FROM source.id_programa OR
+# MAGIC     target.lead_correlation_id IS DISTINCT FROM source.lead_correlation_id OR
+# MAGIC     target.lead_rating IS DISTINCT FROM source.lead_rating OR
+# MAGIC     target.lead_scoring IS DISTINCT FROM source.lead_scoring OR
+# MAGIC     target.source IS DISTINCT FROM source.source OR
+# MAGIC     target.utm_ad_id IS DISTINCT FROM source.utm_ad_id OR
+# MAGIC     target.utm_adset_id IS DISTINCT FROM source.utm_adset_id OR
+# MAGIC     target.utm_campaign_id IS DISTINCT FROM source.utm_campaign_id OR
+# MAGIC     target.utm_campaign_name IS DISTINCT FROM source.utm_campaign_name OR
+# MAGIC     target.utm_channel IS DISTINCT FROM source.utm_channel OR
+# MAGIC     target.utm_estrategia IS DISTINCT FROM source.utm_estrategia OR
+# MAGIC     target.utm_medium IS DISTINCT FROM source.utm_medium OR
+# MAGIC     target.utm_perfil IS DISTINCT FROM source.utm_perfil OR
+# MAGIC     target.utm_source IS DISTINCT FROM source.utm_source OR
+# MAGIC     target.utm_term IS DISTINCT FROM source.utm_term OR
+# MAGIC     target.utm_type IS DISTINCT FROM source.utm_type OR
+# MAGIC     target.owner_email IS DISTINCT FROM source.owner_email OR
+# MAGIC     target.owner_id IS DISTINCT FROM source.owner_id OR
+# MAGIC     target.owner_name IS DISTINCT FROM source.owner_name
 # MAGIC )
 # MAGIC THEN UPDATE SET
-# MAGIC     target.Description = source.Description,
-# MAGIC     target.First_Name = source.First_Name,
-# MAGIC     target.Last_Name = source.Last_Name,
-# MAGIC     target.Apellido_2 = source.Apellido_2,
-# MAGIC     target.Email = source.Email,
-# MAGIC     target.Mobile = source.Mobile,
-# MAGIC     target.Nacionalidad = source.Nacionalidad,
-# MAGIC     target.Phone = source.Phone,
-# MAGIC     target.Provincia = source.Provincia,
-# MAGIC     target.Residencia = source.Residencia,
-# MAGIC     target.Sexo = source.Sexo,
+# MAGIC     target.apellido_2 = source.apellido_2,
+# MAGIC     target.fecha_creacion = source.fecha_creacion,
+# MAGIC     target.descripcion = source.descripcion,
+# MAGIC     target.email = source.email,
+# MAGIC     target.nombre = source.nombre,
+# MAGIC     target.linea_de_negocio = source.linea_de_negocio,
+# MAGIC     target.apellido_1 = source.apellido_1,
+# MAGIC     target.lead_source = source.lead_source,
+# MAGIC     target.lead_status = source.lead_status,
+# MAGIC     target.telefono_movil = source.telefono_movil,
+# MAGIC     target.fecha_modificacion = source.fecha_modificacion,
+# MAGIC     target.motivos_perdida = source.motivos_perdida,
+# MAGIC     target.nacionalidad = source.nacionalidad,
+# MAGIC     target.telefono = source.telefono,
+# MAGIC     target.provincia = source.provincia,
+# MAGIC     target.residencia = source.residencia,
+# MAGIC     target.sexo = source.sexo,
+# MAGIC     target.tipologia_cliente = source.tipologia_cliente,
+# MAGIC     target.tipo_conversion = source.tipo_conversion,
+# MAGIC     target.dispositivo = source.dispositivo,
+# MAGIC     target.fbclid = source.fbclid,
+# MAGIC     target.gclid = source.gclid,
+# MAGIC     target.id_producto = source.id_producto,
+# MAGIC     target.id_programa = source.id_programa,
+# MAGIC     target.lead_correlation_id = source.lead_correlation_id,
 # MAGIC     target.lead_rating = source.lead_rating,
 # MAGIC     target.lead_scoring = source.lead_scoring,
-# MAGIC     target.Lead_Status = source.Lead_Status,
-# MAGIC     target.Motivos_perdida = source.Motivos_perdida,
-# MAGIC     target.Tipologia_cliente = source.Tipologia_cliente,
-# MAGIC     target.tipo_conversion = source.tipo_conversion,
+# MAGIC     target.source = source.source,
 # MAGIC     target.utm_ad_id = source.utm_ad_id,
 # MAGIC     target.utm_adset_id = source.utm_adset_id,
 # MAGIC     target.utm_campaign_id = source.utm_campaign_id,
 # MAGIC     target.utm_campaign_name = source.utm_campaign_name,
 # MAGIC     target.utm_channel = source.utm_channel,
-# MAGIC     target.utm_strategy = source.utm_strategy,
+# MAGIC     target.utm_estrategia = source.utm_estrategia,
 # MAGIC     target.utm_medium = source.utm_medium,
-# MAGIC     target.utm_profile = source.utm_profile,
+# MAGIC     target.utm_perfil = source.utm_perfil,
 # MAGIC     target.utm_source = source.utm_source,
 # MAGIC     target.utm_term = source.utm_term,
 # MAGIC     target.utm_type = source.utm_type,
-# MAGIC     target.Owner_id = source.Owner_id,
-# MAGIC     target.id_producto = source.id_producto,
-# MAGIC     target.lead_correlation_id = source.lead_correlation_id,
-# MAGIC     target.Created_Time = source.Created_Time,
-# MAGIC     target.Modified_Time = source.Modified_Time
-# MAGIC
+# MAGIC     target.owner_email = source.owner_email,
+# MAGIC     target.owner_id = source.owner_id,
+# MAGIC     target.owner_name = source.owner_name,
+# MAGIC     target.processdate = current_timestamp(),
+# MAGIC     target.sourcesystem = source.sourcesystem
 # MAGIC
 # MAGIC WHEN NOT MATCHED THEN
 # MAGIC   INSERT *;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC select * from silver_lakehouse.ZohoLeads_38b

@@ -324,8 +324,3 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC GROUP BY enroll_id
 # MAGIC HAVING COUNT(*) > 1;
 # MAGIC
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from silver_lakehouse.ClasslifeEnrollments_931;
