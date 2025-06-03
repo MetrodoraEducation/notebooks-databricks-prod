@@ -58,12 +58,11 @@
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from gold_lakehouse.dim_producto
+#%sql select * from gold_lakehouse.dim_producto
 
 # COMMAND ----------
 
-# MAGIC %sql select * from gold_lakehouse.fct_matricula
+#%sql select * from gold_lakehouse.fct_matricula
 
 # COMMAND ----------
 
@@ -83,8 +82,6 @@
 # MAGIC       a.importe_venta_bruta,	
 # MAGIC       a.importe_captacion,
 # MAGIC       a.processdate as fec_procesamiento
-# MAGIC
-# MAGIC     
 # MAGIC     FROM silver_budget_view a 
 # MAGIC     LEFT JOIN gold_lakehouse.dim_titulacion_budget b ON a.titulacion = b.titulacion
 # MAGIC     LEFT JOIN gold_lakehouse.dim_escenario_budget c ON a.escenario = c.escenario

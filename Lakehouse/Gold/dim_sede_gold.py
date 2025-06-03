@@ -9,29 +9,38 @@
 # MAGIC WITH sede_rankeada AS (
 # MAGIC     SELECT DISTINCT 
 # MAGIC          TRY_CAST(producto.codigo_sede AS INT) AS number_codigo_sede,
-# MAGIC          CASE UPPER(producto.sede)
-# MAGIC              WHEN 'ALICANTE' THEN 'ALI'
-# MAGIC              WHEN 'BARCELONA' THEN 'BCN'
-# MAGIC              WHEN 'BILBAO' THEN 'BIL'
-# MAGIC              WHEN 'GIJÓN' THEN 'GIJ'
-# MAGIC              WHEN 'IRUN' THEN 'IRN'
-# MAGIC              WHEN 'LA CORUÑA' THEN 'LCR'
-# MAGIC              WHEN 'LAS PALMAS DE GRAN CANARIA' THEN 'PGC'
-# MAGIC              WHEN 'LOGROÑO' THEN 'LOG'
-# MAGIC              WHEN 'MADRID' THEN 'MAD'
-# MAGIC              WHEN 'MÁLAGA' THEN 'MLG'
-# MAGIC              WHEN 'MALAGA' THEN 'MLG'
-# MAGIC              WHEN 'MURCIA' THEN 'MUR'
-# MAGIC              WHEN 'ONLINE' THEN 'ONL'
-# MAGIC              WHEN 'PALMA DE MALLORCA' THEN 'MLL'
-# MAGIC              WHEN 'SANTA CRUZ DE TENERIFE' THEN 'SCT'
-# MAGIC              WHEN 'SANTANDER' THEN 'SAN'
-# MAGIC              WHEN 'SEVILLA' THEN 'SEV'
-# MAGIC              WHEN 'VALENCIA' THEN 'VLC'
-# MAGIC              WHEN 'VITORIA-GASTEIZ' THEN 'VIT'
-# MAGIC              WHEN 'ZARAGOZA' THEN 'ZGZ'
-# MAGIC              ELSE NULL
-# MAGIC          END AS codigo_sede,
+# MAGIC         CASE UPPER(producto.sede)
+# MAGIC             WHEN 'ALBACETE' THEN 'ALB'
+# MAGIC             WHEN 'ALICANTE' THEN 'ALI'
+# MAGIC             WHEN 'BARCELONA' THEN 'BCN'
+# MAGIC             WHEN 'BILBAO' THEN 'BIL'
+# MAGIC             WHEN 'GIJÓN' THEN 'GIJ'
+# MAGIC             WHEN 'IRUN' THEN 'IRN'
+# MAGIC             WHEN 'LA CORUÑA' THEN 'LCR'
+# MAGIC             WHEN 'LAS PALMAS DE GRAN CANARIA' THEN 'PGC'
+# MAGIC             WHEN 'LOGROÑO' THEN 'LOG'
+# MAGIC             WHEN 'MADRID' THEN 'MAD'
+# MAGIC             WHEN 'MADRID CAMARA' THEN 'MAC'
+# MAGIC             WHEN 'MADRID RIO' THEN 'MRI'
+# MAGIC             WHEN 'MADRID AYALA' THEN 'MAY'
+# MAGIC             WHEN 'MÁLAGA' THEN 'MLG'
+# MAGIC             WHEN 'MALAGA' THEN 'MLG'
+# MAGIC             WHEN 'MURCIA' THEN 'MUR'
+# MAGIC             WHEN 'ONLINE' THEN 'ONL'
+# MAGIC             WHEN 'PALMA DE MALLORCA' THEN 'MLL'
+# MAGIC             WHEN 'SANTA CRUZ DE TENERIFE' THEN 'SCT'
+# MAGIC             WHEN 'SANTANDER' THEN 'SAN'
+# MAGIC             WHEN 'SEVILLA' THEN 'SEV'
+# MAGIC             WHEN 'VALENCIA' THEN 'VLC'
+# MAGIC             WHEN 'VALLADOLID' THEN 'VAL'
+# MAGIC             WHEN 'VITORIA' THEN 'VIT'
+# MAGIC             WHEN 'VITORIA-GASTEIZ' THEN 'VIT'
+# MAGIC             WHEN 'ZARAGOZA' THEN 'ZGZ'
+# MAGIC             WHEN 'ZARAGOZA EXPO3D' THEN 'ZX3'
+# MAGIC             WHEN 'ZARAGOZA EXPO5D' THEN 'ZX5'
+# MAGIC             WHEN 'ZARAGOZA LOS PORCHES' THEN 'ZLP'
+# MAGIC             ELSE NULL
+# MAGIC         END AS codigo_sede,
 # MAGIC          CASE 
 # MAGIC              WHEN producto.sede IS NULL THEN 'NO REGISTRA'
 # MAGIC              ELSE producto.sede
@@ -45,13 +54,15 @@
 # MAGIC SELECT number_codigo_sede, codigo_sede, nombre_sede
 # MAGIC FROM sede_rankeada
 # MAGIC WHERE rn = 1;
+# MAGIC
+# MAGIC --SELECT * FROM dim_sede_view;
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC   SELECT number_codigo_sede, COUNT(*)
+# MAGIC   SELECT nombre_sede, COUNT(*)
 # MAGIC     FROM dim_sede_view
-# MAGIC GROUP BY number_codigo_sede
+# MAGIC GROUP BY nombre_sede
 # MAGIC   HAVING COUNT(*) > 1;
 
 # COMMAND ----------

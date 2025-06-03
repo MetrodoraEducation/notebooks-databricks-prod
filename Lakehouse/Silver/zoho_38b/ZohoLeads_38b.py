@@ -12,8 +12,6 @@ print(f"Leyendo archivos desde: {file_pattern}")
 
 zoholeads_df = spark.read.json(file_pattern)
 
-display(zoholeads_df)
-
 # COMMAND ----------
 
 zoholeads_df = zoholeads_df.select("data")
@@ -42,6 +40,8 @@ for col in zoholeads_df.columns:
 
 for col in zoholeads_df.columns:
     zoholeads_df = zoholeads_df.withColumnRenamed(col, col.replace("-", "_"))
+
+display(zoholeads_df)
 
 # COMMAND ----------
 

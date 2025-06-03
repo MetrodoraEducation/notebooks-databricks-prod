@@ -42,12 +42,14 @@ def clean_column_names(df):
 
 # COMMAND ----------
 
+# DBTITLE 1,Explota data
 # 📌 Extraer el contenido de `data` si existe
 if "data" in classlifetitulaciones_df.columns:
     classlifetitulaciones_df = classlifetitulaciones_df.selectExpr("data.*")
 
 # COMMAND ----------
 
+# DBTITLE 1,Busca items
 # 📌 Explotar `items` si es un array
 if "items" in classlifetitulaciones_df.columns:
     print("📌 'items' es una estructura o array. Procedemos a desanidar.")
@@ -167,7 +169,7 @@ columnas_requeridas = [
     "fiscal_codigo", "language", "nacimiento", "direccion", "ciudad", "factura_telefono",
     "student_phone", "fiscal_iban", "student_email", "student_uid", "fiscal_dpuerta",
     "student_active", "student_lastname", "zoho_id", "factura_dni", "sexo", "student_id",
-    "school_id", "edad", "student_registration_date", "student_name", "student_full_name"
+    "school_id", "edad", "student_registration_date", "student_name", "student_full_name", "pais", "codigo"
 ]
 
 # Seleccionar y castear columnas
@@ -217,8 +219,9 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC     target.edad IS DISTINCT FROM source.edad OR
 # MAGIC     target.student_registration_date IS DISTINCT FROM source.student_registration_date OR
 # MAGIC     target.student_name IS DISTINCT FROM source.student_name OR
-# MAGIC     target.student_full_name IS DISTINCT FROM source.student_full_name
+# MAGIC     target.student_full_name IS DISTINCT FROM source.student_full_name OR
+# MAGIC     target.pais IS DISTINCT FROM source.pais OR
+# MAGIC     target.codigo IS DISTINCT FROM source.codigo
 # MAGIC )
 # MAGIC THEN UPDATE SET *
 # MAGIC WHEN NOT MATCHED THEN INSERT *;
-# MAGIC

@@ -12,8 +12,6 @@ print(f"Leyendo archivos desde: {file_pattern}")
 
 zoholeads_df = spark.read.json(file_pattern)
 
-display(zoholeads_df)
-
 # COMMAND ----------
 
 zoholeads_df = zoholeads_df.select("data")
@@ -32,10 +30,6 @@ print(zoholeads_df.columns)
 for col_name in zoholeads_df.columns:
     new_col_name = col_name.replace(" ", "_")
     zoholeads_df = zoholeads_df.withColumnRenamed(col_name, new_col_name)
-
-# Muestra el DataFrame procesado
-display(zoholeads_df)
-
 
 # COMMAND ----------
 
@@ -102,9 +96,6 @@ for old_col, new_col in columns_mapping.items():
     if old_col in zoholeads_df.columns:
         zoholeads_df = zoholeads_df.withColumnRenamed(old_col, new_col)
 
-# Mostrar el DataFrame resultante
-display(zoholeads_df)
-
 # COMMAND ----------
 
 # DBTITLE 1,Nombrar columnas
@@ -159,9 +150,6 @@ zoholeads_df = zoholeads_df \
     .withColumn("linea_de_negocio", col("data_l_nea_de_negocio").cast(StringType())).drop("data_l_nea_de_negocio") \
     .withColumn("owner_name", col("owner_name").cast(StringType())) 
 
-# Display final DataFrame
-display(zoholeads_df)
-
 # COMMAND ----------
 
 from pyspark.sql.functions import coalesce, lit, col
@@ -178,9 +166,6 @@ for t in zoholeads_df.dtypes:
         zoholeads_df = zoholeads_df.withColumn(t[0], coalesce(col(t[0]), lit(False)))
     elif t[1] == 'timestamp':
         zoholeads_df = zoholeads_df.withColumn(t[0], coalesce(col(t[0]), lit(None)))
-
-# Muestra el DataFrame resultante
-display(zoholeads_df)
 
 # COMMAND ----------
 

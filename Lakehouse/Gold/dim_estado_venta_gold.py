@@ -2,13 +2,20 @@
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW dim_estado_venta_view AS
 # MAGIC SELECT DISTINCT
-# MAGIC     CASE WHEN etapa = 'Perdido' THEN 'PERDIDA'
-# MAGIC           WHEN etapa = 'Matriculado' OR etapa = 'NEC' THEN 'GANADA'
-# MAGIC           ELSE 'ABIERTA'
+# MAGIC     CASE 
+# MAGIC         WHEN etapa = 'Perdido' THEN 'PERDIDA'
+# MAGIC         WHEN etapa = 'Matriculado' OR etapa = 'NEC' THEN 'GANADA'
+# MAGIC         ELSE 'ABIERTA'
 # MAGIC     END AS nombre_estado_venta
-# MAGIC FROM silver_lakehouse.zohodeals;
-# MAGIC
-# MAGIC select * from dim_estado_venta_view;
+# MAGIC FROM silver_lakehouse.zohodeals
+# MAGIC UNION
+# MAGIC SELECT DISTINCT
+# MAGIC     CASE 
+# MAGIC         WHEN etapa = 'Perdido' THEN 'PERDIDA'
+# MAGIC         WHEN etapa = 'Matriculado' OR etapa = 'NEC' THEN 'GANADA'
+# MAGIC         ELSE 'ABIERTA'
+# MAGIC     END AS nombre_estado_venta
+# MAGIC FROM silver_lakehouse.zohodeals_38b;
 
 # COMMAND ----------
 

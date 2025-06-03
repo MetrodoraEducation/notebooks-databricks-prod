@@ -12,8 +12,6 @@ print(f"Leyendo archivos desde: {file_pattern}")
 
 zohocontacts_df = spark.read.json(file_pattern)
 
-display(zohocontacts_df)
-
 # COMMAND ----------
 
 zohocontacts_df = zohocontacts_df.select("data")
@@ -32,9 +30,6 @@ print(zohocontacts_df.columns)
 for col_name in zohocontacts_df.columns:
     new_col_name = col_name.replace("data_", "")#.replace("users_", "")
     zohocontacts_df = zohocontacts_df.withColumnRenamed(col_name, new_col_name)
-
-# Muestra el DataFrame procesado
-display(zohocontacts_df)
 
 # COMMAND ----------
 
@@ -83,9 +78,6 @@ for old_col, new_col in columns_mapping.items():
     if old_col in zohocontacts_df.columns:
         zohocontacts_df = zohocontacts_df.withColumnRenamed(old_col, new_col)
 
-# Mostrar el DataFrame resultante
-display(zohocontacts_df)
-
 # COMMAND ----------
 
 from pyspark.sql.types import *
@@ -127,9 +119,6 @@ zohocontacts_df = zohocontacts_df \
     .withColumn("ultima_linea_de_negocio", col("ltima_l_nea_de_negocio").cast(StringType())).drop("ltima_l_nea_de_negocio") \
     .withColumn("woztellplatform_whatsapp_out", col("woztellplatform_whatsapp_out").cast(BooleanType()))
 
-# Mostrar el DataFrame final
-display(zohocontacts_df)
-
 # COMMAND ----------
 
 from pyspark.sql.functions import coalesce, lit, col
@@ -150,9 +139,6 @@ for t in zohocontacts_df.dtypes:
     elif column_type in ['timestamp', 'date']:
         # Para fechas y timestamps dejamos `None` explícitamente
         zohocontacts_df = zohocontacts_df.withColumn(column_name, coalesce(col(column_name), lit(None)))
-
-# Mostrar el DataFrame resultante
-display(zohocontacts_df)
 
 # COMMAND ----------
 

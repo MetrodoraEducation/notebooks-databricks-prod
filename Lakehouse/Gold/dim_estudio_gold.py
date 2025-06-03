@@ -4,7 +4,7 @@
 # MAGIC     SELECT * 
 # MAGIC       FROM silver_lakehouse.dim_estudio;
 # MAGIC
-# MAGIC select * from dim_estudio_view;
+# MAGIC --select * from dim_estudio_view;
 
 # COMMAND ----------
 

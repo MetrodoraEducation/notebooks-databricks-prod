@@ -113,12 +113,6 @@
 
 # COMMAND ----------
 
-# DBTITLE 1,Select dim_fecha
-# MAGIC %sql
-# MAGIC SELECT * FROM gold_lakehouse.dim_fecha;
-
-# COMMAND ----------
-
 # DBTITLE 1,!NOT USE! Insert Into new days dim_fecha
 #%sql
 #-- Incremental: Insertar solo los días nuevos en la tabla

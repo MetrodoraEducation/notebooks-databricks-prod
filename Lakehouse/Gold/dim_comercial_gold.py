@@ -34,9 +34,15 @@
 # MAGIC     z.role_name AS equipo_Comercial,
 # MAGIC     current_date() AS fecha_Desde,
 # MAGIC     NULL AS fecha_Hasta
-# MAGIC FROM silver_lakehouse.zohousers z;
-# MAGIC
-# MAGIC select * from dim_comercial_temp_view;
+# MAGIC FROM silver_lakehouse.zohousers z
+# MAGIC UNION ALL
+# MAGIC SELECT DISTINCT
+# MAGIC     z.id AS cod_Comercial,
+# MAGIC     z.full_name AS nombre_Comercial,
+# MAGIC     z.role_name AS equipo_Comercial,
+# MAGIC     current_date() AS fecha_Desde,
+# MAGIC     NULL AS fecha_Hasta
+# MAGIC FROM silver_lakehouse.ZohoUsers_38b z;
 
 # COMMAND ----------
 

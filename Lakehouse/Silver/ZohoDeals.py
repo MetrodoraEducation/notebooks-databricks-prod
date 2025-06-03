@@ -12,8 +12,6 @@ print(f"Leyendo archivos desde: {file_pattern}")
 
 zohodeals_df = spark.read.json(file_pattern)
 
-display(zohodeals_df)
-
 # COMMAND ----------
 
 zohodeals_df = zohodeals_df.select("data")
@@ -32,9 +30,6 @@ print(zohodeals_df.columns)
 for col_name in zohodeals_df.columns:
     new_col_name = col_name.replace(" ", "_")
     zohodeals_df = zohodeals_df.withColumnRenamed(col_name, new_col_name)
-
-# Muestra el DataFrame procesado
-display(zohodeals_df)
 
 # COMMAND ----------
 
@@ -114,9 +109,6 @@ for old_col in existing_columns:
 # Seleccionar solo las columnas renombradas
 zohodeals_df = zohodeals_df.select([col(new_col) for new_col in columns_mapping.values() if new_col in zohodeals_df.columns])
 
-# Mostrar el DataFrame resultante
-display(zohodeals_df)
-
 # COMMAND ----------
 
 from pyspark.sql.types import *
@@ -177,9 +169,6 @@ zohodeals_df = zohodeals_df \
     .withColumn("processdate", current_timestamp()) \
     .withColumn("sourcesystem", lit("zoho_Deals")) 
 
-# Mostrar el DataFrame final
-display(zohodeals_df)
-
 # COMMAND ----------
 
 from pyspark.sql.functions import coalesce, lit, col
@@ -199,9 +188,6 @@ for t in zohodeals_df.dtypes:
         zohodeals_df = zohodeals_df.withColumn(column_name, coalesce(col(column_name), lit(False)))
     elif column_type == 'timestamp' or column_type == 'date':
         zohodeals_df = zohodeals_df.withColumn(column_name, coalesce(col(column_name), lit(None)))
-
-# Muestra el DataFrame resultante
-display(zohodeals_df)
 
 # COMMAND ----------
 

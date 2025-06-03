@@ -89,8 +89,6 @@ if "metas" in classlifetitulaciones_df.columns:
     metas_cols = classlifetitulaciones_df.select("metas.*").columns
     classlifetitulaciones_df = classlifetitulaciones_df.select("*", *[col(f"metas.{c}").alias(f"metas_{c}") for c in metas_cols]).drop("metas")
 
-display(classlifetitulaciones_df)
-
 # COMMAND ----------
 
 from pyspark.sql.functions import col, to_date, to_timestamp, lit, current_timestamp
@@ -159,9 +157,6 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
     *[col(c).alias(c.strip().replace("`", "")) for c in columnas_seleccionadas]
 )
 
-# 📌 Mostrar los primeros registros
-display(classlifetitulaciones_df)
-
 # COMMAND ----------
 
 from pyspark.sql.functions import col, lit, current_timestamp
@@ -195,10 +190,6 @@ classlifetitulaciones_df = classlifetitulaciones_df \
     ) \
     .withColumn("processdate", current_timestamp()) \
     .withColumn("sourcesystem", lit("classlifeStudents"))
-
-# ✅ Mostrar el dataframe limpio
-display(classlifetitulaciones_df)
-
 
 # COMMAND ----------
 

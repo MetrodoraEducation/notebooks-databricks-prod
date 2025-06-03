@@ -20,14 +20,6 @@ classlifetitulaciones_df
 
 # COMMAND ----------
 
-# 📌 Inspeccionar Esquema Inicial
-print("📌 Esquema inicial antes de limpieza:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
-
-# COMMAND ----------
-
 # 📌 Función para limpiar nombres de columnas
 def clean_column_names(df):
     """
@@ -49,20 +41,12 @@ def clean_column_names(df):
     
     return df
 
-display(classlifetitulaciones_df)
-
 # COMMAND ----------
 
 # DBTITLE 1,Explota data
 # 📌 Extraer el contenido de `data` si existe
 if "data" in classlifetitulaciones_df.columns:
     classlifetitulaciones_df = classlifetitulaciones_df.selectExpr("data.*")
-
-# 📌 Inspeccionar después de extraer `data`
-print("📌 Esquema después de seleccionar `data.*`:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -74,8 +58,6 @@ if "items" in classlifetitulaciones_df.columns:
     # Si `items` es un array de estructuras, lo explotamos
     if isinstance(classlifetitulaciones_df.schema["items"].dataType, ArrayType):
         classlifetitulaciones_df = classlifetitulaciones_df.withColumn("items", explode(col("items")))
-    
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -93,20 +75,11 @@ if "items" in classlifetitulaciones_df.columns:
     # 📌 Extraer columnas de `items` y renombrarlas
     classlifetitulaciones_df = classlifetitulaciones_df.select(*[col(c).alias(c.replace("items.", "")) for c in clean_subcolumns])
 
-    display(classlifetitulaciones_df)
-
 # COMMAND ----------
 
 # DBTITLE 1,Clean columns
-# 📌 Inspeccionar después de desanidar `items`
-print("📌 Esquema después de desanidar `items`:")
-classlifetitulaciones_df.printSchema()
-
-
 # 📌 Aplicar limpieza de nombres de columnas
 classlifetitulaciones_df = clean_column_names(classlifetitulaciones_df)
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -119,8 +92,6 @@ if "counters" in classlifetitulaciones_df.columns:
 if "metas" in classlifetitulaciones_df.columns:
     metas_cols = classlifetitulaciones_df.select("metas.*").columns
     classlifetitulaciones_df = classlifetitulaciones_df.select("*", *[col(f"metas.{c}").alias(f"metas_{c}") for c in metas_cols]).drop("metas")
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -198,7 +169,7 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
 )
 
 # 📌 Mostrar los primeros registros
-display(classlifetitulaciones_df)
+#display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -233,9 +204,6 @@ string_columns = [
 for col_name in string_columns:
     if col_name in classlifetitulaciones_df.columns:
         classlifetitulaciones_df = classlifetitulaciones_df.withColumn(col_name, col(col_name).cast(StringType()))
-
-# Mostrar resultado
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 

@@ -3,7 +3,6 @@
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW titulacion_budget_view AS 
 # MAGIC SELECT 
 # MAGIC     DISTINCT titulacion AS titulacion
-# MAGIC
 # MAGIC FROM 
 # MAGIC     silver_lakehouse.budget
 

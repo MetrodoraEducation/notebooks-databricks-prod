@@ -47,19 +47,11 @@ def clean_column_names(df):
     
     return df
 
-display(classlifetitulaciones_df)
-
 # COMMAND ----------
 
 # 📌 Extraer el contenido de `data` si existe
 if "data" in classlifetitulaciones_df.columns:
     classlifetitulaciones_df = classlifetitulaciones_df.selectExpr("data.*")
-
-# 📌 Inspeccionar después de extraer `data`
-print("📌 Esquema después de seleccionar `data.*`:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -70,8 +62,6 @@ if "items" in classlifetitulaciones_df.columns:
     # Si `items` es un array de estructuras, lo explotamos
     if isinstance(classlifetitulaciones_df.schema["items"].dataType, ArrayType):
         classlifetitulaciones_df = classlifetitulaciones_df.withColumn("items", explode(col("items")))
-    
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -88,8 +78,6 @@ if "items" in classlifetitulaciones_df.columns:
 
     # 📌 Extraer columnas de `items` y renombrarlas
     classlifetitulaciones_df = classlifetitulaciones_df.select(*[col(c).alias(c.replace("items.", "")) for c in clean_subcolumns])
-
-    display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -149,7 +137,7 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
 )
 
 # 📌 Mostrar los primeros registros
-display(classlifetitulaciones_df)
+#display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -179,9 +167,6 @@ classlifetitulaciones_df = classlifetitulaciones_df \
     .withColumn("emission_date", to_timestamp(col("emission_date"), "yyyy-MM-dd HH:mm:ss")) \
     .withColumn("expiry_date", to_timestamp(col("expiry_date"), "yyyy-MM-dd HH:mm:ss")) \
     .withColumn("collection_date", to_timestamp(col("collection_date"), "yyyy-MM-dd HH:mm:ss"))
-
-# 📌 Mostrar los primeros registros con todas las columnas
-display(classlifetitulaciones_df)
 
 
 # COMMAND ----------

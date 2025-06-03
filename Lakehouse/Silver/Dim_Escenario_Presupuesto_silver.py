@@ -58,7 +58,6 @@ display(clean_df.select(
     "precio_medio"
 ))
 
-
 # COMMAND ----------
 
 clean_df.createOrReplaceTempView("fct_budget_objetivos_source_view")

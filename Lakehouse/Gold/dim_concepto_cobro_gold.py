@@ -12,9 +12,16 @@
 # MAGIC               ELSE 1
 # MAGIC          END tipo_reparto
 # MAGIC     FROM silver_lakehouse.ClasslifeReceipts receipts
-# MAGIC    WHERE receipts.receipt_concept NOT LIKE 'n/a%';
-# MAGIC
-# MAGIC select * from dim_concepto_cobro_view;
+# MAGIC    WHERE receipts.receipt_concept NOT LIKE 'n/a%'
+# MAGIC UNION ALL
+# MAGIC     SELECT DISTINCT
+# MAGIC         receipt_concept AS concepto,
+# MAGIC         CASE 
+# MAGIC             WHEN receipt_concept LIKE 'Certificado%' THEN 0
+# MAGIC             ELSE 1
+# MAGIC         END AS tipo_reparto
+# MAGIC     FROM silver_lakehouse.ClasslifeReceipts_931
+# MAGIC     WHERE receipt_concept NOT LIKE 'n/a%';
 
 # COMMAND ----------
 

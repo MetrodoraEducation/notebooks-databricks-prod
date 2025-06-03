@@ -7,9 +7,11 @@
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW tipo_negocio_view AS 
 # MAGIC     SELECT 
-# MAGIC         DISTINCT tipo_negocio_desc AS tipo_negocio_desc,
-# MAGIC         cod_tipo_negocio	AS cod_tipo_negocio
+# MAGIC         DISTINCT tipo_negocio_desc AS tipo_negocio_desc
+# MAGIC                  ,cod_tipo_negocio AS cod_tipo_negocio
 # MAGIC     FROM gold_lakehouse.dim_estudio;
+# MAGIC
+# MAGIC --select * from tipo_negocio_view;
 
 # COMMAND ----------
 
@@ -62,6 +64,8 @@
 # MAGIC     CURRENT_TIMESTAMP AS ETLupdatedDate
 # MAGIC FROM gold_lakehouse.dim_producto dp
 # MAGIC WHERE dp.tipo_Negocio IS NOT NULL;
+# MAGIC
+# MAGIC --select * from dim_tipo_negocio_view;
 
 # COMMAND ----------
 

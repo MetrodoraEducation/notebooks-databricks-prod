@@ -22,9 +22,25 @@
 # MAGIC          ,students.direccion AS direccion_postal
 # MAGIC     FROM silver_lakehouse.classlifeStudents students
 # MAGIC LEFT JOIN gold_lakehouse.origenClasslife origen 
-# MAGIC       ON 1 = origen.id_Dim_Origen_SIS;
-# MAGIC
-# MAGIC select * from dim_estudiante_view;
+# MAGIC       ON 1 = origen.id_Dim_Origen_SIS
+# MAGIC UNION ALL
+# MAGIC SELECT
+# MAGIC       origen.id_Dim_Origen_SIS AS id_origen_sis,
+# MAGIC       CONCAT(origen.codigo_Origen_SIS, students.student_id) AS cod_estudiante,
+# MAGIC       students.student_full_name AS nombre_estudiante,
+# MAGIC       students.student_email AS email,
+# MAGIC       students.student_phone AS phone,
+# MAGIC       TRY_CAST(students.student_registration_date AS TIMESTAMP) AS fecha_creacion,
+# MAGIC       students.student_active AS estado,
+# MAGIC       students.edad AS edad,
+# MAGIC       students.zoho_id AS id_zoho,
+# MAGIC       students.pais AS pais,
+# MAGIC       students.ciudad AS ciudad,
+# MAGIC       students.codigo AS codigo_postal,
+# MAGIC       students.direccion AS direccion_postal
+# MAGIC FROM silver_lakehouse.ClasslifeStudents_931 students
+# MAGIC LEFT JOIN gold_lakehouse.origenClasslife origen 
+# MAGIC   ON 2 = origen.id_Dim_Origen_SIS;
 
 # COMMAND ----------
 

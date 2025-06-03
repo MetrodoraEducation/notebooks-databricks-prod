@@ -10,6 +10,8 @@
 # MAGIC         DISTINCT tipo_formacion_desc AS tipo_formacion_desc,
 # MAGIC         cod_tipo_formacion	AS cod_tipo_formacion
 # MAGIC     FROM gold_lakehouse.dim_estudio;
+# MAGIC
+# MAGIC --select * from tipo_formacion_view;
 
 # COMMAND ----------
 
@@ -76,6 +78,8 @@
 # MAGIC     CURRENT_TIMESTAMP AS ETLupdatedDate
 # MAGIC FROM gold_lakehouse.dim_producto dp
 # MAGIC WHERE dp.tipo_Producto IS NOT NULL AND dp.tipo_Producto <> '';
+# MAGIC
+# MAGIC --select * from dim_tipo_formacion_view;
 
 # COMMAND ----------
 

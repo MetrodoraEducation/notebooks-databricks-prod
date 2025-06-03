@@ -29,9 +29,6 @@ for col_name in zohousers_df.columns:
     new_col_name = col_name.replace("users_$", "").replace("users_", "")
     zohousers_df = zohousers_df.withColumnRenamed(col_name, new_col_name)
 
-# Muestra el DataFrame procesado
-display(zohousers_df)
-
 # COMMAND ----------
 
 # DBTITLE 1,Columnas a minusculas
@@ -101,9 +98,6 @@ zohousers_df = zohousers_df.select(
     [expr.alias(nombre) for nombre, expr in columnas_con_tipo]
 )
 
-# 📌 Mostrar el DataFrame final
-display(zohousers_df)
-
 # COMMAND ----------
 
 from pyspark.sql.functions import coalesce, lit, col
@@ -124,9 +118,6 @@ for t in zohousers_df.dtypes:
     elif column_type in ['timestamp', 'date']:
         # Para fechas y timestamps dejamos `None` explícitamente
         zohousers_df = zohousers_df.withColumn(column_name, coalesce(col(column_name), lit(None)))
-
-# Mostrar el DataFrame resultante
-display(zohousers_df)
 
 # COMMAND ----------
 

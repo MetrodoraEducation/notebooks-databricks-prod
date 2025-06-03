@@ -6,7 +6,7 @@
 # MAGIC FROM 
 # MAGIC     silver_lakehouse.sales;
 # MAGIC
-# MAGIC select * from localidad_sales_view;
+# MAGIC --select * from localidad_sales_view;
 
 # COMMAND ----------
 

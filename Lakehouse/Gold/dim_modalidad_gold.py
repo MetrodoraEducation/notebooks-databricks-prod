@@ -6,12 +6,14 @@
 
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW modalidad_sales_view AS 
-# MAGIC SELECT DISTINCT 
-# MAGIC         modalidad AS nombre_modalidad
-# MAGIC FROM gold_lakehouse.dim_producto
-# MAGIC WHERE modalidad IS NOT NULL
-# MAGIC   AND modalidad <> ''
-# MAGIC   AND modalidad <> 'n/a';
+# MAGIC         SELECT DISTINCT 
+# MAGIC                 modalidad AS nombre_modalidad
+# MAGIC         FROM gold_lakehouse.dim_producto
+# MAGIC         WHERE modalidad IS NOT NULL
+# MAGIC         AND modalidad <> ''
+# MAGIC         AND modalidad <> 'n/a';
+# MAGIC
+# MAGIC --select * from modalidad_sales_view;
 
 # COMMAND ----------
 

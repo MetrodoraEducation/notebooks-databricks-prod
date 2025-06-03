@@ -6,28 +6,56 @@
 
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW dim_programa_view AS
-# MAGIC SELECT DISTINCT
-# MAGIC     UPPER(codigo_programa) AS cod_Programa,
-# MAGIC     TRIM(UPPER(area_title)) AS nombre_Programa,
-# MAGIC     TRIM(UPPER(degree_title)) AS tipo_Programa,
-# MAGIC     TRIM(UPPER(group_entidad_legal)) AS entidad_Legal,
-# MAGIC     TRIM(UPPER(especialidad)) AS especialidad,
-# MAGIC     TRIM(UPPER(group_vertical)) AS vertical,
-# MAGIC     TRIM(UPPER(nombre_del_programa_oficial_completo)) AS nombre_Programa_Completo,
-# MAGIC     MAX(TRY_CAST(fecha_creacion AS TIMESTAMP)) AS ETLcreatedDate,
-# MAGIC     MAX(TRY_CAST(ultima_actualizacion AS TIMESTAMP)) AS ETLupdatedDate
-# MAGIC FROM silver_lakehouse.classlifetitulaciones
-# MAGIC WHERE codigo_programa IS NOT NULL
-# MAGIC   AND codigo_programa != ''
+# MAGIC SELECT 
+# MAGIC     cod_Programa,
+# MAGIC     nombre_Programa,
+# MAGIC     tipo_Programa,
+# MAGIC     entidad_Legal,
+# MAGIC     especialidad,
+# MAGIC     vertical,
+# MAGIC     nombre_Programa_Completo,
+# MAGIC     MAX(ETLcreatedDate) AS ETLcreatedDate,
+# MAGIC     MAX(ETLupdatedDate) AS ETLupdatedDate
+# MAGIC FROM (
+# MAGIC     SELECT
+# MAGIC         UPPER(codigo_programa) AS cod_Programa,
+# MAGIC         TRIM(UPPER(area_title)) AS nombre_Programa,
+# MAGIC         TRIM(UPPER(degree_title)) AS tipo_Programa,
+# MAGIC         TRIM(UPPER(group_entidad_legal)) AS entidad_Legal,
+# MAGIC         TRIM(UPPER(especialidad)) AS especialidad,
+# MAGIC         TRIM(UPPER(group_vertical)) AS vertical,
+# MAGIC         TRIM(UPPER(nombre_del_programa_oficial_completo)) AS nombre_Programa_Completo,
+# MAGIC         TRY_CAST(fecha_creacion AS TIMESTAMP) AS ETLcreatedDate,
+# MAGIC         TRY_CAST(ultima_actualizacion AS TIMESTAMP) AS ETLupdatedDate
+# MAGIC     FROM silver_lakehouse.classlifetitulaciones
+# MAGIC     WHERE codigo_programa IS NOT NULL AND codigo_programa != ''
+# MAGIC
+# MAGIC     UNION ALL
+# MAGIC
+# MAGIC     SELECT
+# MAGIC         UPPER(codigo_programa) AS cod_Programa,
+# MAGIC         TRIM(UPPER(area_title)) AS nombre_Programa,
+# MAGIC         TRIM(UPPER(degree_title)) AS tipo_Programa,
+# MAGIC         TRIM(UPPER(group_entidad_legal)) AS entidad_Legal,
+# MAGIC         TRIM(UPPER(especialidad)) AS especialidad,
+# MAGIC         TRIM(UPPER(group_vertical)) AS vertical,
+# MAGIC         TRIM(UPPER(nombre_del_programa_oficial_completo)) AS nombre_Programa_Completo,
+# MAGIC         TRY_CAST(fecha_creacion AS TIMESTAMP) AS ETLcreatedDate,
+# MAGIC         TRY_CAST(ultima_actualizacion AS TIMESTAMP) AS ETLupdatedDate
+# MAGIC     FROM silver_lakehouse.classlifetitulaciones_931
+# MAGIC     WHERE codigo_programa IS NOT NULL AND codigo_programa != ''
+# MAGIC ) AS union_view
 # MAGIC GROUP BY 
 # MAGIC     cod_Programa, nombre_Programa, tipo_Programa, entidad_Legal, especialidad, vertical, nombre_Programa_Completo;
+# MAGIC
+# MAGIC --SELECT * FROM dim_programa_view;
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SELECT cod_Programa, COUNT(*) AS total_duplicados
+# MAGIC SELECT cod_Programa, entidad_Legal, COUNT(*) AS total
 # MAGIC FROM dim_programa_view
-# MAGIC GROUP BY cod_Programa
+# MAGIC GROUP BY cod_Programa, entidad_Legal
 # MAGIC HAVING COUNT(*) > 1;
 
 # COMMAND ----------
@@ -48,15 +76,16 @@
 # MAGIC     WHERE rn = 1
 # MAGIC ) AS source
 # MAGIC ON UPPER(TRIM(target.cod_Programa)) = UPPER(TRIM(source.cod_Programa))
+# MAGIC AND UPPER(TRIM(target.entidad_Legal)) = UPPER(TRIM(source.entidad_Legal))
 # MAGIC    AND target.id_Dim_Programa != -1
 # MAGIC
 # MAGIC WHEN MATCHED AND (
-# MAGIC     COALESCE(TRIM(UPPER(target.nombre_Programa)), '') <> COALESCE(TRIM(UPPER(source.nombre_Programa)), '') OR
-# MAGIC     COALESCE(TRIM(UPPER(target.tipo_Programa)), '') <> COALESCE(TRIM(UPPER(source.tipo_Programa)), '') OR
-# MAGIC     COALESCE(TRIM(UPPER(target.entidad_Legal)), '') <> COALESCE(TRIM(UPPER(source.entidad_Legal)), '') OR
-# MAGIC     COALESCE(TRIM(UPPER(target.especialidad)), '') <> COALESCE(TRIM(UPPER(source.especialidad)), '') OR
-# MAGIC     COALESCE(TRIM(UPPER(target.vertical)), '') <> COALESCE(TRIM(UPPER(source.vertical)), '') OR
-# MAGIC     COALESCE(TRIM(UPPER(target.nombre_Programa_Completo)), '') <> COALESCE(TRIM(UPPER(source.nombre_Programa_Completo)), '') OR
+# MAGIC     TRIM(UPPER(target.nombre_Programa)) IS DISTINCT FROM TRIM(UPPER(source.nombre_Programa)) OR
+# MAGIC     TRIM(UPPER(target.tipo_Programa)) IS DISTINCT FROM TRIM(UPPER(source.tipo_Programa)) OR
+# MAGIC     TRIM(UPPER(target.entidad_Legal)) IS DISTINCT FROM TRIM(UPPER(source.entidad_Legal)) OR
+# MAGIC     TRIM(UPPER(target.especialidad)) IS DISTINCT FROM TRIM(UPPER(source.especialidad)) OR
+# MAGIC     TRIM(UPPER(target.vertical)) IS DISTINCT FROM TRIM(UPPER(source.vertical)) OR
+# MAGIC     TRIM(UPPER(target.nombre_Programa_Completo)) IS DISTINCT FROM TRIM(UPPER(source.nombre_Programa_Completo)) OR
 # MAGIC     target.ETLupdatedDate < source.ETLupdatedDate
 # MAGIC )
 # MAGIC THEN UPDATE SET
@@ -77,7 +106,7 @@
 
 # DBTITLE 1,Validate duplicate >1
 # MAGIC %sql
-# MAGIC SELECT cod_Programa, COUNT(*) AS total_duplicados
+# MAGIC SELECT cod_Programa, entidad_Legal, COUNT(*) AS total_duplicados
 # MAGIC FROM gold_lakehouse.dim_programa
-# MAGIC GROUP BY cod_Programa
+# MAGIC GROUP BY cod_Programa, entidad_Legal
 # MAGIC HAVING COUNT(*) > 1;

@@ -27,9 +27,6 @@ for col_name in zohocampaigns_df.columns:
     new_col_name = col_name.replace("data_", "")#.replace("users_", "")
     zohocampaigns_df = zohocampaigns_df.withColumnRenamed(col_name, new_col_name)
 
-# Muestra el DataFrame procesado
-display(zohocampaigns_df)
-
 # COMMAND ----------
 
 # DBTITLE 1,Columnas a minusculas
@@ -98,9 +95,6 @@ zohocampaigns_df = zohocampaigns_df \
     .withColumn("processDate", current_timestamp()) \
     .withColumn("sourceSystem", lit("zoho_Contacts"))
 
-# Mostrar el DataFrame renombrado y ajustado
-display(zohocampaigns_df)
-
 # COMMAND ----------
 
 from pyspark.sql.functions import coalesce, lit, col
@@ -121,9 +115,6 @@ for t in zohocampaigns_df.dtypes:
     elif column_type in ['timestamp', 'date']:
         # Para fechas y timestamps dejamos `None` explícitamente
         zohocampaigns_df = zohocampaigns_df.withColumn(column_name, coalesce(col(column_name), lit(None)))
-
-# Mostrar el DataFrame resultante
-display(zohocampaigns_df)
 
 # COMMAND ----------
 

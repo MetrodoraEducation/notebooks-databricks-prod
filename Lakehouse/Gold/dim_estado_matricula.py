@@ -9,9 +9,12 @@
 # MAGIC     SELECT DISTINCT
 # MAGIC         enroll_status_id AS cod_estado_matricula,
 # MAGIC         enroll_status AS estado_matricula
-# MAGIC     FROM silver_lakehouse.ClasslifeEnrollments;
-# MAGIC
-# MAGIC select * from dim_estado_matricula_view;
+# MAGIC     FROM silver_lakehouse.ClasslifeEnrollments
+# MAGIC UNION ALL
+# MAGIC     SELECT DISTINCT
+# MAGIC         enroll_status_id AS cod_estado_matricula,
+# MAGIC         enroll_status AS estado_matricula
+# MAGIC     FROM silver_lakehouse.ClasslifeEnrollments_931;
 
 # COMMAND ----------
 
@@ -42,4 +45,3 @@
 # MAGIC         current_timestamp(), 
 # MAGIC         current_timestamp()
 # MAGIC     );
-# MAGIC

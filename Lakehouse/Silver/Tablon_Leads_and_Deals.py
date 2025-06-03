@@ -91,6 +91,99 @@
 # MAGIC                         END AS sourcesystem
 # MAGIC                 FROM silver_lakehouse.zoholeads leads
 # MAGIC      FULL OUTER JOIN silver_lakehouse.zohodeals deals
+# MAGIC                   ON leads.id = deals.id_lead
+# MAGIC                   
+# MAGIC UNION ALL
+# MAGIC
+# MAGIC                 SELECT  
+# MAGIC                         CASE 
+# MAGIC                                 WHEN leads.id IS NOT NULL AND deals.id_lead IS NULL THEN 1
+# MAGIC                                 WHEN leads.id IS NOT NULL AND deals.id_lead IS NOT NULL THEN 2
+# MAGIC                                 WHEN leads.id IS NULL AND deals.id_lead IS NOT NULL THEN 3
+# MAGIC                                 ELSE -1
+# MAGIC                         END AS id_tipo_registro,
+# MAGIC                         CASE 
+# MAGIC                                 WHEN leads.id IS NOT NULL AND deals.id_lead IS NULL THEN 'Con lead sin oportunidad'
+# MAGIC                                 WHEN leads.id IS NOT NULL AND deals.id_lead IS NOT NULL THEN 'Con lead y con oportunidad'
+# MAGIC                                 WHEN leads.id IS NULL AND deals.id_lead IS NOT NULL THEN 'Oportunidad sin lead'
+# MAGIC                                 ELSE 'n/a'
+# MAGIC                         END AS tipo_registro,
+# MAGIC                         leads.id AS cod_Lead,
+# MAGIC                         leads.descripcion AS lead_nombre, --leads.Description AS lead_Nombre,
+# MAGIC                         leads.nombre AS nombre, --leads.First_Name AS Nombre,
+# MAGIC                         leads.apellido_1 AS apellido1, --leads.Last_Name AS Apellido1,
+# MAGIC                         leads.Apellido_2 AS Apellido2,
+# MAGIC                         leads.Email AS email,
+# MAGIC                         leads.telefono_movil AS telefono1, --leads.Mobile AS telefono1,
+# MAGIC                         COALESCE(deals.nacionalidad, leads.Nacionalidad) AS nacionalidad, --deals.Nacionalidad1
+# MAGIC                         leads.telefono AS telefono2, --leads.Phone AS telefono2,
+# MAGIC                         leads.Provincia AS provincia,
+# MAGIC                         COALESCE(deals.residencia, leads.Residencia) AS residencia, --deals.Residencia1
+# MAGIC                         leads.Sexo AS sexo,
+# MAGIC                         COALESCE(deals.rating, leads.lead_rating) AS lead_Rating, --deals.br_rating
+# MAGIC                         COALESCE(try_cast(deals.scoring AS DOUBLE), try_cast(leads.lead_scoring AS DOUBLE)) AS leadScoring, --deals.br_score
+# MAGIC                         COALESCE(deals.etapa, leads.Lead_Status) AS etapa,
+# MAGIC                         COALESCE(deals.Motivo_perdida_B2C, deals.Motivo_perdida_B2B, leads.Motivos_perdida) AS motivo_Perdida,
+# MAGIC                         TRY_CAST(NULLIF(TRIM(deals.probabilidad_conversion), '') AS DOUBLE) AS probabilidad_Conversion,--deals.Probabilidad AS probabilidad_Conversion,
+# MAGIC                         deals.flujo_venta AS flujo_venta, --deals.Pipeline AS flujo_Venta,
+# MAGIC                         deals.Profesion_Estudiante AS profesion_Estudiante,
+# MAGIC                         deals.Competencia AS competencia,
+# MAGIC                         COALESCE(deals.Tipologia_cliente, leads.Tipologia_cliente) AS tipo_Cliente_lead,
+# MAGIC                         leads.tipo_conversion as tipo_conversion_lead,
+# MAGIC                         COALESCE(deals.utm_ad_id, leads.utm_ad_id) AS utm_ad_id,
+# MAGIC                         COALESCE(deals.utm_adset_id, leads.utm_adset_id) AS utm_adset_id,
+# MAGIC                         COALESCE(deals.utm_campaign_id, leads.utm_campaign_id) AS utm_campaign_id,
+# MAGIC                         COALESCE(deals.utm_campaign_name, leads.utm_campaign_name) AS utm_campaign_name,
+# MAGIC                         COALESCE(deals.utm_channel, leads.utm_channel) AS utm_channel,
+# MAGIC                         COALESCE(deals.utm_estrategia, leads.utm_estrategia) AS utm_estrategia, --leads.utm_strategy
+# MAGIC                         COALESCE(deals.utm_medium, leads.utm_medium) AS utm_medium,
+# MAGIC                         COALESCE(deals.utm_perfil, leads.utm_perfil) AS utm_perfil, --leads.utm_profile
+# MAGIC                         COALESCE(deals.utm_source, leads.utm_source) AS utm_source,
+# MAGIC                         COALESCE(deals.utm_term, leads.utm_term) AS utm_term,
+# MAGIC                         COALESCE(deals.utm_type, leads.utm_type) AS utm_type,
+# MAGIC                         COALESCE(deals.Owner_id, leads.Owner_id) AS cod_Owner,
+# MAGIC                         COALESCE(deals.ID_Producto, leads.id_producto) AS cod_Producto,
+# MAGIC                         COALESCE(deals.lead_correlation_id, leads.lead_correlation_id) AS lead_Correlation,
+# MAGIC                         TRY_CAST(NULLIF(leads.fecha_creacion, '') AS TIMESTAMP) AS fecha_Creacion_Lead, --leads.Created_Time AS fecha_Creacion_Lead,
+# MAGIC                         TRY_CAST(NULLIF(leads.fecha_modificacion, '') AS TIMESTAMP) AS fecha_Modificacion_Lead, --leads.Modified_Time AS fecha_Modificacion_Lead,
+# MAGIC                         CASE WHEN deals.etapa = 'Perdido' THEN 'PERDIDA'
+# MAGIC                             WHEN deals.etapa = 'Matriculado' OR deals.etapa = 'NEC' THEN 'GANADA'
+# MAGIC                             ELSE 'ABIERTA'
+# MAGIC                         END AS nombre_estado_venta,
+# MAGIC                         deals.id AS cod_Oportunidad,
+# MAGIC                         deals.ID_Classlife AS cod_Classlife,
+# MAGIC                         deals.nombre_oportunidad AS nombre_Oportunidad, --nombre_oportunidad
+# MAGIC                         deals.contact_name_id AS cod_Contacto,
+# MAGIC                         TRY_CAST(NULLIF(deals.fecha_Cierre, '') AS TIMESTAMP) AS fecha_Cierre,
+# MAGIC                         deals.id_unico AS cod_Unico_Zoho,
+# MAGIC                         CAST(1 AS DOUBLE) AS ratio_moneda,--deals.Exchange_Rate AS ratio_Moneda,
+# MAGIC                         'EUR' AS moneda,--deals.Currency AS moneda,
+# MAGIC                         TRY_CAST(NULLIF(TRIM(deals.Importe_pagado), '') AS DOUBLE) AS importe_Pagado,
+# MAGIC                         deals.Codigo_descuento AS cod_Descuento,
+# MAGIC                         TRY_CAST(NULLIF(TRIM(deals.Descuento), '') AS DOUBLE) AS pct_Descuento,
+# MAGIC                         TRY_CAST(NULLIF(TRIM(deals.importe), '') AS DOUBLE) AS importe,
+# MAGIC                         deals.tipologia_alumno AS tipo_alumno, --deals.Tipologia_alumno1 AS tipo_Alumno,
+# MAGIC                         deals.tipo_conversion AS tipo_Conversion_opotunidad,
+# MAGIC                         deals.Tipologia_cliente AS tipo_Cliente_oportunidad,
+# MAGIC                         TRY_CAST(NULLIF(deals.fecha_hora_Pagado, '') AS TIMESTAMP) as fecha_hora_Pagado,
+# MAGIC                         TRY_CAST(NULLIF(deals.fecha_creacion, '') AS TIMESTAMP) AS fecha_Creacion_Oportunidad,--deals.Created_Time AS fecha_Creacion_Oportunidad,
+# MAGIC                         TRY_CAST(NULLIF(deals.fecha_modificacion, '') AS TIMESTAMP) AS fecha_Modificacion_Oportunidad, --deals.Modified_Time AS fecha_Modificacion_Oportunidad,
+# MAGIC                         TRY_CAST(NULLIF(deals.fecha_hora_anulacion, '') AS TIMESTAMP) as fecha_hora_Anulacion,
+# MAGIC                         deals.id_classlife as id_classlife,
+# MAGIC                         CASE 
+# MAGIC                             WHEN leads.id IS NOT NULL AND deals.id_lead IS NULL THEN leads.processdate
+# MAGIC                             WHEN leads.id IS NOT NULL AND deals.id_lead IS NOT NULL THEN COALESCE(deals.processdate, leads.processdate)
+# MAGIC                             WHEN leads.id IS NULL AND deals.id_lead IS NOT NULL THEN deals.processdate
+# MAGIC                         ELSE NULL
+# MAGIC                         END AS processdate,
+# MAGIC                         CASE 
+# MAGIC                             WHEN leads.id IS NOT NULL AND deals.id_lead IS NULL THEN leads.sourcesystem
+# MAGIC                             WHEN leads.id IS NOT NULL AND deals.id_lead IS NOT NULL THEN COALESCE(deals.sourcesystem, leads.sourcesystem)
+# MAGIC                             WHEN leads.id IS NULL AND deals.id_lead IS NOT NULL THEN deals.sourcesystem
+# MAGIC                         ELSE NULL
+# MAGIC                         END AS sourcesystem
+# MAGIC                 FROM silver_lakehouse.zoholeads_38b leads
+# MAGIC      FULL OUTER JOIN silver_lakehouse.zohodeals_38b deals
 # MAGIC                   ON leads.id = deals.id_lead;
 # MAGIC
 # MAGIC SELECT * FROM tablon_leads_and_deals;

@@ -44,6 +44,8 @@ for col in zohodeals_df.columns:
 for col in zohodeals_df.columns:
     zohodeals_df = zohodeals_df.withColumnRenamed(col, col.replace("-", "_"))
 
+display(zohodeals_df)
+
 # COMMAND ----------
 
 from pyspark.sql.functions import col, current_timestamp, lit

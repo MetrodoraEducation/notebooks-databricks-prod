@@ -34,8 +34,6 @@
 # MAGIC                     END AS esNE
 # MAGIC       FROM silver_lakehouse.sales
 # MAGIC      WHERE etapa_venta <> 'n/a';
-# MAGIC
-# MAGIC select * from etapa_venta_sales_view;
 
 # COMMAND ----------
 
@@ -82,6 +80,7 @@
 
 # COMMAND ----------
 
+# DBTITLE 1,Create view dim etapa Zoho's
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW dim_etapa_venta_view AS
 # MAGIC SELECT DISTINCT
@@ -125,9 +124,41 @@
 # MAGIC FROM silver_lakehouse.zoholeads zl
 # MAGIC FULL OUTER JOIN silver_lakehouse.zohodeals zd
 # MAGIC ON zl.lead_status = zd.etapa
-# MAGIC WHERE COALESCE(zd.etapa, zl.lead_status) IS NOT NULL;
+# MAGIC WHERE COALESCE(zd.etapa, zl.lead_status) IS NOT NULL
 # MAGIC
-# MAGIC select * from dim_etapa_venta_view;
+# MAGIC UNION
+# MAGIC
+# MAGIC SELECT DISTINCT
+# MAGIC     COALESCE(zd.etapa, zl.lead_status) AS nombreEtapaVenta,
+# MAGIC     CASE 
+# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Nuevo') THEN 'Nuevo'
+# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Asignado', 'Sin gestionar', 'Sin Gestionar', 'Contactando') THEN 'Asignado'
+# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Contactado', 'Sin información', 'Sin Información') THEN 'Contactado'
+# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Seguimiento', 'Valorando', 'Cita') THEN 'Seguimiento'
+# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Interesado') THEN 'Interesado'
+# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Pendiente de pago', 'Pendiente pago') THEN 'Pendiente de pago'
+# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Pagado (NE)', 'Pendiente Entrevista', 'Pendiente prueba', 'Pendiente documentación', 'Pendiente Documentación') THEN 'Pagado (NE)'
+# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Matriculado') THEN 'Matriculado'
+# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Pagado (NEC)') THEN 'Pagado (NEC)'
+# MAGIC         ELSE 'Desconocido'
+# MAGIC     END AS nombreEtapaVentaAgrupado,
+# MAGIC     CASE 
+# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Pagado (NE)%' OR
+# MAGIC              COALESCE(zd.etapa, zl.lead_status) LIKE 'Pendiente Entrevista%' OR
+# MAGIC              COALESCE(zd.etapa, zl.lead_status) LIKE 'Pendiente prueba%' OR
+# MAGIC              COALESCE(zd.etapa, zl.lead_status) LIKE 'Pendiente documentación%' OR
+# MAGIC              COALESCE(zd.etapa, zl.lead_status) LIKE 'Pendiente Documentación%' OR
+# MAGIC              COALESCE(zd.etapa, zl.lead_status) LIKE 'Matriculado%' OR
+# MAGIC              COALESCE(zd.etapa, zl.lead_status) LIKE 'Pagado (NEC)%' OR
+# MAGIC              COALESCE(zd.etapa, zl.lead_status) LIKE 'NEC%' 
+# MAGIC         THEN 1 ELSE 0 
+# MAGIC     END AS esNE,
+# MAGIC     CURRENT_TIMESTAMP AS ETLcreatedDate,
+# MAGIC     CURRENT_TIMESTAMP AS ETLupdatedDate
+# MAGIC FROM silver_lakehouse.zoholeads_38b zl
+# MAGIC FULL OUTER JOIN silver_lakehouse.zohodeals_38b zd
+# MAGIC   ON zl.lead_status = zd.etapa
+# MAGIC WHERE COALESCE(zd.etapa, zl.lead_status) IS NOT NULL;
 
 # COMMAND ----------
 
@@ -157,8 +188,3 @@
 # MAGIC         source.ETLcreatedDate,
 # MAGIC         source.ETLupdatedDate
 # MAGIC     );
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from gold_lakehouse.dim_etapa_venta;

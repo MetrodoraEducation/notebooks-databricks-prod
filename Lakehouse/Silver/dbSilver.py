@@ -1373,6 +1373,22 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.classlifetitulaciones_931
     tarifa_docencia STRING,
     total_tarifas STRING,
     group_codigo_vertical STRING,
+    fecha_inicio_docencia STRING,
+    fecha_inicio STRING,
+    grupo STRING,
+    meses_duracion STRING,
+    fecha_fin_pago STRING,
+    creditos STRING,
+    year STRING,
+    codigo_sede STRING,
+    modalidad_code STRING,
+    horas_presenciales STRING,
+    fecha_inicio_pago STRING,
+    cuotas_docencia STRING,
+    codigo_especialidad STRING,
+    ciclo_id STRING,
+    acreditado STRING,
+    codigo_vertical STRING,
     processdate TIMESTAMP,
     sourcesystem STRING
 )
@@ -1447,6 +1463,8 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.ClasslifeStudents_931 (
     student_registration_date STRING,
     student_name STRING,
     student_full_name STRING,
+    codigo STRING,
+    pais STRING,
     processdate TIMESTAMP,
     sourcesystem STRING
 )

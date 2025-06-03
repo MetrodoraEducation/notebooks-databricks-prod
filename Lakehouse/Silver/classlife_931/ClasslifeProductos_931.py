@@ -20,12 +20,6 @@ classlifetitulaciones_df
 
 # COMMAND ----------
 
-# 📌 Inspeccionar Esquema Inicial
-print("📌 Esquema inicial antes de limpieza:")
-classlifetitulaciones_df.printSchema()
-
-# COMMAND ----------
-
 # 📌 Función para limpiar nombres de columnas
 def clean_column_names(df):
     """
@@ -47,8 +41,6 @@ def clean_column_names(df):
     
     return df
 
-display(classlifetitulaciones_df)
-
 # COMMAND ----------
 
 # DBTITLE 1,Explota data
@@ -66,8 +58,6 @@ if "items" in classlifetitulaciones_df.columns:
     # Si `items` es un array de estructuras, lo explotamos
     if isinstance(classlifetitulaciones_df.schema["items"].dataType, ArrayType):
         classlifetitulaciones_df = classlifetitulaciones_df.withColumn("items", explode(col("items")))
-    
-display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -178,6 +168,8 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
     *[col(c).alias(c.strip().replace("`", "")) for c in columnas_seleccionadas]
 )
 
+#display(classlifetitulaciones_df)
+
 # COMMAND ----------
 
 from pyspark.sql.functions import col, lit, current_timestamp, when
@@ -194,7 +186,7 @@ columnas_requeridas = [
     "area_entidad_legal", "ciclo_title", "school_id", "ultima_actualizacion", "horas_acreditadas_2",
     "tiponegocio", "enroll_group_name", "enroll_alias", "school_name", "nombre_antiguo_de_programa",
     "group_entidad_legal", "area_vertical", "section_id", "section_title", "area_entidad_legal_codigo", "group_sede", "fecha_creacion", "tarifa_docencia", "total_tarifas",
-    "group_codigo_vertical"
+    "group_codigo_vertical", "fecha_inicio_docencia", "fecha_inicio", "grupo", "meses_duracion", "fecha_fin_pago", "creditos", "year", "codigo_sede", "modalidad_code", "horas_presenciales", "fecha_inicio_pago", "cuotas_docencia", "codigo_especialidad", "ciclo_id", "acreditado", "codigo_vertical"
 ]
 
 # 🧽 1. Limpiar nombres de columnas
@@ -219,6 +211,8 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
     current_timestamp().alias("processdate"),
     lit("classlifetitulaciones_931").alias("sourcesystem")
 )
+
+#display(classlifetitulaciones_df)
 
 # COMMAND ----------
 

@@ -107,5 +107,4 @@
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select distinct id_dim_modalidad from gold_lakehouse.fct_budget
+#%sql select distinct id_dim_modalidad from gold_lakehouse.fct_budget

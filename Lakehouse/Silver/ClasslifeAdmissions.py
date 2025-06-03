@@ -46,10 +46,6 @@ def clean_column_names(df):
 if "data" in classlifetitulaciones_df.columns:
     classlifetitulaciones_df = classlifetitulaciones_df.selectExpr("data.*")
 
-# 📌 Inspeccionar después de extraer `data`
-print("📌 Esquema después de seleccionar `data.*`:")
-classlifetitulaciones_df.printSchema()
-
 
 # COMMAND ----------
 
@@ -76,8 +72,6 @@ if "items" in classlifetitulaciones_df.columns:
 
     # 📌 Extraer columnas de `items` y renombrarlas
     classlifetitulaciones_df = classlifetitulaciones_df.select(*[col(c).alias(c.replace("items.", "")) for c in clean_subcolumns])
-
-    display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -137,9 +131,6 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
     *[col(c).alias(c.strip().replace("`", "")) for c in columnas_seleccionadas]
 )
 
-# 📌 Mostrar los primeros registros
-display(classlifetitulaciones_df)
-
 # COMMAND ----------
 
 from pyspark.sql.functions import col, to_timestamp, lit, current_timestamp
@@ -185,7 +176,7 @@ classlifetitulaciones_df = classlifetitulaciones_df \
     )
 
 # 📌 Mostrar solo las columnas seleccionadas
-display(classlifetitulaciones_df)
+#display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
