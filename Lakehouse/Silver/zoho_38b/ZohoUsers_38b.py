@@ -50,6 +50,10 @@ zohousers_df = zohousers_df \
     .withColumn("status", col("Estado").cast(StringType())) \
     .withColumn("isonline", col("Isonline").cast(BooleanType())) \
     .withColumn("linea_de_negocio", col("L_nea_de_Negocio").cast(StringType())) \
+    .withColumn("linea_de_negocio", when(lower(col("linea_de_negocio")) == "metrodorafp", lit("METRODORA FP"))
+                                  .when(lower(col("linea_de_negocio")) == "océano", lit("OCEANO"))
+                                  .when(lower(col("linea_de_negocio")) == "oceano", lit("OCEANO"))
+                                  .otherwise(col("linea_de_negocio"))) \
     .withColumn("modified_time", to_timestamp(col("Modified_Time"), "yyyy-MM-dd'T'HH:mm:ssXXX")) \
     .withColumn("created_time", to_timestamp(col("created_time"), "yyyy-MM-dd'T'HH:mm:ssXXX")) \
     .withColumn("city", col("city").cast(StringType())) \
@@ -110,7 +114,7 @@ zohousers_df = zohousers_df.dropDuplicates()
 # COMMAND ----------
 
 zohousers_df = zohousers_df.filter(
-    (col("linea_de_negocio").isin("MetrodoraFP", "Océano", "Oceano")) &  # Solo esos valores
+    (col("linea_de_negocio").isin("METRODORA FP", "OCEANO")) &  # Solo esos valores
     (col("linea_de_negocio").isNotNull()) &  # Que no sea NULL
     (col("linea_de_negocio") != "")  # Que no sea blanco
 )
@@ -178,5 +182,4 @@ zohousers_df.createOrReplaceTempView("zohousers_source_view")
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from silver_lakehouse.ZohoUsers_38b
+#%sql select * from silver_lakehouse.ZohoUsers_38b

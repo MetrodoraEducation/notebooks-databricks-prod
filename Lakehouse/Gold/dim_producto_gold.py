@@ -157,7 +157,7 @@
 # MAGIC        nombreweb AS nombre_Web,
 # MAGIC        area_entidad_legal AS entidad_Legal,
 # MAGIC        codigo_entidad_legal AS cod_Entidad_Legal,
-# MAGIC        section_title AS modalidad,
+# MAGIC        term_title AS modalidad, --section_title
 # MAGIC        modalidad_code AS cod_Modalidad,
 # MAGIC        TRY_CAST(codigo_sede AS FLOAT) AS codigo_sede,
 # MAGIC        TRIM(UPPER(group_sede)) AS sede,

@@ -8,7 +8,7 @@ endpoint_process_name = "receipts"
 table_name = "JsaClassLifeReceipts"
 
 classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/{table_name}.json")
-classlifetitulaciones_df
+#print(current_date)
 
 # COMMAND ----------
 

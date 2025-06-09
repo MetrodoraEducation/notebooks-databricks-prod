@@ -27,6 +27,12 @@
 # MAGIC                         leads.Provincia AS provincia,
 # MAGIC                         COALESCE(deals.Residencia1, leads.Residencia) AS residencia,
 # MAGIC                         leads.Sexo AS sexo,
+# MAGIC                         CASE 
+# MAGIC                             WHEN leads.id IS NOT NULL AND deals.id_lead IS NULL THEN leads.linea_de_negocio
+# MAGIC                             WHEN leads.id IS NOT NULL AND deals.id_lead IS NOT NULL THEN COALESCE(deals.linea_de_negocio, leads.linea_de_negocio)
+# MAGIC                             WHEN leads.id IS NULL AND deals.id_lead IS NOT NULL THEN deals.linea_de_negocio
+# MAGIC                             ELSE NULL
+# MAGIC                         END AS linea_de_negocio,
 # MAGIC                         COALESCE(deals.br_rating, leads.lead_rating) AS lead_Rating,
 # MAGIC                         COALESCE(try_cast(deals.br_score AS DOUBLE), try_cast(leads.lead_scoring AS DOUBLE)) AS leadScoring,
 # MAGIC                         COALESCE(deals.etapa, leads.Lead_Status) AS etapa,
@@ -120,6 +126,12 @@
 # MAGIC                         leads.Provincia AS provincia,
 # MAGIC                         COALESCE(deals.residencia, leads.Residencia) AS residencia, --deals.Residencia1
 # MAGIC                         leads.Sexo AS sexo,
+# MAGIC                         CASE 
+# MAGIC                             WHEN leads.id IS NOT NULL AND deals.id_lead IS NULL THEN leads.linea_de_negocio
+# MAGIC                             WHEN leads.id IS NOT NULL AND deals.id_lead IS NOT NULL THEN COALESCE(deals.linea_de_negocio, leads.linea_de_negocio)
+# MAGIC                             WHEN leads.id IS NULL AND deals.id_lead IS NOT NULL THEN deals.linea_de_negocio
+# MAGIC                             ELSE NULL
+# MAGIC                         END AS linea_de_negocio,
 # MAGIC                         COALESCE(deals.rating, leads.lead_rating) AS lead_Rating, --deals.br_rating
 # MAGIC                         COALESCE(try_cast(deals.scoring AS DOUBLE), try_cast(leads.lead_scoring AS DOUBLE)) AS leadScoring, --deals.br_score
 # MAGIC                         COALESCE(deals.etapa, leads.Lead_Status) AS etapa,
@@ -230,6 +242,7 @@
 # MAGIC         target.provincia = source.provincia,
 # MAGIC         target.residencia = source.residencia,
 # MAGIC         target.sexo = source.sexo,
+# MAGIC         target.linea_de_negocio = source.linea_de_negocio,
 # MAGIC         target.lead_Rating = source.lead_Rating,
 # MAGIC         target.leadScoring = source.leadScoring,
 # MAGIC         target.etapa = source.etapa,
@@ -274,6 +287,7 @@
 # MAGIC         target.lead_Rating = source.lead_Rating,
 # MAGIC         target.leadScoring = source.leadScoring,
 # MAGIC         target.etapa = source.etapa,
+# MAGIC         target.linea_de_negocio = source.linea_de_negocio,
 # MAGIC         target.motivo_Perdida = source.motivo_Perdida,
 # MAGIC         target.probabilidad_Conversion = source.probabilidad_Conversion,
 # MAGIC         target.flujo_Venta = source.flujo_Venta,
@@ -331,7 +345,7 @@
 # MAGIC WHEN NOT MATCHED THEN 
 # MAGIC     INSERT (
 # MAGIC         id_tipo_registro, tipo_registro, cod_Lead, lead_Nombre, Nombre, Apellido1, Apellido2,
-# MAGIC         email, telefono1, nacionalidad, telefono2, provincia, residencia, sexo, lead_Rating, 
+# MAGIC         email, telefono1, nacionalidad, telefono2, provincia, residencia, linea_de_negocio, sexo, lead_Rating, 
 # MAGIC         leadScoring, etapa, motivo_Perdida, probabilidad_Conversion, flujo_Venta, 
 # MAGIC         profesion_Estudiante, competencia, tipo_Cliente_lead, tipo_conversion_lead, 
 # MAGIC         utm_ad_id, utm_adset_id, utm_campaign_id, utm_campaign_name, utm_channel, utm_estrategia, 
@@ -345,7 +359,7 @@
 # MAGIC     VALUES (
 # MAGIC         source.id_tipo_registro, source.tipo_registro, source.cod_Lead, source.lead_Nombre, source.Nombre, 
 # MAGIC         source.Apellido1, source.Apellido2, source.email, source.telefono1, source.nacionalidad, source.telefono2, 
-# MAGIC         source.provincia, source.residencia, source.sexo, source.lead_Rating, source.leadScoring, source.etapa, 
+# MAGIC         source.provincia, source.residencia, source.linea_de_negocio, source.sexo, source.lead_Rating, source.leadScoring, source.etapa, 
 # MAGIC         source.motivo_Perdida, source.probabilidad_Conversion, source.flujo_Venta, source.profesion_Estudiante, 
 # MAGIC         source.competencia, source.tipo_Cliente_lead, source.tipo_conversion_lead, source.utm_ad_id, source.utm_adset_id, 
 # MAGIC         source.utm_campaign_id, source.utm_campaign_name, source.utm_channel, source.utm_estrategia, source.utm_medium, 
@@ -378,6 +392,7 @@
 # MAGIC     target.etapa = source.etapa,
 # MAGIC     target.probabilidad_Conversion = source.probabilidad_Conversion,
 # MAGIC     target.flujo_Venta = source.flujo_Venta,
+# MAGIC     target.linea_de_negocio = source.linea_de_negocio,
 # MAGIC     target.nombre_Oportunidad = source.nombre_Oportunidad,
 # MAGIC     target.importe_Pagado = source.importe_Pagado,
 # MAGIC     target.ratio_Moneda = source.ratio_Moneda,

@@ -39,7 +39,7 @@ for col in zohocontacts_df.columns:
 
 # COMMAND ----------
 
-from pyspark.sql.functions import col, lit, current_timestamp
+from pyspark.sql.functions import col, lit, current_timestamp, when, lower
 
 # Diccionario de mapeo de columnas a nombres más entendibles
 columns_mapping = {
@@ -69,15 +69,18 @@ columns_mapping = {
     "ltima_l_nea_de_negocio": "ultima_linea_de_negocio"
 }
 
-# Añadir columnas de trazabilidad
-zohocontacts_df = zohocontacts_df \
-    .withColumn("sourcesystem", lit("zoho_contacts_38b")) \
-    .withColumn("processdate", current_timestamp())
-
 # Renombrar las columnas dinámicamente si existen en el DataFrame
 for old_col, new_col in columns_mapping.items():
     if old_col in zohocontacts_df.columns:
         zohocontacts_df = zohocontacts_df.withColumnRenamed(old_col, new_col)
+
+# Añadir columnas de trazabilidad
+zohocontacts_df = zohocontacts_df \
+    .withColumn("sourcesystem", lit("zoho_contacts_38b")) \
+    .withColumn("processdate", current_timestamp()) \
+    .withColumn("ultima_linea_de_negocio", when(lower(col("ultima_linea_de_negocio")) == "metrodorafp", lit("METRODORA FP")).otherwise(col("ultima_linea_de_negocio"))) \
+    .withColumn("ultima_linea_de_negocio", when(lower(col("ultima_linea_de_negocio")) == "océano", lit("OCEANO")).otherwise(col("ultima_linea_de_negocio"))) \
+    .withColumn("ultima_linea_de_negocio", when(lower(col("ultima_linea_de_negocio")) == "oceano", lit("OCEANO")).otherwise(col("ultima_linea_de_negocio"))) 
 
 columnas_finales = list(columns_mapping.values()) + ["sourcesystem", "processdate"]
 
@@ -120,7 +123,7 @@ zohocontacts_df = zohocontacts_df.dropDuplicates()
 zohocontacts_df.createOrReplaceTempView("zohocontacts_source_view")
 
 zohocontacts_df_filtered = zohocontacts_df.filter(
-    (col("ultima_linea_de_negocio").isin("MetrodoraFP", "Oceano")) &  # Solo esos valores
+    (col("ultima_linea_de_negocio").isin("METRODORA FP", "OCEANO")) &  # Solo esos valores
     (col("ultima_linea_de_negocio").isNotNull()) &  # Que no sea NULL
     (col("ultima_linea_de_negocio") != "")  # Que no sea blanco
 )
@@ -192,5 +195,4 @@ zohocontacts_df_filtered.createOrReplaceTempView("zohocontacts_source_view")
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from silver_lakehouse.ZohoContacts_38b
+#%sql select * from silver_lakehouse.ZohoContacts_38b

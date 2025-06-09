@@ -202,6 +202,8 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
     *[col(c).alias(c.strip().replace("", "")) for c in columnas_seleccionadas]
 )
 
+#display(classlifetitulaciones_df)
+
 # COMMAND ----------
 
 # DBTITLE 1,Asignar Columnas

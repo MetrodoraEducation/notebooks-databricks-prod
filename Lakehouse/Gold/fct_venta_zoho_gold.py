@@ -102,6 +102,7 @@
 # MAGIC          ,tablon.utm_campaign_id AS utm_campaign_id
 # MAGIC          ,tablon.utm_ad_id AS utm_ad_id
 # MAGIC          ,tablon.utm_source AS utm_source
+# MAGIC          ,tablon.linea_de_negocio
 # MAGIC      FROM silver_lakehouse.tablon_leads_and_deals tablon
 # MAGIC LEFT JOIN silver_lakehouse.zohocontacts contacts
 # MAGIC        ON tablon.cod_Contacto = contacts.id;
@@ -150,7 +151,7 @@
 # MAGIC       ,COALESCE(comercial.id_dim_comercial, -1) AS id_dim_propietario_lead
 # MAGIC       ,COALESCE(programa.id_Dim_Programa, -1) AS id_dim_programa
 # MAGIC       ,COALESCE(modalidad.id_dim_modalidad, -1) AS id_dim_modalidad
-# MAGIC       ,COALESCE(institucion.id_dim_institucion, -1) AS id_dim_institucion
+# MAGIC       ,COALESCE(institucion.id_dim_institucion, COALESCE(institucion2.id_dim_institucion, -1)) AS id_dim_institucion
 # MAGIC       ,COALESCE(sede.id_dim_sede, -1) AS id_dim_sede
 # MAGIC       ,COALESCE(producto.id_Dim_Producto, -1) AS id_dim_producto
 # MAGIC       ,COALESCE(formacion.id_dim_tipo_formacion, -1) AS id_dim_tipo_formacion
@@ -171,6 +172,7 @@
 # MAGIC LEFT JOIN gold_lakehouse.dim_programa programa ON SUBSTRING(tablon.cod_Producto, 10, 5) = UPPER(programa.cod_Programa)
 # MAGIC LEFT JOIN gold_lakehouse.dim_modalidad modalidad ON SUBSTRING(tablon.cod_Producto, 18, 1) = SUBSTRING(modalidad.nombre_modalidad,1,1)
 # MAGIC LEFT JOIN gold_lakehouse.dim_institucion institucion ON UPPER(programa.entidad_Legal) = NULLIF(UPPER(institucion.nombre_institucion), '') 
+# MAGIC LEFT JOIN gold_lakehouse.dim_institucion institucion2 ON UPPER(tablon.linea_de_negocio) = NULLIF(UPPER(institucion2.nombre_institucion), '') 
 # MAGIC LEFT JOIN gold_lakehouse.dim_sede sede ON SUBSTRING(tablon.cod_Producto, 20, 3) = NULLIF(sede.codigo_sede, '')
 # MAGIC LEFT JOIN gold_lakehouse.dim_producto producto ON tablon.cod_Producto = NULLIF(producto.cod_Producto, '')
 # MAGIC LEFT JOIN gold_lakehouse.dim_tipo_formacion formacion ON programa.tipo_Programa = NULLIF(formacion.tipo_formacion_desc, '')
@@ -182,6 +184,8 @@
 # MAGIC LEFT JOIN gold_lakehouse.dim_utm_adset utmadset ON tablon.utm_ad_id = NULLIF(utmadset.utm_ad_id, '')
 # MAGIC LEFT JOIN gold_lakehouse.dim_utm_source utmsource ON tablon.utm_source = NULLIF(utmsource.utm_source, '')
 # MAGIC LEFT JOIN gold_lakehouse.dim_vertical vertical ON UPPER(producto.cod_Vertical) = NULLIF(UPPER(vertical.nombre_Vertical_Corto), '');
+# MAGIC
+# MAGIC --select * from zoho_dimensions_temp;
 
 # COMMAND ----------
 

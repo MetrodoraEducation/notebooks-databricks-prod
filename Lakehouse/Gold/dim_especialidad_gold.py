@@ -7,22 +7,45 @@
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW dim_especialidad_view AS
 # MAGIC SELECT DISTINCT
-# MAGIC     UPPER(TRIM(dp.especialidad)) AS nombre_Especialidad,
+# MAGIC     CASE 
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'MEDICINA' THEN 'MEDICINA'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('ENFERMERÍA','ENFERMERIA') THEN 'ENFERMERÍA'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('PSICOLOGÍA', 'PSICOLOGIA') THEN 'PSICOLOGÍA'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'FARMACIA' THEN 'FARMACIA'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'FISIOTERAPIA' THEN 'FISIOTERAPIA'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('OPTICA','ÓPTICA') THEN 'ÓPTICA'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('BIOLOGÍA','BIOLOGIA') THEN 'BIOLOGÍA'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('MISCELANEA','MISCELÁNEA') THEN 'MISCELANEA'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('ODONTOLOGIA','ODONTOLOGÍA') THEN 'ODONTOLOGÍA'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('QUÍMICA','QUIMICA') THEN 'QUÍMICA'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('NUTRICIÓN','NUTRICION') THEN 'NUTRICIÓN'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('INFORMÁTICA', 'INFORMATICA', 'TECNOLOGÍA','TECNOLOGIA') THEN 'INFORMÁTICA'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('DEPORTE','DEPORTES') THEN 'DEPORTE'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'SANIDAD' THEN 'SANIDAD'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('ADMINISTRACIÓN','ADMINISTRACION') THEN 'ADMINISTRACIÓN'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'EMPRESA' THEN 'EMPRESA'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'SOCIAL' THEN 'SOCIAL'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'GENERAL' THEN 'GENERAL'
+# MAGIC         ELSE UPPER(TRIM(dp.especialidad)) 
+# MAGIC     END AS nombre_Especialidad,
 # MAGIC     CASE 
 # MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'MEDICINA' THEN 'MD'
-# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'ENFERMERÍA' THEN 'NU'
-# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'PSICOLOGÍA' THEN 'PS'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('ENFERMERÍA','ENFERMERIA') THEN 'NU'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('PSICOLOGÍA', 'PSICOLOGIA') THEN 'PS'
 # MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'FARMACIA' THEN 'PH'
 # MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'FISIOTERAPIA' THEN 'PT'
-# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'OPTICA' THEN 'OP'
-# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'BIOLOGÍA' THEN 'BI'
-# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'MISCELANEA' THEN 'MX'
-# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'ODONTOLOGIA' THEN 'OD'
-# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'QUÍMICA' THEN 'CH'
-# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'NUTRICIÓN' THEN 'NT'
-# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'INFORMÁTICA' THEN 'IT'
-# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'DEPORTE' THEN 'SP'
-# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'ADMINISTRACIÓN' THEN 'AD'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('OPTICA','ÓPTICA') THEN 'OP'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('BIOLOGÍA','BIOLOGIA') THEN 'BI'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('MISCELANEA','MISCELÁNEA') THEN 'MX'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('ODONTOLOGIA','ODONTOLOGÍA') THEN 'OD'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('QUÍMICA','QUIMICA') THEN 'CH'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('NUTRICIÓN','NUTRICION') THEN 'NT'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('INFORMÁTICA', 'INFORMATICA', 'TECNOLOGÍA','TECNOLOGIA') THEN 'IT'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('DEPORTE','DEPORTES') THEN 'SP'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) in ('ADMINISTRACIÓN','ADMINISTRACION') THEN 'AD'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'SANIDAD' THEN 'SA'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'EMPRESA' THEN 'BS'
+# MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'SOCIAL' THEN 'SO'
 # MAGIC         WHEN UPPER(TRIM(dp.especialidad)) = 'GENERAL' THEN '00'
 # MAGIC         ELSE 'n/a'  -- General o sin coincidencia
 # MAGIC     END AS cod_Especialidad,

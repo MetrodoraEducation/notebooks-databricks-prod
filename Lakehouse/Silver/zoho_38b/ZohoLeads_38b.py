@@ -93,16 +93,19 @@ columns_mapping = {
     "data_owner_id": "owner_id",
     "data_owner_name": "owner_name"
 }
-
-# Añadir columnas de trazabilidad
-zoholeads_df = zoholeads_df \
-    .withColumn("sourcesystem", lit("zoho_Leads_38b")) \
-    .withColumn("processdate", current_timestamp()) 
     
 # Renombrar columnas si existen
 for old_col, new_col in columns_mapping.items():
     if old_col in zoholeads_df.columns:
         zoholeads_df = zoholeads_df.withColumnRenamed(old_col, new_col)
+
+# Añadir columnas de trazabilidad
+zoholeads_df = zoholeads_df \
+    .withColumn("sourcesystem", lit("zoho_Leads_38b")) \
+    .withColumn("processdate", current_timestamp()) \
+    .withColumn("linea_de_negocio",when(lower(col("linea_de_negocio")) == "metrodorafp", lit("METRODORA FP")).otherwise(col("linea_de_negocio"))) \
+    .withColumn("linea_de_negocio",when(lower(col("linea_de_negocio")) == "océano", lit("OCEANO")).otherwise(col("linea_de_negocio"))) \
+    .withColumn("linea_de_negocio",when(lower(col("linea_de_negocio")) == "oceano", lit("OCEANO")).otherwise(col("linea_de_negocio"))) 
 
 # Mostrar DataFrame con nombres normalizados
 display(zoholeads_df)
@@ -135,7 +138,7 @@ zoholeads_df = zoholeads_df.dropDuplicates()
 
 # DBTITLE 1,Filter FisioFocus, CESIF, ISEP
 zoholeads_df_filtered = zoholeads_df.filter(
-    (col("linea_de_negocio").isin("MetrodoraFP", "Océano")) &  # Solo esos valores
+    (col("linea_de_negocio").isin("METRODORA FP", "OCEANO")) &  # Solo esos valores
     (col("linea_de_negocio").isNotNull()) &  # Que no sea NULL
     (col("linea_de_negocio") != "")  # Que no sea blanco
 )
@@ -245,5 +248,4 @@ zoholeads_df_filtered.createOrReplaceTempView("zoholeads_source_view")
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from silver_lakehouse.ZohoLeads_38b
+#%sql select * from silver_lakehouse.ZohoLeads_38b

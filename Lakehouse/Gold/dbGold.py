@@ -1243,3 +1243,19 @@ USING DELTA
 LOCATION 'abfss://gold@{storage_account_name}.dfs.core.windows.net/lakehouse/fct_budget';
 """
 spark.sql(sql_query)
+
+# COMMAND ----------
+
+# DBTITLE 1,dim_tipo_conversion
+sql_query = f"""
+CREATE TABLE IF NOT EXISTS gold_lakehouse.dim_tipo_conversion
+(
+    id_dim_tipo_conversion BIGINT GENERATED ALWAYS AS IDENTITY (START WITH -1 INCREMENT BY 1) PRIMARY KEY
+    ,tipo_conversion STRING
+    ,etlcreateddate TIMESTAMP
+    ,etlupdateddate TIMESTAMP
+)
+USING DELTA
+LOCATION 'abfss://gold@{storage_account_name}.dfs.core.windows.net/lakehouse/dim_tipo_conversion';
+"""
+spark.sql(sql_query)

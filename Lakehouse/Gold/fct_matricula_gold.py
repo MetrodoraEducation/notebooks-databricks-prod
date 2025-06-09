@@ -4,6 +4,7 @@
 
 # COMMAND ----------
 
+# DBTITLE 1,classlifeenrollments
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW fct_matricula_temp AS
 # MAGIC       SELECT 
@@ -53,20 +54,94 @@
 # MAGIC    LEFT JOIN gold_lakehouse.dim_tipo_negocio tiponegocio ON producto.tipo_Negocio = NULLIF(tiponegocio.tipo_negocio_desc, '')
 # MAGIC    LEFT JOIN gold_lakehouse.dim_pais pais ON UPPER(dim_estudiante.pais) = NULLIF(UPPER(pais.iso2), '')
 # MAGIC    LEFT JOIN gold_lakehouse.dim_estado_matricula matricula ON enroll.enroll_status_id = matricula.cod_estado_matricula;
+# MAGIC
+# MAGIC    --select * from fct_matricula_temp;
 
 # COMMAND ----------
 
+# DBTITLE 1,classlifeenrollments_931
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW fct_matricula_931_temp AS
+# MAGIC       SELECT 
+# MAGIC              origen.id_Dim_Origen_SIS AS id_origen_SIS
+# MAGIC             ,CONCAT(origen.codigo_Origen_SIS, enroll.enroll_id) AS cod_matricula
+# MAGIC             ,COALESCE(dim_estudiante.id_dim_estudiante, -1) AS id_dim_estudiante
+# MAGIC             ,COALESCE(programa.id_Dim_Programa, -1) AS id_dim_programa
+# MAGIC             ,COALESCE(modalidad.id_dim_modalidad, -1) AS id_dim_modalidad
+# MAGIC             ,COALESCE(institucion.id_dim_institucion, -1) AS id_dim_institucion
+# MAGIC             ,COALESCE(sede.id_dim_sede, -1) AS id_dim_sede
+# MAGIC             ,COALESCE(producto.id_Dim_Producto, -1) AS id_dim_producto
+# MAGIC             ,COALESCE(formacion.id_dim_tipo_formacion, -1) AS id_dim_tipo_formacion
+# MAGIC             ,COALESCE(tiponegocio.id_dim_tipo_negocio, -1) AS id_dim_tipo_negocio
+# MAGIC             ,COALESCE(pais.id, -1) AS id_dim_pais
+# MAGIC             ,enroll.year AS ano_curso
+# MAGIC             --,enroll.enroll_in AS fec_matricula--
+# MAGIC             ,CASE 
+# MAGIC                   WHEN TRY_CAST(enroll.first_activate_enroll AS DATE) IS NOT NULL THEN TRY_CAST(enroll.first_activate_enroll AS DATE)
+# MAGIC                   WHEN enroll.created_on IS NOT NULL THEN TRY_CAST(enroll.created_on AS DATE) --enroll_in
+# MAGIC                   ELSE TRY_CAST(enroll.enroll_in AS DATE)
+# MAGIC             END AS fec_matricula
+# MAGIC             ,COALESCE(matricula.id_dim_estado_matricula, -1) AS id_dim_estado_matricula
+# MAGIC             ,TRY_CAST('1900-01-01' AS DATE) AS fec_anulacion
+# MAGIC             ,TRY_CAST('1900-01-01' AS DATE) AS fec_finalizacion
+# MAGIC             ,0 AS nota_media
+# MAGIC             ,'CODIGODUMMY' AS cod_descuento--,enroll.codigo_promocion AS cod_descuento
+# MAGIC             --,0 AS importe_matricula
+# MAGIC             ,CASE 
+# MAGIC                 WHEN enroll.importe_matricula IS NOT NULL OR enroll.importe_docencia IS NOT NULL 
+# MAGIC                 THEN COALESCE(try_cast(enroll.importe_matricula AS DECIMAL(10, 2)), 0) + COALESCE(try_cast(enroll.importe_docencia AS DECIMAL(10, 2)), 0) 
+# MAGIC                     - COALESCE(ABS(try_cast(enroll.suma_descuentos AS DECIMAL(10, 2))), 0)
+# MAGIC                 ELSE 0 
+# MAGIC             END AS importe_matricula
+# MAGIC             ,ABS(enroll.suma_descuentos) AS importe_descuento
+# MAGIC             ,0 AS importe_cobros--,try_cast(enroll.totalenroll AS DECIMAL(10, 2)) AS importe_cobros
+# MAGIC             ,'PAGODUMMY' AS tipo_pago--,enroll.paymentmethod AS tipo_pago
+# MAGIC             ,'FALTA en CL' AS edad_acceso
+# MAGIC             ,TRY_CAST('1900-01-01' AS DATE) AS fec_ultimo_login_LMS
+# MAGIC             ,enroll.zoho_deal_id AS zoho_deal_id--,enroll.zoho_deal_id AS zoho_deal_id
+# MAGIC         FROM silver_lakehouse.classlifeenrollments_931 enroll
+# MAGIC    LEFT JOIN gold_lakehouse.origenClasslife origen ON 2 = origen.id_Dim_Origen_SIS
+# MAGIC    LEFT JOIN gold_lakehouse.dim_estudiante dim_estudiante ON dim_estudiante.cod_estudiante = CONCAT(origen.codigo_Origen_SIS, enroll.student_id)    
+# MAGIC    LEFT JOIN gold_lakehouse.dim_producto producto ON enroll.enroll_group = NULLIF(producto.cod_Producto, '')
+# MAGIC    LEFT JOIN gold_lakehouse.dim_programa programa ON UPPER(producto.cod_Programa) = UPPER(programa.cod_Programa)
+# MAGIC    LEFT JOIN gold_lakehouse.dim_modalidad modalidad ON SUBSTRING(enroll.enroll_group, 18, 1) = SUBSTRING(modalidad.nombre_modalidad,1,1)
+# MAGIC    LEFT JOIN gold_lakehouse.dim_institucion institucion ON UPPER(producto.entidad_Legal) = NULLIF(UPPER(institucion.nombre_institucion), '')
+# MAGIC    LEFT JOIN gold_lakehouse.dim_sede sede ON SUBSTRING(enroll.enroll_group, 20, 3) = NULLIF(sede.codigo_sede, '')
+# MAGIC    LEFT JOIN gold_lakehouse.dim_tipo_formacion formacion ON producto.tipo_Producto = NULLIF(formacion.tipo_formacion_desc, '')
+# MAGIC    LEFT JOIN gold_lakehouse.dim_tipo_negocio tiponegocio ON producto.tipo_Negocio = NULLIF(tiponegocio.tipo_negocio_desc, '')
+# MAGIC    LEFT JOIN gold_lakehouse.dim_pais pais ON UPPER(dim_estudiante.pais) = NULLIF(UPPER(pais.iso2), '')
+# MAGIC    LEFT JOIN gold_lakehouse.dim_estado_matricula matricula ON enroll.enroll_status_id = matricula.cod_estado_matricula;
+# MAGIC
+# MAGIC    select * from fct_matricula_931_temp;
+
+# COMMAND ----------
+
+# DBTITLE 1,Union View
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW fct_matricula_unificada AS
+# MAGIC SELECT * FROM fct_matricula_temp
+# MAGIC UNION ALL
+# MAGIC SELECT * FROM fct_matricula_931_temp;
+# MAGIC
+# MAGIC --select * from fct_matricula_unificada;
+
+# COMMAND ----------
+
+# DBTITLE 1,Deleted duplicates if exists
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW fct_matricula_unique_temp AS
-# MAGIC SELECT * FROM (
+# MAGIC SELECT * 
+# MAGIC FROM (
 # MAGIC     SELECT *, 
 # MAGIC            ROW_NUMBER() OVER (
 # MAGIC                PARTITION BY cod_matricula 
 # MAGIC                ORDER BY fec_matricula DESC
 # MAGIC            ) AS rn
-# MAGIC     FROM fct_matricula_temp
-# MAGIC ) filtered
+# MAGIC     FROM fct_matricula_unificada
+# MAGIC ) AS ranked
 # MAGIC WHERE rn = 1;
+# MAGIC
+# MAGIC select * from fct_matricula_unique_temp;
 
 # COMMAND ----------
 
@@ -158,3 +233,7 @@
 # MAGIC FROM gold_lakehouse.fct_matricula
 # MAGIC GROUP BY cod_matricula
 # MAGIC HAVING COUNT(*) > 1;
+
+# COMMAND ----------
+
+#%sql SELECT * FROM gold_lakehouse.fct_matricula

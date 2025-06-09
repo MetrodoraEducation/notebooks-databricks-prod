@@ -1154,6 +1154,7 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.tablon_leads_and_deals
     provincia STRING,
     residencia STRING,
     sexo STRING,
+    linea_de_negocio STRING,
     lead_Rating STRING,
     leadScoring DOUBLE,
     etapa STRING,
@@ -1278,45 +1279,52 @@ spark.sql(sql_query)
 sql_query = f"""
 CREATE TABLE IF NOT EXISTS silver_lakehouse.ClasslifeEnrollments_931
 (
-     area_id STRING
+     enroll_id STRING
+    ,area_id STRING
     ,area_title STRING
     ,ciclo_id STRING
     ,ciclo_title STRING
+    ,created_on STRING
     ,degree_id STRING
     ,degree_title STRING
     ,enroll_alias STRING
     ,enroll_end STRING
     ,enroll_group STRING
-    ,enroll_id STRING
     ,enroll_in STRING
     ,enroll_ini STRING
     ,enroll_status STRING
     ,enroll_status_id STRING
+    ,first_activate_enroll STRING
     ,school_id STRING
     ,school_name STRING
     ,section_id STRING
     ,section_title STRING
     ,student_full_name STRING
     ,student_id STRING
-    ,term_id STRING
     ,term_title STRING
     ,updated_at STRING
     ,year STRING
-    ,about_agent_code__c STRING
-    ,admisionesmodalidad STRING
-    ,totalenroll STRING
-    ,totalfinal STRING
-    ,totalfinaldocencia STRING
-    ,totalfinalmatricula STRING
-    ,id_contacto STRING
+    ,zoho_deal_id STRING
+    ,ano_inicio_docencia STRING
+    ,cuota_matricula STRING
+    ,fecha_fin_cuotas STRING
+    ,fecha_fin_docencia STRING
+    ,fecha_fin_reconocimiento_ingresos STRING
+    ,fecha_inicio_cuotas STRING
+    ,fecha_inicio_docencia STRING
+    ,fecha_inicio_reconocimiento_ingresos STRING
     ,processdate TIMESTAMP
     ,sourcesystem STRING
+    ,importe_matricula DECIMAL(18,2)
+    ,importe_docencia DECIMAL(18,2)
+    ,suma_descuentos DECIMAL(18,2)
+    ,total_fees DECIMAL(18,2)
+    ,total_restantes DECIMAL(18,2)
 )
 USING DELTA
 LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/ClasslifeEnrollments_931';
 """
 
-# Ejecutar la consulta SQL con Spark
 spark.sql(sql_query)
 
 # COMMAND ----------
@@ -1437,34 +1445,18 @@ spark.sql(sql_query)
 # DBTITLE 1,ClasslifeStudents_931
 sql_query = f"""
 CREATE TABLE IF NOT EXISTS silver_lakehouse.ClasslifeStudents_931 (
-    paisnacimiento STRING,
-    zenddesk_id STRING,
-    factura_correo STRING,
-    student_language STRING,
-    fiscal_codigo STRING,
-    language STRING,
-    nacimiento STRING,
-    direccion STRING,
-    ciudad STRING,
-    factura_telefono STRING,
-    student_phone STRING,
-    fiscal_iban STRING,
-    student_email STRING,
-    student_uid STRING,
-    fiscal_dpuerta STRING,
-    student_active STRING,
-    student_lastname STRING,
-    zoho_id STRING,
-    factura_dni STRING,
-    sexo STRING,
     student_id STRING,
-    school_id STRING,
-    edad STRING,
-    student_registration_date STRING,
-    student_name STRING,
+    student_active STRING,
+    student_email STRING,
     student_full_name STRING,
+    ciudad STRING,
     codigo STRING,
+    direccion STRING,
+    edad STRING,
     pais STRING,
+    student_phone STRING,
+    student_registration_date STRING,
+    zoho_id STRING,
     processdate TIMESTAMP,
     sourcesystem STRING
 )

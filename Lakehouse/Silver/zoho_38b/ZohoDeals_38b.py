@@ -114,7 +114,9 @@ for col_name in columns_mapping.values():
 
 zohodeals_df = zohodeals_df \
     .withColumn("processdate", current_timestamp()) \
-    .withColumn("sourcesystem", lit("zoho_deals_38b"))
+    .withColumn("sourcesystem", lit("zoho_deals_38b")) \
+    .withColumn("linea_de_negocio",when(lower(col("linea_de_negocio")) == "metrodorafp", lit("METRODORA FP")).otherwise(col("linea_de_negocio"))) \
+    .withColumn("linea_de_negocio",when(lower(col("linea_de_negocio")) == "océano", lit("OCEANO")).otherwise(col("linea_de_negocio")))
 
 display(zohodeals_df)
 
@@ -147,7 +149,7 @@ zohodeals_df = zohodeals_df.dropDuplicates()
 zohodeals_df.createOrReplaceTempView("zohodeals_source_view")
 
 zohodeals_df_filtered = zohodeals_df.filter(
-    (col("linea_de_negocio").isin("MetrodoraFP", "Océano")) &  # Solo esos valores
+    (col("linea_de_negocio").isin("METRODORA FP", "OCEANO")) &  # Solo esos valores
     (col("linea_de_negocio").isNotNull()) &  # Que no sea NULL
     (col("linea_de_negocio") != "")  # Que no sea blanco
 )
@@ -161,7 +163,7 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC MERGE INTO silver_lakehouse.zohodeals_38b AS target
 # MAGIC USING zohodeals_source_view AS source
 # MAGIC ON target.id = source.id
-# MAGIC AND target.id_producto = source.id_producto
+# MAGIC --AND target.id_producto = source.id_producto
 # MAGIC
 # MAGIC WHEN MATCHED AND (
 # MAGIC     source.importe IS DISTINCT FROM target.importe OR
@@ -268,5 +270,4 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from silver_lakehouse.zohodeals_38b 
+#%sql select distinct linea_de_negocio from silver_lakehouse.zohodeals_38b 
