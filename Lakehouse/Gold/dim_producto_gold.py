@@ -59,7 +59,9 @@
 # MAGIC        tiponegocio AS tipo_Negocio,
 # MAGIC        acreditado,
 # MAGIC        nombreweb AS nombre_Web,
-# MAGIC        area_entidad_legal AS entidad_Legal,
+# MAGIC        --Cambio para usar el campo group y mapear con la nueva tabla de mapeo entidad_legal
+# MAGIC        --area_entidad_legal AS entidad_Legal,
+# MAGIC        group_entidad_legal AS entidad_Legal,
 # MAGIC        codigo_entidad_legal AS cod_Entidad_Legal,
 # MAGIC        section_title AS modalidad,
 # MAGIC        modalidad_code AS cod_Modalidad,
@@ -155,7 +157,9 @@
 # MAGIC        tiponegocio AS tipo_Negocio,
 # MAGIC        acreditado,
 # MAGIC        nombreweb AS nombre_Web,
-# MAGIC        area_entidad_legal AS entidad_Legal,
+# MAGIC        --Cambio para usar el campo group y mapear con la nueva tabla de mapeo entidad_legal
+# MAGIC        --area_entidad_legal AS entidad_Legal,
+# MAGIC        group_entidad_legal AS entidad_Legal,
 # MAGIC        codigo_entidad_legal AS cod_Entidad_Legal,
 # MAGIC        term_title AS modalidad, --section_title
 # MAGIC        modalidad_code AS cod_Modalidad,
@@ -277,6 +281,7 @@
 # MAGIC     target.fecha_Fin_Curso IS DISTINCT FROM source.fecha_Fin_Curso OR
 # MAGIC     target.fecha_inicio IS DISTINCT FROM source.fecha_inicio OR
 # MAGIC     target.fecha_Fin IS DISTINCT FROM source.fecha_Fin OR
+# MAGIC     target.entidad_Legal IS DISTINCT FROM source.entidad_Legal OR
 # MAGIC     target.ETLupdatedDate < source.ETLupdatedDate
 # MAGIC )
 # MAGIC THEN UPDATE SET
@@ -295,6 +300,7 @@
 # MAGIC     target.fecha_Fin_Curso = source.fecha_Fin_Curso,
 # MAGIC     target.fecha_inicio = source.fecha_inicio,
 # MAGIC     target.fecha_Fin = source.fecha_Fin,
+# MAGIC     target.entidad_Legal = source.entidad_Legal,
 # MAGIC     target.ETLupdatedDate = current_timestamp()
 # MAGIC
 # MAGIC WHEN NOT MATCHED THEN

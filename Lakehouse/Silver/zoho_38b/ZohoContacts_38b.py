@@ -37,6 +37,8 @@ for col_name in zohocontacts_df.columns:
 for col in zohocontacts_df.columns:
     zohocontacts_df = zohocontacts_df.withColumnRenamed(col, col.lower())
 
+#display(zohocontacts_df)
+
 # COMMAND ----------
 
 from pyspark.sql.functions import col, lit, current_timestamp, when, lower
@@ -88,7 +90,7 @@ columnas_finales = list(columns_mapping.values()) + ["sourcesystem", "processdat
 zohocontacts_df = zohocontacts_df.select(*columnas_finales)
 
 # Mostrar resultado final
-display(zohocontacts_df)
+#display(zohocontacts_df)
 
 # COMMAND ----------
 

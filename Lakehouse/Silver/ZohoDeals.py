@@ -212,7 +212,6 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC MERGE INTO silver_lakehouse.zohodeals AS target
 # MAGIC USING zohodeals_source_view AS source
 # MAGIC ON target.id = source.id
-# MAGIC AND target.id_producto = source.id_producto
 # MAGIC
 # MAGIC WHEN MATCHED AND (
 # MAGIC        target.fecha_hora_pagado IS DISTINCT FROM source.fecha_hora_pagado
@@ -248,6 +247,7 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC     OR target.importe IS DISTINCT FROM source.importe
 # MAGIC     OR target.Tipologia_alumno1 IS DISTINCT FROM source.Tipologia_alumno1
 # MAGIC     OR target.tipo_conversion IS DISTINCT FROM source.tipo_conversion
+# MAGIC     OR target.id_producto IS DISTINCT FROM source.id_producto
 # MAGIC     OR target.Created_Time IS DISTINCT FROM source.Created_Time
 # MAGIC     OR target.Modified_Time IS DISTINCT FROM source.Modified_Time
 # MAGIC     OR target.fecha_hora_anulacion IS DISTINCT FROM source.fecha_hora_anulacion
@@ -286,6 +286,7 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC     target.importe = source.importe,
 # MAGIC     target.Tipologia_alumno1 = source.Tipologia_alumno1,
 # MAGIC     target.tipo_conversion = source.tipo_conversion,
+# MAGIC     target.id_producto = source.id_producto,
 # MAGIC     target.Created_Time = source.Created_Time,
 # MAGIC     target.Modified_Time = source.Modified_Time,
 # MAGIC     target.fecha_hora_anulacion = source.fecha_hora_anulacion

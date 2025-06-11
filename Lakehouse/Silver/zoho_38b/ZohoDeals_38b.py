@@ -210,6 +210,7 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC     source.utm_type IS DISTINCT FROM target.utm_type OR
 # MAGIC     source.contact_name_id IS DISTINCT FROM target.contact_name_id OR
 # MAGIC     source.contact_name IS DISTINCT FROM target.contact_name OR
+# MAGIC     source.id_producto IS DISTINCT FROM target.id_producto OR
 # MAGIC     source.owner_email IS DISTINCT FROM target.owner_email OR
 # MAGIC     source.owner_id IS DISTINCT FROM target.owner_id OR
 # MAGIC     source.owner_name IS DISTINCT FROM target.owner_name
@@ -261,6 +262,7 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC     target.contact_name = source.contact_name,
 # MAGIC     target.owner_email = source.owner_email,
 # MAGIC     target.owner_id = source.owner_id,
+# MAGIC     target.id_producto = source.id_producto,
 # MAGIC     target.owner_name = source.owner_name,
 # MAGIC     target.processdate = current_timestamp(),
 # MAGIC     target.sourcesystem = source.sourcesystem

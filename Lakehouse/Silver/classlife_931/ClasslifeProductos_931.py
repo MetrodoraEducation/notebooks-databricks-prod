@@ -204,6 +204,11 @@ classlifetitulaciones_df = classlifetitulaciones_df.withColumn(
     "area_entidad_legal",
     when(col("area_entidad_legal") == "METRODORA LEARNING", "METRODORA FP").otherwise(col("area_entidad_legal"))
 )
+# 🛠️ 3.5 Reemplazo en group_entidad_legal
+classlifetitulaciones_df = classlifetitulaciones_df.withColumn(
+    "group_entidad_legal",
+    when(col("group_entidad_legal") == "METRODORA LEARNING", "METRODORA FP").otherwise(col("group_entidad_legal"))
+)
 
 # 📋 4. Seleccionar columnas requeridas + processdate + sourcesystem
 classlifetitulaciones_df = classlifetitulaciones_df.select(

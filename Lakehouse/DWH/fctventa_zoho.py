@@ -4,7 +4,7 @@
 
 # COMMAND ----------
 
-# DBTITLE 1,Insert dim_escenario_budget lakehouse postgresql
+# DBTITLE 1,Insert fctventa_zoho lakehouse postgresql
 from pyspark.sql.functions import col
 from psycopg2.extras import execute_values
 

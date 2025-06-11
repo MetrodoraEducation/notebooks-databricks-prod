@@ -47,9 +47,12 @@
 # MAGIC    LEFT JOIN gold_lakehouse.dim_estudiante dim_estudiante ON dim_estudiante.cod_estudiante = CONCAT(origen.codigo_Origen_SIS, enroll.student_id)    
 # MAGIC    LEFT JOIN gold_lakehouse.dim_producto producto ON enroll.enroll_group = NULLIF(producto.cod_Producto, '')
 # MAGIC    LEFT JOIN gold_lakehouse.dim_programa programa ON UPPER(producto.cod_Programa) = UPPER(programa.cod_Programa)
-# MAGIC    LEFT JOIN gold_lakehouse.dim_modalidad modalidad ON SUBSTRING(enroll.enroll_group, 18, 1) = SUBSTRING(modalidad.nombre_modalidad,1,1)
-# MAGIC    LEFT JOIN gold_lakehouse.dim_institucion institucion ON UPPER(producto.entidad_Legal) = NULLIF(UPPER(institucion.nombre_institucion), '')
-# MAGIC    LEFT JOIN gold_lakehouse.dim_sede sede ON SUBSTRING(enroll.enroll_group, 20, 3) = NULLIF(sede.codigo_sede, '')
+# MAGIC    LEFT JOIN gold_lakehouse.dim_modalidad modalidad ON trim(upper(producto.modalidad)) = trim(upper(modalidad.nombre_modalidad))
+# MAGIC   -- Cambio para usar la nueva tabla de mapeo de instituciones silver_lakehouse.entidad_legal
+# MAGIC   -- LEFT JOIN gold_lakehouse.dim_institucion institucion ON UPPER(producto.entidad_Legal) = NULLIF(UPPER(institucion.nombre_institucion), '')
+# MAGIC    LEFT JOIN (select ent.entidad_legal, ins.id_dim_institucion from gold_lakehouse.dim_institucion ins
+# MAGIC               left join silver_lakehouse.entidad_legal ent on ent.institucion = ins.nombre_institucion) institucion ON UPPER(producto.entidad_Legal) = NULLIF(UPPER(institucion.entidad_legal), '')
+# MAGIC    LEFT JOIN gold_lakehouse.dim_sede sede ON trim(upper(producto.sede)) = trim(upper(sede.nombre_sede))
 # MAGIC    LEFT JOIN gold_lakehouse.dim_tipo_formacion formacion ON producto.tipo_Producto = NULLIF(formacion.tipo_formacion_desc, '')
 # MAGIC    LEFT JOIN gold_lakehouse.dim_tipo_negocio tiponegocio ON producto.tipo_Negocio = NULLIF(tiponegocio.tipo_negocio_desc, '')
 # MAGIC    LEFT JOIN gold_lakehouse.dim_pais pais ON UPPER(dim_estudiante.pais) = NULLIF(UPPER(pais.iso2), '')
@@ -94,7 +97,7 @@
 # MAGIC                 ELSE 0 
 # MAGIC             END AS importe_matricula
 # MAGIC             ,ABS(enroll.suma_descuentos) AS importe_descuento
-# MAGIC             ,0 AS importe_cobros--,try_cast(enroll.totalenroll AS DECIMAL(10, 2)) AS importe_cobros
+# MAGIC             ,COALESCE(try_cast(enroll.total_fees AS DECIMAL(10, 2)), 0) AS importe_cobros--,try_cast(enroll.totalenroll AS DECIMAL(10, 2)) AS importe_cobros
 # MAGIC             ,'PAGODUMMY' AS tipo_pago--,enroll.paymentmethod AS tipo_pago
 # MAGIC             ,'FALTA en CL' AS edad_acceso
 # MAGIC             ,TRY_CAST('1900-01-01' AS DATE) AS fec_ultimo_login_LMS
@@ -104,9 +107,12 @@
 # MAGIC    LEFT JOIN gold_lakehouse.dim_estudiante dim_estudiante ON dim_estudiante.cod_estudiante = CONCAT(origen.codigo_Origen_SIS, enroll.student_id)    
 # MAGIC    LEFT JOIN gold_lakehouse.dim_producto producto ON enroll.enroll_group = NULLIF(producto.cod_Producto, '')
 # MAGIC    LEFT JOIN gold_lakehouse.dim_programa programa ON UPPER(producto.cod_Programa) = UPPER(programa.cod_Programa)
-# MAGIC    LEFT JOIN gold_lakehouse.dim_modalidad modalidad ON SUBSTRING(enroll.enroll_group, 18, 1) = SUBSTRING(modalidad.nombre_modalidad,1,1)
-# MAGIC    LEFT JOIN gold_lakehouse.dim_institucion institucion ON UPPER(producto.entidad_Legal) = NULLIF(UPPER(institucion.nombre_institucion), '')
-# MAGIC    LEFT JOIN gold_lakehouse.dim_sede sede ON SUBSTRING(enroll.enroll_group, 20, 3) = NULLIF(sede.codigo_sede, '')
+# MAGIC    LEFT JOIN gold_lakehouse.dim_modalidad modalidad ON trim(upper(producto.modalidad)) = trim(upper(modalidad.nombre_modalidad))
+# MAGIC     -- Cambio para usar la nueva tabla de mapeo de instituciones silver_lakehouse.entidad_legal
+# MAGIC    LEFT JOIN (select ent.entidad_legal, ins.id_dim_institucion from gold_lakehouse.dim_institucion ins
+# MAGIC               left join silver_lakehouse.entidad_legal ent on ent.institucion = ins.nombre_institucion) institucion ON UPPER(producto.entidad_Legal) = NULLIF(UPPER(institucion.entidad_legal), '')
+# MAGIC    --LEFT JOIN gold_lakehouse.dim_institucion institucion ON UPPER(producto.entidad_Legal) = NULLIF(UPPER(institucion.nombre_institucion), '')
+# MAGIC    LEFT JOIN gold_lakehouse.dim_sede sede ON trim(upper(producto.sede)) = trim(upper(sede.nombre_sede))
 # MAGIC    LEFT JOIN gold_lakehouse.dim_tipo_formacion formacion ON producto.tipo_Producto = NULLIF(formacion.tipo_formacion_desc, '')
 # MAGIC    LEFT JOIN gold_lakehouse.dim_tipo_negocio tiponegocio ON producto.tipo_Negocio = NULLIF(tiponegocio.tipo_negocio_desc, '')
 # MAGIC    LEFT JOIN gold_lakehouse.dim_pais pais ON UPPER(dim_estudiante.pais) = NULLIF(UPPER(pais.iso2), '')
