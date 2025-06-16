@@ -10,7 +10,7 @@
 # MAGIC     cod_Programa,
 # MAGIC     nombre_Programa,
 # MAGIC     tipo_Programa,
-# MAGIC     entidad_Legal,
+# MAGIC     MAX(entidad_Legal) as entidad_legal,
 # MAGIC     especialidad,
 # MAGIC     vertical,
 # MAGIC     nombre_Programa_Completo,
@@ -46,16 +46,16 @@
 # MAGIC     WHERE codigo_programa IS NOT NULL AND codigo_programa != ''
 # MAGIC ) AS union_view
 # MAGIC GROUP BY 
-# MAGIC     cod_Programa, nombre_Programa, tipo_Programa, entidad_Legal, especialidad, vertical, nombre_Programa_Completo;
+# MAGIC     cod_Programa, nombre_Programa, tipo_Programa, especialidad, vertical, nombre_Programa_Completo;
 # MAGIC
 # MAGIC --SELECT * FROM dim_programa_view;
 
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SELECT cod_Programa, entidad_Legal, COUNT(*) AS total
+# MAGIC SELECT cod_Programa,  COUNT(*) AS total
 # MAGIC FROM dim_programa_view
-# MAGIC GROUP BY cod_Programa, entidad_Legal
+# MAGIC GROUP BY cod_Programa
 # MAGIC HAVING COUNT(*) > 1;
 
 # COMMAND ----------
@@ -76,7 +76,7 @@
 # MAGIC     WHERE rn = 1
 # MAGIC ) AS source
 # MAGIC ON UPPER(TRIM(target.cod_Programa)) = UPPER(TRIM(source.cod_Programa))
-# MAGIC AND UPPER(TRIM(target.entidad_Legal)) = UPPER(TRIM(source.entidad_Legal))
+# MAGIC --AND UPPER(TRIM(target.entidad_Legal)) = UPPER(TRIM(source.entidad_Legal))
 # MAGIC    AND target.id_Dim_Programa != -1
 # MAGIC
 # MAGIC WHEN MATCHED AND (
@@ -106,7 +106,7 @@
 
 # DBTITLE 1,Validate duplicate >1
 # MAGIC %sql
-# MAGIC SELECT cod_Programa, entidad_Legal, COUNT(*) AS total_duplicados
+# MAGIC SELECT cod_Programa,  COUNT(*) AS total_duplicados
 # MAGIC FROM gold_lakehouse.dim_programa
-# MAGIC GROUP BY cod_Programa, entidad_Legal
+# MAGIC GROUP BY cod_Programa
 # MAGIC HAVING COUNT(*) > 1;

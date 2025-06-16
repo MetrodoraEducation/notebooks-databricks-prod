@@ -1,39 +1,19 @@
 # Databricks notebook source
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW etapa_venta_sales_view AS 
-# MAGIC     SELECT 
-# MAGIC             DISTINCT 
-# MAGIC                      etapa_venta as nombre_etapa_venta
-# MAGIC                     ,CASE
-# MAGIC                         WHEN etapa_venta = 'Ganada' THEN 'Matriculado'   
-# MAGIC                         WHEN etapa_venta = 'Interesado' THEN 'Interesado'
-# MAGIC                         WHEN etapa_venta IN ('Seguimiento', 'Valorando', 'Cita') THEN 'Seguimiento'
-# MAGIC                         WHEN etapa_venta = 'Sin asignar' THEN 'Desconocido'
-# MAGIC                     ELSE etapa_venta
-# MAGIC                     END AS nombreEtapaVentaAgrupado
-# MAGIC                     ,CASE 
-# MAGIC                         WHEN etapa_venta LIKE 'Nuevo%' THEN 0
-# MAGIC                         WHEN etapa_venta LIKE 'Asignado%' THEN 0
-# MAGIC                         WHEN etapa_venta LIKE 'Sin gestionar%' THEN 0
-# MAGIC                         WHEN etapa_venta LIKE 'Contactando%' THEN 0
-# MAGIC                         WHEN etapa_venta LIKE 'Contactado%' THEN 0
-# MAGIC                         WHEN etapa_venta LIKE 'Sin información%' THEN 0
-# MAGIC                         WHEN etapa_venta LIKE 'Seguimiento%' THEN 0
-# MAGIC                         WHEN etapa_venta LIKE 'Valorando%' THEN 0
-# MAGIC                         WHEN etapa_venta LIKE 'Cita%' THEN 0
-# MAGIC                         WHEN etapa_venta LIKE 'Interesado%' THEN 0
-# MAGIC                         WHEN etapa_venta LIKE 'Pendiente de pago%' THEN 0
-# MAGIC                         WHEN etapa_venta LIKE 'Ganada%' THEN 1
-# MAGIC                         WHEN etapa_venta LIKE 'Pagado (NE)%' THEN 1
-# MAGIC                         WHEN etapa_venta LIKE 'Pendiente Entrevista%' THEN 1
-# MAGIC                         WHEN etapa_venta LIKE 'Pendiente prueba%' THEN 1
-# MAGIC                         WHEN etapa_venta LIKE 'Pendiente documentación%' THEN 1
-# MAGIC                         WHEN etapa_venta LIKE 'Matriculado%' THEN 1
-# MAGIC                         WHEN etapa_venta LIKE 'Pagado (NEC)%' THEN 1
-# MAGIC                         ELSE 0 
-# MAGIC                     END AS esNE
-# MAGIC       FROM silver_lakehouse.sales
-# MAGIC      WHERE etapa_venta <> 'n/a';
+# MAGIC     select lead_status as nombre_etapa
+# MAGIC     from silver_lakehouse.zoholeads
+# MAGIC     union 
+# MAGIC     select etapa as nombre_etapa
+# MAGIC     from silver_lakehouse.zohodeals
+# MAGIC     union
+# MAGIC     select lead_status as nombre_etapa
+# MAGIC     from silver_lakehouse.zoholeads_38b
+# MAGIC     union 
+# MAGIC     select etapa as nombre_etapa
+# MAGIC     from silver_lakehouse.zohodeals_38b;
+# MAGIC
+# MAGIC select * from etapa_venta_sales_view;
 
 # COMMAND ----------
 
@@ -60,131 +40,138 @@
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC MERGE INTO gold_lakehouse.dim_etapa_venta AS target
-# MAGIC USING etapa_venta_sales_view AS source
-# MAGIC ON UPPER(target.nombre_etapa_venta) = UPPER(source.nombre_etapa_venta)
-# MAGIC AND target.id_dim_etapa_venta != -1  -- 🔹 Evita afectar el registro `-1`
-# MAGIC
-# MAGIC -- 🔹 **Si ya existe, lo actualiza (si aplica)**
-# MAGIC WHEN MATCHED THEN 
-# MAGIC     UPDATE SET 
-# MAGIC         target.nombre_etapa_venta = source.nombre_etapa_venta,
-# MAGIC         target.nombreEtapaVentaAgrupado = source.nombreEtapaVentaAgrupado,
-# MAGIC         target.esNE = source.esNE
-# MAGIC
-# MAGIC -- 🔹 **Si no existe, lo inserta**
-# MAGIC WHEN NOT MATCHED THEN 
-# MAGIC     INSERT (nombre_etapa_venta, nombreEtapaVentaAgrupado, esNE, ETLcreatedDate, ETLupdatedDate)
-# MAGIC     VALUES (source.nombre_etapa_venta, source.nombreEtapaVentaAgrupado, source.esNE, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-
-# COMMAND ----------
-
 # DBTITLE 1,Create view dim etapa Zoho's
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW dim_etapa_venta_view AS
 # MAGIC SELECT DISTINCT
-# MAGIC     COALESCE(zd.etapa, zl.lead_status) AS nombreEtapaVenta,
+# MAGIC     nombre_etapa AS nombreEtapaVenta,
 # MAGIC     CASE 
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Nuevo') THEN 'Nuevo'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Asignado', 'Sin gestionar', 'Sin Gestionar', 'Contactando') THEN 'Asignado'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Contactado', 'Sin información', 'Sin Información') THEN 'Contactado'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Seguimiento', 'Valorando', 'Cita') THEN 'Seguimiento'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Interesado') THEN 'Interesado'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Pendiente de pago', 'Pendiente pago') THEN 'Pendiente de pago'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Pagado (NE)', 'Pendiente Entrevista', 'Pendiente prueba', 'Pendiente documentación', 'Pendiente Documentación') THEN 'Pagado (NE)'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Matriculado') THEN 'Matriculado'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Pagado (NEC)') THEN 'Pagado (NEC)'
+# MAGIC         WHEN trim(upper(nombre_etapa)) IN ('NUEVO','SIN ASIGNAR') THEN 'Nuevo'
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('ASIGNADO', 'SIN GESTIONAR', 'CONTACTANDO') THEN 'Asignado'
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('CONTACTADO', 'SIN INFORMACIÓN') THEN 'Contactado'
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('CONVERTIDO', 'SEGUIMIENTO', 'VALORANDO') THEN 'Seguimiento'
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('INTERESADO', 'CITA', 'PROPUESTA ECONÓMICA') THEN 'Interesado'
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('PENDIENTE PAGO', 'PTE. DE PAGO') THEN 'Pendiente Pago'
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('PAGADO (NE)','PAGADO NE') THEN 'Pagado (NE)'
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('PENDIENTE DOCUMENTACIÓN', 'PTE. DOCUMENTACIÓN', 'PTE. REVISIÓN DE DOC.') THEN 'Pendiente Doc.'
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('MATRICULADO', 'GANADA', 'NEC') THEN 'Pagado (NEC)'
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('PERDIDO', 'NO INTERESADO') THEN 'Perdido'
 # MAGIC         ELSE 'Desconocido'  -- En caso de valores no contemplados
 # MAGIC     END AS nombreEtapaVentaAgrupado
 # MAGIC     ,CASE 
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Nuevo%' THEN 0
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Asignado%' THEN 0
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Sin gestionar%' THEN 0
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Contactando%' THEN 0
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Contactado%' THEN 0
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Sin información%' THEN 0
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Seguimiento%' THEN 0
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Valorando%' THEN 0
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Cita%' THEN 0
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Interesado%' THEN 0
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Pendiente de pago%' THEN 0
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Pagado (NE)%' THEN 1
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Pendiente Entrevista%' THEN 1
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Pendiente prueba%' THEN 1
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Pendiente documentación%' THEN 1
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Pendiente Documentación%' THEN 1
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Matriculado%' THEN 1
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Pagado (NEC)%' THEN 1
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'NEC%' THEN 1
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('PAGADO (NE)','PAGADO NE')  THEN 1
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('PENDIENTE DOCUMENTACIÓN', 'PTE. DOCUMENTACIÓN', 'PTE. REVISIÓN DE DOC.')  THEN 1
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('MATRICULADO', 'GANADA', 'NEC') THEN 1
 # MAGIC         ELSE 0 
 # MAGIC     END AS esNE,
+# MAGIC     CASE 
+# MAGIC         WHEN trim(upper(nombre_etapa)) IN ('NUEVO') THEN 1
+# MAGIC         WHEN trim(upper(nombre_etapa)) IN ('SIN ASIGNAR') THEN 2    
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('SIN GESTIONAR') THEN 3
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('CONTACTANDO') THEN 4
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('CONTACTADO', 'SIN INFORMACIÓN') THEN 5
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('CONVERTIDO', 'SEGUIMIENTO', 'VALORANDO') THEN 6
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('INTERESADO') THEN 7
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('CITA') THEN 8
+# MAGIC          WHEN trim(upper(nombre_etapa))  IN ('PROPUESTA ECONÓMICA') THEN 9
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('PENDIENTE PAGO', 'PTE. DE PAGO') THEN 20
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('PAGADO (NE)','PAGADO NE') THEN 25
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('PENDIENTE DOCUMENTACIÓN', 'PTE. DOCUMENTACIÓN', 'PTE. REVISIÓN DE DOC.') THEN 30
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('MATRICULADO') THEN 50
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('GANADA', 'NEC') THEN 70
+# MAGIC         WHEN trim(upper(nombre_etapa))  IN ('PERDIDO', 'NO INTERESADO') THEN 90
+# MAGIC         ELSE 99  -- En caso de valores no contemplados
+# MAGIC     END as orden_etapa,
 # MAGIC     CURRENT_TIMESTAMP AS ETLcreatedDate,
 # MAGIC     CURRENT_TIMESTAMP AS ETLupdatedDate
-# MAGIC FROM silver_lakehouse.zoholeads zl
-# MAGIC FULL OUTER JOIN silver_lakehouse.zohodeals zd
-# MAGIC ON zl.lead_status = zd.etapa
-# MAGIC WHERE COALESCE(zd.etapa, zl.lead_status) IS NOT NULL
+# MAGIC FROM etapa_venta_sales_view
+# MAGIC WHERE nombre_etapa <> '';
 # MAGIC
-# MAGIC UNION
-# MAGIC
-# MAGIC SELECT DISTINCT
-# MAGIC     COALESCE(zd.etapa, zl.lead_status) AS nombreEtapaVenta,
-# MAGIC     CASE 
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Nuevo') THEN 'Nuevo'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Asignado', 'Sin gestionar', 'Sin Gestionar', 'Contactando') THEN 'Asignado'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Contactado', 'Sin información', 'Sin Información') THEN 'Contactado'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Seguimiento', 'Valorando', 'Cita') THEN 'Seguimiento'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Interesado') THEN 'Interesado'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Pendiente de pago', 'Pendiente pago') THEN 'Pendiente de pago'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Pagado (NE)', 'Pendiente Entrevista', 'Pendiente prueba', 'Pendiente documentación', 'Pendiente Documentación') THEN 'Pagado (NE)'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Matriculado') THEN 'Matriculado'
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) IN ('Pagado (NEC)') THEN 'Pagado (NEC)'
-# MAGIC         ELSE 'Desconocido'
-# MAGIC     END AS nombreEtapaVentaAgrupado,
-# MAGIC     CASE 
-# MAGIC         WHEN COALESCE(zd.etapa, zl.lead_status) LIKE 'Pagado (NE)%' OR
-# MAGIC              COALESCE(zd.etapa, zl.lead_status) LIKE 'Pendiente Entrevista%' OR
-# MAGIC              COALESCE(zd.etapa, zl.lead_status) LIKE 'Pendiente prueba%' OR
-# MAGIC              COALESCE(zd.etapa, zl.lead_status) LIKE 'Pendiente documentación%' OR
-# MAGIC              COALESCE(zd.etapa, zl.lead_status) LIKE 'Pendiente Documentación%' OR
-# MAGIC              COALESCE(zd.etapa, zl.lead_status) LIKE 'Matriculado%' OR
-# MAGIC              COALESCE(zd.etapa, zl.lead_status) LIKE 'Pagado (NEC)%' OR
-# MAGIC              COALESCE(zd.etapa, zl.lead_status) LIKE 'NEC%' 
-# MAGIC         THEN 1 ELSE 0 
-# MAGIC     END AS esNE,
-# MAGIC     CURRENT_TIMESTAMP AS ETLcreatedDate,
-# MAGIC     CURRENT_TIMESTAMP AS ETLupdatedDate
-# MAGIC FROM silver_lakehouse.zoholeads_38b zl
-# MAGIC FULL OUTER JOIN silver_lakehouse.zohodeals_38b zd
-# MAGIC   ON zl.lead_status = zd.etapa
-# MAGIC WHERE COALESCE(zd.etapa, zl.lead_status) IS NOT NULL;
+# MAGIC select * from dim_etapa_venta_view;
 
 # COMMAND ----------
 
+# DBTITLE 1,Nueva Vista Temporal para Insertar con Secuencia Automática
+# MAGIC %sql
+# MAGIC -- Esta vista añade fila incremental para calcular id_dim_etapa_venta y orden_etapa automáticamente
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW dim_etapa_venta_nuevas_etapas_view AS
+# MAGIC WITH max_vals AS (
+# MAGIC   SELECT 
+# MAGIC     COALESCE(MAX(id_dim_etapa_venta), 0) AS max_id
+# MAGIC     --,COALESCE(MAX(orden_etapa), 0) AS max_orden
+# MAGIC   FROM gold_lakehouse.dim_etapa_venta
+# MAGIC ),
+# MAGIC nuevas AS (
+# MAGIC   SELECT 
+# MAGIC     source.*,
+# MAGIC     ROW_NUMBER() OVER (ORDER BY source.nombreEtapaVenta) AS rn
+# MAGIC   FROM dim_etapa_venta_view AS source
+# MAGIC   LEFT ANTI JOIN gold_lakehouse.dim_etapa_venta AS tgt
+# MAGIC     ON tgt.nombre_etapa_venta = source.nombreEtapaVenta
+# MAGIC )
+# MAGIC SELECT 
+# MAGIC   nv.nombreEtapaVenta,
+# MAGIC   nv.nombreEtapaVentaAgrupado,
+# MAGIC   nv.esNE,
+# MAGIC   mv.max_id + nv.rn AS id_dim_etapa_venta,
+# MAGIC   nv.orden_etapa,--mv.max_orden + nv.rn AS orden_etapa,
+# MAGIC   nv.ETLcreatedDate,
+# MAGIC   nv.ETLupdatedDate
+# MAGIC FROM nuevas nv
+# MAGIC CROSS JOIN max_vals mv;
+
+# COMMAND ----------
+
+# DBTITLE 1,MERGE adaptado
 # MAGIC %sql
 # MAGIC MERGE INTO gold_lakehouse.dim_etapa_venta AS target
-# MAGIC USING dim_etapa_venta_view AS source
+# MAGIC USING (
+# MAGIC   SELECT 
+# MAGIC     nombreEtapaVenta,
+# MAGIC     nombreEtapaVentaAgrupado,
+# MAGIC     esNE,
+# MAGIC     id_dim_etapa_venta,
+# MAGIC     orden_etapa,
+# MAGIC     ETLcreatedDate,
+# MAGIC     ETLupdatedDate
+# MAGIC   FROM dim_etapa_venta_nuevas_etapas_view
+# MAGIC   UNION ALL
+# MAGIC   SELECT 
+# MAGIC     nombreEtapaVenta,
+# MAGIC     nombreEtapaVentaAgrupado,
+# MAGIC     esNE,
+# MAGIC     NULL AS id_dim_etapa_venta,
+# MAGIC     NULL AS orden_etapa,
+# MAGIC     ETLcreatedDate,
+# MAGIC     ETLupdatedDate
+# MAGIC   FROM dim_etapa_venta_view
+# MAGIC ) AS source
+# MAGIC
 # MAGIC ON target.nombre_etapa_venta = source.nombreEtapaVenta
 # MAGIC
 # MAGIC WHEN MATCHED THEN 
-# MAGIC     UPDATE SET 
-# MAGIC         target.nombreEtapaVentaAgrupado = source.nombreEtapaVentaAgrupado,
-# MAGIC         target.esNE = source.esNE,
-# MAGIC         target.ETLupdatedDate = source.ETLupdatedDate
+# MAGIC   UPDATE SET 
+# MAGIC     target.nombreEtapaVentaAgrupado = source.nombreEtapaVentaAgrupado,
+# MAGIC     target.esNE = source.esNE,
+# MAGIC     target.ETLupdatedDate = source.ETLupdatedDate
 # MAGIC
-# MAGIC WHEN NOT MATCHED THEN 
-# MAGIC     INSERT (
-# MAGIC         nombre_etapa_venta,
-# MAGIC         nombreEtapaVentaAgrupado,
-# MAGIC         esNE,
-# MAGIC         ETLcreatedDate,
-# MAGIC         ETLupdatedDate
-# MAGIC     )
-# MAGIC     VALUES (
-# MAGIC         source.nombreEtapaVenta,
-# MAGIC         source.nombreEtapaVentaAgrupado,
-# MAGIC         source.esNE,
-# MAGIC         source.ETLcreatedDate,
-# MAGIC         source.ETLupdatedDate
-# MAGIC     );
+# MAGIC WHEN NOT MATCHED AND source.id_dim_etapa_venta IS NOT NULL THEN 
+# MAGIC   INSERT (
+# MAGIC     id_dim_etapa_venta,
+# MAGIC     orden_etapa,
+# MAGIC     nombre_etapa_venta,
+# MAGIC     nombreEtapaVentaAgrupado,
+# MAGIC     esNE,
+# MAGIC     ETLcreatedDate,
+# MAGIC     ETLupdatedDate
+# MAGIC   )
+# MAGIC   VALUES (
+# MAGIC     source.id_dim_etapa_venta,
+# MAGIC     source.orden_etapa,
+# MAGIC     source.nombreEtapaVenta,
+# MAGIC     source.nombreEtapaVentaAgrupado,
+# MAGIC     source.esNE,
+# MAGIC     source.ETLcreatedDate,
+# MAGIC     source.ETLupdatedDate
+# MAGIC   );
+# MAGIC

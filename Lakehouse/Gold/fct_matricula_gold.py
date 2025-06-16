@@ -118,7 +118,7 @@
 # MAGIC    LEFT JOIN gold_lakehouse.dim_pais pais ON UPPER(dim_estudiante.pais) = NULLIF(UPPER(pais.iso2), '')
 # MAGIC    LEFT JOIN gold_lakehouse.dim_estado_matricula matricula ON enroll.enroll_status_id = matricula.cod_estado_matricula;
 # MAGIC
-# MAGIC    select * from fct_matricula_931_temp;
+# MAGIC    --select * from fct_matricula_931_temp;
 
 # COMMAND ----------
 
@@ -147,7 +147,7 @@
 # MAGIC ) AS ranked
 # MAGIC WHERE rn = 1;
 # MAGIC
-# MAGIC select * from fct_matricula_unique_temp;
+# MAGIC --select * from fct_matricula_unique_temp;
 
 # COMMAND ----------
 
@@ -239,7 +239,3 @@
 # MAGIC FROM gold_lakehouse.fct_matricula
 # MAGIC GROUP BY cod_matricula
 # MAGIC HAVING COUNT(*) > 1;
-
-# COMMAND ----------
-
-#%sql SELECT * FROM gold_lakehouse.fct_matricula

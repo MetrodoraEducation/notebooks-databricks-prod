@@ -24,7 +24,8 @@ def upsert_dim_programa(partition):
             especialidad, vertical, nombre_Programa_Completo, ETLcreatedDate, ETLupdatedDate
         )
         VALUES %s
-        ON CONFLICT (cod_Programa, nombre_Programa) DO UPDATE SET
+        ON CONFLICT (cod_Programa) DO UPDATE SET
+            nombre_Programa = EXCLUDED.nombre_Programa,
             tipo_Programa = EXCLUDED.tipo_Programa,
             entidad_Legal = EXCLUDED.entidad_Legal,
             especialidad = EXCLUDED.especialidad,

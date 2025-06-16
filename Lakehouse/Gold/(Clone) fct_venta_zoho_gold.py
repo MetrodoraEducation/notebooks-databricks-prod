@@ -4,44 +4,7 @@
 
 # COMMAND ----------
 
-# DBTITLE 1,Create view contactos_unidos
-# MAGIC %sql
-# MAGIC CREATE OR REPLACE TEMP VIEW contactos_unidos AS
-# MAGIC SELECT 
-# MAGIC     id,
-# MAGIC     email,
-# MAGIC     phone,
-# MAGIC     First_Name,
-# MAGIC     Last_Name,
-# MAGIC     mailing_city,
-# MAGIC     provincia,
-# MAGIC     mailing_street,
-# MAGIC     mailing_zip,
-# MAGIC     nacionalidad,
-# MAGIC     sourcesystem
-# MAGIC FROM silver_lakehouse.zohocontacts
-# MAGIC
-# MAGIC UNION ALL
-# MAGIC
-# MAGIC SELECT 
-# MAGIC     id,
-# MAGIC     email,
-# MAGIC     phone,
-# MAGIC     First_Name,
-# MAGIC     Last_Name,
-# MAGIC     mailing_city,
-# MAGIC     other_city AS provincia,
-# MAGIC     mailing_street,
-# MAGIC     mailing_zip,
-# MAGIC     nacionalidad,
-# MAGIC     sourcesystem
-# MAGIC FROM silver_lakehouse.ZohoContacts_38b;
-# MAGIC
-# MAGIC --select * from contactos_unidos;
-
-# COMMAND ----------
-
-# DBTITLE 1,Cruce tablon and contactos_unidos
+# DBTITLE 1,Cruce tablon and zohocontacts
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW zoho_table_view AS
 # MAGIC    SELECT 
@@ -142,10 +105,128 @@
 # MAGIC          ,tablon.linea_de_negocio
 # MAGIC          ,contacts.sourcesystem
 # MAGIC      FROM silver_lakehouse.tablon_leads_and_deals tablon
-# MAGIC LEFT JOIN contactos_unidos contacts
+# MAGIC LEFT JOIN silver_lakehouse.zohocontacts contacts
 # MAGIC        ON tablon.cod_Contacto = contacts.id;
 # MAGIC
-# MAGIC --select * from zoho_table_view where cod_lead = 820629000006509547;
+# MAGIC select * from zoho_table_view;
+
+# COMMAND ----------
+
+# DBTITLE 1,Cruce tablon and zohocontacts_38b
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW zoho_table_38b_view AS
+# MAGIC    SELECT 
+# MAGIC           tablon.id_tipo_registro
+# MAGIC          ,tablon.tipo_registro
+# MAGIC          ,CASE 
+# MAGIC              WHEN tablon.id_tipo_registro = 1 THEN cod_Lead
+# MAGIC              WHEN tablon.id_tipo_registro = 2 THEN cod_Lead
+# MAGIC              WHEN tablon.id_tipo_registro = 3 THEN NULL
+# MAGIC              ELSE NULL
+# MAGIC          END AS cod_Lead
+# MAGIC          ,tablon.cod_Oportunidad
+# MAGIC          ,COALESCE(Nombre, nombre_Oportunidad) AS nombre
+# MAGIC          ,COALESCE(CASE WHEN tablon.id_tipo_registro = 1 THEN tablon.email  -- Email de LEAD
+# MAGIC              END, 
+# MAGIC              contacts.email  -- Email de CONTACT
+# MAGIC          ) AS email
+# MAGIC          ,COALESCE(CASE WHEN tablon.id_tipo_registro = 1 THEN tablon.telefono1  -- telefono1 de LEAD
+# MAGIC              END, 
+# MAGIC              contacts.phone  -- phone de CONTACT
+# MAGIC          ) AS telefono
+# MAGIC          ,COALESCE(CASE WHEN tablon.id_tipo_registro = 1 THEN CONCAT(tablon.Nombre, ' ', tablon.Apellido1, ' ', tablon.Apellido2)  -- LEAD
+# MAGIC              END, 
+# MAGIC              CONCAT(contacts.First_Name, ' ', contacts.Last_Name, ' ', tablon.Apellido2)  -- CONTACT
+# MAGIC          ) AS nombre_Contacto
+# MAGIC          ,CASE WHEN tablon.id_tipo_registro = 1 THEN 0
+# MAGIC                WHEN tablon.id_tipo_registro IN (2,3) THEN COALESCE(ABS(tablon.pct_Descuento), 0)
+# MAGIC                ELSE NULL
+# MAGIC          END AS importe_Descuento
+# MAGIC          ,CASE WHEN tablon.id_tipo_registro = 1 THEN 0
+# MAGIC                WHEN tablon.id_tipo_registro IN (2,3) THEN COALESCE(ABS(tablon.importe), 0)
+# MAGIC                ELSE NULL
+# MAGIC          END AS Importe_Venta_Neto
+# MAGIC          ,CASE WHEN tablon.id_tipo_registro = 1 THEN 0
+# MAGIC              WHEN tablon.id_tipo_registro IN (2,3) THEN COALESCE(ABS(tablon.importe) + ABS(tablon.pct_Descuento), 0)
+# MAGIC              ELSE NULL
+# MAGIC          END AS Importe_Venta
+# MAGIC          ,CASE 
+# MAGIC              WHEN tablon.id_tipo_registro = 1 THEN 0
+# MAGIC              WHEN tablon.id_tipo_registro IN (2,3) THEN COALESCE(tablon.probabilidad_Conversion / 100, 0)
+# MAGIC              ELSE 0
+# MAGIC          END AS posibilidad_Venta
+# MAGIC          ,CASE 
+# MAGIC              WHEN tablon.id_tipo_registro IN (1,2) THEN tablon.fecha_Creacion_Lead
+# MAGIC              WHEN tablon.id_tipo_registro = 3 THEN tablon.fecha_Creacion_Oportunidad
+# MAGIC              ELSE NULL
+# MAGIC          END AS fec_Creacion
+# MAGIC          ,CASE 
+# MAGIC              WHEN tablon.id_tipo_registro = 1 THEN tablon.fecha_Modificacion_Lead
+# MAGIC              WHEN tablon.id_tipo_registro IN (2,3) THEN tablon.fecha_Modificacion_Oportunidad
+# MAGIC              ELSE NULL
+# MAGIC          END AS fec_Modificacion
+# MAGIC          ,CASE 
+# MAGIC              WHEN tablon.id_tipo_registro = 1 THEN NULL
+# MAGIC              WHEN tablon.id_tipo_registro IN (2,3) THEN tablon.fecha_Cierre
+# MAGIC              ELSE NULL
+# MAGIC          END AS fec_Cierre
+# MAGIC          ,   CASE 
+# MAGIC              WHEN tablon.id_tipo_registro = 1 THEN NULL
+# MAGIC              WHEN tablon.id_tipo_registro IN (2,3) THEN tablon.fecha_hora_Pagado
+# MAGIC              ELSE NULL
+# MAGIC          END AS fec_Pago_Matricula
+# MAGIC          ,CASE 
+# MAGIC              WHEN tablon.id_tipo_registro IN (1,2) THEN tablon.lead_Rating
+# MAGIC              WHEN tablon.id_tipo_registro = 3 THEN NULL
+# MAGIC          END AS nombre_Scoring
+# MAGIC          ,CASE 
+# MAGIC              WHEN tablon.id_tipo_registro IN (1,2) THEN tablon.leadScoring
+# MAGIC              WHEN tablon.id_tipo_registro = 3 THEN NULL
+# MAGIC          END AS puntos_Scoring
+# MAGIC          ,CASE 
+# MAGIC              WHEN tablon.id_tipo_registro IN (1,2) THEN DATEDIFF(tablon.fecha_Cierre, tablon.fecha_Creacion_Lead)
+# MAGIC              WHEN tablon.id_tipo_registro = 3 THEN DATEDIFF(tablon.fecha_Cierre, tablon.fecha_Creacion_Oportunidad)
+# MAGIC          END AS dias_Cierre
+# MAGIC          ,contacts.mailing_city AS ciudad
+# MAGIC          ,contacts.other_city AS provincia
+# MAGIC          ,contacts.mailing_street AS calle
+# MAGIC          ,contacts.mailing_zip AS codigo_postal
+# MAGIC          ,CASE 
+# MAGIC               WHEN tablon.id_tipo_registro = 1 THEN tablon.nacionalidad
+# MAGIC               WHEN tablon.id_tipo_registro IN (2,3) THEN contacts.nacionalidad
+# MAGIC               ELSE NULL
+# MAGIC              END nacionalidad
+# MAGIC          ,tablon.fecha_hora_anulacion
+# MAGIC          ,tablon.fecha_Modificacion_Oportunidad AS fecha_Modificacion_Oportunidad
+# MAGIC          ,tablon.fecha_Modificacion_Lead AS fecha_Modificacion_Lead
+# MAGIC          ,tablon.id_classlife AS id_classlife
+# MAGIC          ,tablon.cod_Owner AS cod_Owner
+# MAGIC          ,tablon.nombre_estado_venta AS nombre_estado_venta
+# MAGIC          ,tablon.etapa AS etapa
+# MAGIC          ,tablon.cod_Producto AS cod_Producto
+# MAGIC          ,tablon.tipo_Cliente_lead AS tipo_Cliente_lead
+# MAGIC          ,tablon.residencia AS residencia
+# MAGIC          ,tablon.motivo_Perdida AS motivo_Perdida
+# MAGIC          ,tablon.utm_campaign_id AS utm_campaign_id
+# MAGIC          ,tablon.utm_ad_id AS utm_ad_id
+# MAGIC          ,tablon.utm_source AS utm_source
+# MAGIC          ,tablon.linea_de_negocio
+# MAGIC          ,contacts.sourcesystem
+# MAGIC      FROM silver_lakehouse.tablon_leads_and_deals tablon
+# MAGIC LEFT JOIN silver_lakehouse.ZohoContacts_38b contacts
+# MAGIC        ON tablon.cod_Contacto = contacts.id;
+# MAGIC
+# MAGIC select * from zoho_table_38b_view;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW zoho_table_final_view AS
+# MAGIC     SELECT * FROM zoho_table_view
+# MAGIC     UNION ALL
+# MAGIC     SELECT * FROM zoho_table_38b_view;
+# MAGIC
+# MAGIC --select * from zoho_table_final_view where cod_lead = 659422000025802533;
 
 # COMMAND ----------
 
@@ -206,8 +287,8 @@
 # MAGIC       ,COALESCE(utmsource.id_dim_utm_source, -1) AS id_dim_utm_source
 # MAGIC       ,current_timestamp AS ETLcreatedDate
 # MAGIC       ,current_timestamp AS ETLupdatedDate
-# MAGIC FROM zoho_table_view tablon 
-# MAGIC LEFT JOIN gold_lakehouse.dim_comercial comercial ON tablon.cod_Owner = comercial.cod_comercial AND comercial.activo = 1
+# MAGIC FROM zoho_table_final_view tablon 
+# MAGIC LEFT JOIN gold_lakehouse.dim_comercial comercial ON tablon.cod_Owner = comercial.cod_comercial 
 # MAGIC LEFT JOIN gold_lakehouse.dim_estado_venta estadoventa ON tablon.nombre_estado_venta = estadoventa.nombre_estado_venta
 # MAGIC LEFT JOIN gold_lakehouse.dim_etapa_venta etapaventa ON tablon.etapa = etapaventa.nombre_etapa_venta
 # MAGIC LEFT JOIN gold_lakehouse.dim_programa programa ON SUBSTRING(tablon.cod_Producto, 10, 5) = UPPER(programa.cod_Programa)
@@ -231,20 +312,7 @@
 # MAGIC LEFT JOIN gold_lakehouse.dim_utm_source utmsource ON tablon.utm_source = NULLIF(utmsource.utm_source, '')
 # MAGIC LEFT JOIN gold_lakehouse.dim_vertical vertical ON UPPER(producto.cod_Vertical) = NULLIF(UPPER(vertical.nombre_Vertical_Corto), '');
 # MAGIC
-# MAGIC --select * from zoho_dimensions_temp where cod_lead = 820629000006969475;
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC SELECT cod_Lead, COUNT(*) 
-# MAGIC FROM zoho_dimensions_temp 
-# MAGIC GROUP BY cod_Lead 
-# MAGIC HAVING COUNT(*) > 1;
-# MAGIC
-# MAGIC --SELECT cod_Oportunidad, COUNT(*) 
-# MAGIC --FROM zoho_dimensions_temp 
-# MAGIC --GROUP BY cod_Oportunidad 
-# MAGIC --HAVING COUNT(*) > 1;
+# MAGIC --select * from zoho_dimensions_temp where cod_lead = 659422000025802533;
 
 # COMMAND ----------
 
@@ -254,13 +322,14 @@
 # MAGIC SELECT * FROM (
 # MAGIC     SELECT *, 
 # MAGIC            ROW_NUMBER() OVER (
-# MAGIC                PARTITION BY COALESCE(cod_Lead, ''), COALESCE(cod_Oportunidad, '') ORDER BY id_dim_propietario_lead DESC
+# MAGIC                PARTITION BY COALESCE(cod_Lead, ''), COALESCE(cod_Oportunidad, '') 
+# MAGIC                ORDER BY id_dim_propietario_lead DESC
 # MAGIC            ) AS rn
 # MAGIC     FROM zoho_dimensions_temp
 # MAGIC ) filtered
 # MAGIC WHERE rn = 1;  -- 🔹 Solo conserva la versión más reciente
 # MAGIC
-# MAGIC --select * from fct_zoho_unique_temp;
+# MAGIC --select * from fct_zoho_unique_temp where id_dim_institucion = -1;
 
 # COMMAND ----------
 
@@ -497,12 +566,7 @@
 
 # DBTITLE 1,Count cod_lead duplicates
 # MAGIC %sql
-# MAGIC SELECT cod_lead, COUNT(*)
+# MAGIC SELECT cod_lead, cod_oportunidad, COUNT(*)
 # MAGIC FROM gold_lakehouse.fctventa
-# MAGIC GROUP BY cod_lead
+# MAGIC GROUP BY cod_lead, cod_oportunidad
 # MAGIC HAVING COUNT(*) > 1;
-
-# COMMAND ----------
-
-# MAGIC %sql
-# MAGIC select * from gold_lakehouse.fctventa where cod_lead = '820629000004370518'

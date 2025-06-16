@@ -32,7 +32,7 @@ for col_name in zohodeals_df.columns:
     zohodeals_df = zohodeals_df.withColumnRenamed(col_name, new_col_name)
 
 # Muestra el DataFrame procesado
-display(zohodeals_df)
+#display(zohodeals_df)
 
 # COMMAND ----------
 
@@ -62,7 +62,6 @@ columns_mapping = {
     "data_deal_name": "nombre_oportunidad",
     "data_descuento": "descuento",
     "data_fecha_hora_anulaci_n": "fecha_hora_anulacion",
-    "data_fecha_hora_documentaci_n_completada": "fecha_hora_documentacion_completada",
     "data_fecha_hora_pagado_ne": "fecha_hora_pagado",
     "data_id_classlife": "id_classlife",
     "data_id_lead": "id_lead",
@@ -74,7 +73,6 @@ columns_mapping = {
     "data_nacionalidad1": "nacionalidad",
     "data_pipeline": "flujo_venta",
     "data_probability": "probabilidad_conversion",
-    "data_profesion_estudiante": "profesion_estudiante",
     "data_residencia1": "residencia",
     "data_stage": "etapa",
     "data_tipolog_a_de_cliente": "tipologia_cliente",
@@ -83,7 +81,6 @@ columns_mapping = {
     "data_br_score": "scoring",
     "data_id_unico": "id_unico",
     "data_lead_correlation_id": "lead_correlation_id",
-    "data_network": "network",
     "data_tipo_conversion": "tipo_conversion",
     "data_utm_ad_id": "utm_ad_id",
     "data_utm_adset_id": "utm_adset_id",
@@ -100,7 +97,8 @@ columns_mapping = {
     "data_contact_name_name": "contact_name",
     "data_owner_email": "owner_email",
     "data_owner_id": "owner_id",
-    "data_owner_name": "owner_name"
+    "data_owner_name": "owner_name",
+    "data_id_clientify": "id_clientify"
 }
 
 # Renombrar columnas si existen
@@ -174,7 +172,6 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC     source.nombre_oportunidad IS DISTINCT FROM target.nombre_oportunidad OR
 # MAGIC     source.descuento IS DISTINCT FROM target.descuento OR
 # MAGIC     source.fecha_hora_anulacion IS DISTINCT FROM target.fecha_hora_anulacion OR
-# MAGIC     source.fecha_hora_documentacion_completada IS DISTINCT FROM target.fecha_hora_documentacion_completada OR
 # MAGIC     source.fecha_hora_pagado IS DISTINCT FROM target.fecha_hora_pagado OR
 # MAGIC     source.id_classlife IS DISTINCT FROM target.id_classlife OR
 # MAGIC     source.id_lead IS DISTINCT FROM target.id_lead OR
@@ -186,7 +183,6 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC     source.nacionalidad IS DISTINCT FROM target.nacionalidad OR
 # MAGIC     source.flujo_venta IS DISTINCT FROM target.flujo_venta OR
 # MAGIC     source.probabilidad_conversion IS DISTINCT FROM target.probabilidad_conversion OR
-# MAGIC     source.profesion_estudiante IS DISTINCT FROM target.profesion_estudiante OR
 # MAGIC     source.residencia IS DISTINCT FROM target.residencia OR
 # MAGIC     source.etapa IS DISTINCT FROM target.etapa OR
 # MAGIC     source.tipologia_cliente IS DISTINCT FROM target.tipologia_cliente OR
@@ -195,7 +191,6 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC     source.scoring IS DISTINCT FROM target.scoring OR
 # MAGIC     source.id_unico IS DISTINCT FROM target.id_unico OR
 # MAGIC     source.lead_correlation_id IS DISTINCT FROM target.lead_correlation_id OR
-# MAGIC     source.network IS DISTINCT FROM target.network OR
 # MAGIC     source.tipo_conversion IS DISTINCT FROM target.tipo_conversion OR
 # MAGIC     source.utm_ad_id IS DISTINCT FROM target.utm_ad_id OR
 # MAGIC     source.utm_adset_id IS DISTINCT FROM target.utm_adset_id OR
@@ -213,7 +208,8 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC     source.id_producto IS DISTINCT FROM target.id_producto OR
 # MAGIC     source.owner_email IS DISTINCT FROM target.owner_email OR
 # MAGIC     source.owner_id IS DISTINCT FROM target.owner_id OR
-# MAGIC     source.owner_name IS DISTINCT FROM target.owner_name
+# MAGIC     source.owner_name IS DISTINCT FROM target.owner_name OR
+# MAGIC     source.id_clientify IS DISTINCT FROM target.id_clientify
 # MAGIC )
 # MAGIC THEN UPDATE SET
 # MAGIC     target.importe = source.importe,
@@ -224,7 +220,6 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC     target.nombre_oportunidad = source.nombre_oportunidad,
 # MAGIC     target.descuento = source.descuento,
 # MAGIC     target.fecha_hora_anulacion = source.fecha_hora_anulacion,
-# MAGIC     target.fecha_hora_documentacion_completada = source.fecha_hora_documentacion_completada,
 # MAGIC     target.fecha_hora_pagado = source.fecha_hora_pagado,
 # MAGIC     target.id_classlife = source.id_classlife,
 # MAGIC     target.id_lead = source.id_lead,
@@ -236,7 +231,6 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC     target.nacionalidad = source.nacionalidad,
 # MAGIC     target.flujo_venta = source.flujo_venta,
 # MAGIC     target.probabilidad_conversion = source.probabilidad_conversion,
-# MAGIC     target.profesion_estudiante = source.profesion_estudiante,
 # MAGIC     target.residencia = source.residencia,
 # MAGIC     target.etapa = source.etapa,
 # MAGIC     target.tipologia_cliente = source.tipologia_cliente,
@@ -245,7 +239,6 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC     target.scoring = source.scoring,
 # MAGIC     target.id_unico = source.id_unico,
 # MAGIC     target.lead_correlation_id = source.lead_correlation_id,
-# MAGIC     target.network = source.network,
 # MAGIC     target.tipo_conversion = source.tipo_conversion,
 # MAGIC     target.utm_ad_id = source.utm_ad_id,
 # MAGIC     target.utm_adset_id = source.utm_adset_id,
@@ -264,6 +257,7 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC     target.owner_id = source.owner_id,
 # MAGIC     target.id_producto = source.id_producto,
 # MAGIC     target.owner_name = source.owner_name,
+# MAGIC     target.id_clientify = source.id_clientify,
 # MAGIC     target.processdate = current_timestamp(),
 # MAGIC     target.sourcesystem = source.sourcesystem
 # MAGIC
@@ -272,4 +266,4 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 
 # COMMAND ----------
 
-#%sql select distinct linea_de_negocio from silver_lakehouse.zohodeals_38b 
+# MAGIC %sql select * from silver_lakehouse.zohodeals_38b 

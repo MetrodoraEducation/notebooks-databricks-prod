@@ -30,7 +30,11 @@ def upsert_dim_etapa_venta(partition):
         )
         VALUES %s
         ON CONFLICT (id_dim_etapa_venta) DO UPDATE SET
-            nombre_etapa_venta = EXCLUDED.nombre_etapa_venta;
+            orden_etapa = EXCLUDED.orden_etapa,
+            nombre_etapa_venta = EXCLUDED.nombre_etapa_venta,
+            nombreEtapaVentaAgrupado = EXCLUDED.nombreEtapaVentaAgrupado,
+            esNE = EXCLUDED.esNE,
+            ETLupdatedDate = EXCLUDED.ETLupdatedDate
         """
 
         # Transformar la partición de Spark en una lista de tuplas para insertar

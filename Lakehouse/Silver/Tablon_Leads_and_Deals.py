@@ -138,7 +138,7 @@
 # MAGIC                         COALESCE(deals.Motivo_perdida_B2C, deals.Motivo_perdida_B2B, leads.Motivos_perdida) AS motivo_Perdida,
 # MAGIC                         TRY_CAST(NULLIF(TRIM(deals.probabilidad_conversion), '') AS DOUBLE) AS probabilidad_Conversion,--deals.Probabilidad AS probabilidad_Conversion,
 # MAGIC                         deals.flujo_venta AS flujo_venta, --deals.Pipeline AS flujo_Venta,
-# MAGIC                         deals.Profesion_Estudiante AS profesion_Estudiante,
+# MAGIC                         '' AS profesion_Estudiante,--deals.Profesion_Estudiante AS profesion_Estudiante,
 # MAGIC                         deals.Competencia AS competencia,
 # MAGIC                         COALESCE(deals.Tipologia_cliente, leads.Tipologia_cliente) AS tipo_Cliente_lead,
 # MAGIC                         leads.tipo_conversion as tipo_conversion_lead,
@@ -196,8 +196,11 @@
 # MAGIC                         END AS sourcesystem
 # MAGIC                 FROM silver_lakehouse.zoholeads_38b leads
 # MAGIC      FULL OUTER JOIN silver_lakehouse.zohodeals_38b deals
-# MAGIC                   ON leads.id = deals.id_lead;
+# MAGIC                   ON leads.id = deals.id_lead
+# MAGIC                   OR leads.id_oportunidad_asociada = deals.id;
 # MAGIC
+# MAGIC                   --opción A) nos traemos el nodo oportunidad_asociada en LEAD: OR leads.id_oportunidad_asociada = deals.id
+# MAGIC                   --opción B) nos traemos el campo ID_Clientify en LEAD y DEAL: OR (leads.id_clientify is not null and leads.id_clientify = deals.id_clientify)
 # MAGIC SELECT * FROM tablon_leads_and_deals;
 
 # COMMAND ----------

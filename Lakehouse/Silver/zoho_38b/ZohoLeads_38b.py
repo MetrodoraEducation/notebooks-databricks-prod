@@ -41,13 +41,14 @@ for col in zoholeads_df.columns:
 for col in zoholeads_df.columns:
     zoholeads_df = zoholeads_df.withColumnRenamed(col, col.replace("-", "_"))
 
-display(zoholeads_df)
+#display(zoholeads_df)
 
 # COMMAND ----------
 
-from pyspark.sql.functions import col
+# DBTITLE 1,Renamed Columns
+from pyspark.sql.functions import col, lit, current_timestamp, lower, when
 
-# Diccionario para mapear las columnas con nombres más entendibles
+# Diccionario de columnas: origen ➝ destino
 columns_mapping = {
     "data_apellido_2": "apellido_2",
     "data_created_time": "fecha_creacion",
@@ -69,8 +70,6 @@ columns_mapping = {
     "data_tipolog_a_de_cliente": "tipologia_cliente",
     "data_typo_conversion": "tipo_conversion",
     "data_device": "dispositivo",
-    "data_fbclid": "fbclid",
-    "data_gclid1": "gclid",
     "data_id": "id",
     "data_id_producto": "id_producto",
     "data_id_programa": "id_programa",
@@ -91,9 +90,13 @@ columns_mapping = {
     "data_utm_type": "utm_type",
     "data_owner_email": "owner_email",
     "data_owner_id": "owner_id",
-    "data_owner_name": "owner_name"
+    "data_owner_name": "owner_name",
+    "data_oportunidad_asociada_id": "id_oportunidad_asociada",
+    "data_oportunidad_asociada_name": "name_oportunidad_asociada",
+    "data_id_clientify": "id_clientify",
+    "data_modalidad_de_curso": "modalidad_curso"
 }
-    
+
 # Renombrar columnas si existen
 for old_col, new_col in columns_mapping.items():
     if old_col in zoholeads_df.columns:
@@ -103,12 +106,18 @@ for old_col, new_col in columns_mapping.items():
 zoholeads_df = zoholeads_df \
     .withColumn("sourcesystem", lit("zoho_Leads_38b")) \
     .withColumn("processdate", current_timestamp()) \
-    .withColumn("linea_de_negocio",when(lower(col("linea_de_negocio")) == "metrodorafp", lit("METRODORA FP")).otherwise(col("linea_de_negocio"))) \
-    .withColumn("linea_de_negocio",when(lower(col("linea_de_negocio")) == "océano", lit("OCEANO")).otherwise(col("linea_de_negocio"))) \
-    .withColumn("linea_de_negocio",when(lower(col("linea_de_negocio")) == "oceano", lit("OCEANO")).otherwise(col("linea_de_negocio"))) 
+    .withColumn("linea_de_negocio", when(lower(col("linea_de_negocio")) == "metrodorafp", lit("METRODORA FP")).otherwise(col("linea_de_negocio"))) \
+    .withColumn("linea_de_negocio", when(lower(col("linea_de_negocio")) == "océano", lit("OCEANO")).otherwise(col("linea_de_negocio"))) \
+    .withColumn("linea_de_negocio", when(lower(col("linea_de_negocio")) == "oceano", lit("OCEANO")).otherwise(col("linea_de_negocio")))
 
-# Mostrar DataFrame con nombres normalizados
-display(zoholeads_df)
+# 🔽 Seleccionar solo las columnas mapeadas + columnas añadidas
+zoholeads_df = zoholeads_df.select(
+    *columns_mapping.values(),  # columnas renombradas
+    "sourcesystem",
+    "processdate"
+)
+
+#display(zoholeads_df)
 
 # COMMAND ----------
 
@@ -128,7 +137,7 @@ for t in zoholeads_df.dtypes:
         zoholeads_df = zoholeads_df.withColumn(t[0], coalesce(col(t[0]), lit(None)))
 
 # Muestra el DataFrame resultante
-display(zoholeads_df)
+#display(zoholeads_df)
 
 # COMMAND ----------
 
@@ -174,8 +183,6 @@ zoholeads_df_filtered.createOrReplaceTempView("zoholeads_source_view")
 # MAGIC     target.tipologia_cliente IS DISTINCT FROM source.tipologia_cliente OR
 # MAGIC     target.tipo_conversion IS DISTINCT FROM source.tipo_conversion OR
 # MAGIC     target.dispositivo IS DISTINCT FROM source.dispositivo OR
-# MAGIC     target.fbclid IS DISTINCT FROM source.fbclid OR
-# MAGIC     target.gclid IS DISTINCT FROM source.gclid OR
 # MAGIC     target.id_producto IS DISTINCT FROM source.id_producto OR
 # MAGIC     target.id_programa IS DISTINCT FROM source.id_programa OR
 # MAGIC     target.lead_correlation_id IS DISTINCT FROM source.lead_correlation_id OR
@@ -195,7 +202,11 @@ zoholeads_df_filtered.createOrReplaceTempView("zoholeads_source_view")
 # MAGIC     target.utm_type IS DISTINCT FROM source.utm_type OR
 # MAGIC     target.owner_email IS DISTINCT FROM source.owner_email OR
 # MAGIC     target.owner_id IS DISTINCT FROM source.owner_id OR
-# MAGIC     target.owner_name IS DISTINCT FROM source.owner_name
+# MAGIC     target.owner_name IS DISTINCT FROM source.owner_name OR
+# MAGIC     target.id_oportunidad_asociada IS DISTINCT FROM source.id_oportunidad_asociada OR
+# MAGIC     target.name_oportunidad_asociada IS DISTINCT FROM source.name_oportunidad_asociada OR
+# MAGIC     target.id_clientify IS DISTINCT FROM source.id_clientify OR
+# MAGIC     target.modalidad_curso IS DISTINCT FROM source.modalidad_curso
 # MAGIC )
 # MAGIC THEN UPDATE SET
 # MAGIC     target.apellido_2 = source.apellido_2,
@@ -218,8 +229,6 @@ zoholeads_df_filtered.createOrReplaceTempView("zoholeads_source_view")
 # MAGIC     target.tipologia_cliente = source.tipologia_cliente,
 # MAGIC     target.tipo_conversion = source.tipo_conversion,
 # MAGIC     target.dispositivo = source.dispositivo,
-# MAGIC     target.fbclid = source.fbclid,
-# MAGIC     target.gclid = source.gclid,
 # MAGIC     target.id_producto = source.id_producto,
 # MAGIC     target.id_programa = source.id_programa,
 # MAGIC     target.lead_correlation_id = source.lead_correlation_id,
@@ -240,6 +249,10 @@ zoholeads_df_filtered.createOrReplaceTempView("zoholeads_source_view")
 # MAGIC     target.owner_email = source.owner_email,
 # MAGIC     target.owner_id = source.owner_id,
 # MAGIC     target.owner_name = source.owner_name,
+# MAGIC     target.id_oportunidad_asociada = source.id_oportunidad_asociada,
+# MAGIC     target.name_oportunidad_asociada = source.name_oportunidad_asociada,
+# MAGIC     target.id_clientify = source.id_clientify,
+# MAGIC     target.modalidad_curso = source.modalidad_curso,
 # MAGIC     target.processdate = current_timestamp(),
 # MAGIC     target.sourcesystem = source.sourcesystem
 # MAGIC
@@ -248,4 +261,4 @@ zoholeads_df_filtered.createOrReplaceTempView("zoholeads_source_view")
 
 # COMMAND ----------
 
-#%sql select * from silver_lakehouse.ZohoLeads_38b
+# MAGIC %sql select * from silver_lakehouse.ZohoLeads_38b

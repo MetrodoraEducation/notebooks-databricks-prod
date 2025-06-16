@@ -15,6 +15,7 @@
 
 # COMMAND ----------
 
+# DBTITLE 1,Create view dim_producto
 # MAGIC %sql
 # MAGIC CREATE OR REPLACE TEMPORARY VIEW dim_producto_view AS
 # MAGIC SELECT DISTINCT
@@ -209,17 +210,19 @@
 # MAGIC        CURRENT_TIMESTAMP() AS ETLcreatedDate,
 # MAGIC        CURRENT_TIMESTAMP() AS ETLupdatedDate
 # MAGIC FROM silver_lakehouse.classlifetitulaciones_931;
-# MAGIC
-# MAGIC --select * from dim_producto_view;
 
 # COMMAND ----------
 
 # DBTITLE 1,Count duplicate view source
 # MAGIC %sql
-# MAGIC SELECT cod_Producto_Origen, cod_Producto, COUNT(*)
+# MAGIC SELECT cod_Producto, COUNT(*)
 # MAGIC FROM dim_producto_view
-# MAGIC GROUP BY cod_Producto_Origen, cod_Producto
+# MAGIC GROUP BY cod_Producto 
 # MAGIC HAVING COUNT(*) > 1; --1061
+
+# COMMAND ----------
+
+#%sql select * from dim_producto_view where cod_producto = 'FCMLPT04-FF119101P-MAD2510-1'
 
 # COMMAND ----------
 
@@ -259,48 +262,96 @@
 # MAGIC     SELECT DISTINCT * FROM dim_producto_view 
 # MAGIC     WHERE cod_Producto_Origen <> '-1'
 # MAGIC ) AS source
-# MAGIC   ON target.cod_Producto_Origen = source.cod_Producto_Origen
-# MAGIC  AND target.cod_Producto = source.cod_Producto
-# MAGIC    AND target.id_Dim_Producto != -1
+# MAGIC ON target.cod_Producto = source.cod_Producto
+# MAGIC AND target.id_Dim_Producto != -1
 # MAGIC
 # MAGIC WHEN MATCHED AND (
-# MAGIC     target.cod_Producto IS DISTINCT FROM source.cod_Producto OR
-# MAGIC     target.cod_Producto_Corto IS DISTINCT FROM source.cod_Producto_Corto OR
-# MAGIC     target.nombre_Oficial IS DISTINCT FROM source.nombre_Oficial OR
+# MAGIC     target.origen_Producto IS DISTINCT FROM source.origen_Producto OR
 # MAGIC     target.tipo_Producto IS DISTINCT FROM source.tipo_Producto OR
 # MAGIC     target.area IS DISTINCT FROM source.area OR
+# MAGIC     target.nombre_Oficial IS DISTINCT FROM source.nombre_Oficial OR
 # MAGIC     target.curso IS DISTINCT FROM source.curso OR
+# MAGIC     target.numero_Curso IS DISTINCT FROM source.numero_Curso OR
+# MAGIC     target.codigo_sede IS DISTINCT FROM source.codigo_sede OR
+# MAGIC     target.sede IS DISTINCT FROM source.sede OR
+# MAGIC     target.ciclo_id IS DISTINCT FROM source.ciclo_id OR
+# MAGIC     target.num_Plazas IS DISTINCT FROM source.num_Plazas OR
+# MAGIC     target.num_Grupo IS DISTINCT FROM source.num_Grupo OR
 # MAGIC     target.vertical IS DISTINCT FROM source.vertical OR
 # MAGIC     target.cod_Vertical IS DISTINCT FROM source.cod_Vertical OR
+# MAGIC     target.especialidad IS DISTINCT FROM source.especialidad OR
+# MAGIC     target.cod_Especialidad IS DISTINCT FROM source.cod_Especialidad OR
+# MAGIC     target.num_Creditos IS DISTINCT FROM source.num_Creditos OR
+# MAGIC     target.cod_Programa IS DISTINCT FROM source.cod_Programa OR
+# MAGIC     target.admite_Admision IS DISTINCT FROM source.admite_Admision OR
+# MAGIC     target.tipo_Negocio IS DISTINCT FROM source.tipo_Negocio OR
+# MAGIC     target.acreditado IS DISTINCT FROM source.acreditado OR
+# MAGIC     target.nombre_Web IS DISTINCT FROM source.nombre_Web OR
+# MAGIC     target.entidad_Legal IS DISTINCT FROM source.entidad_Legal OR
+# MAGIC     target.cod_Entidad_Legal IS DISTINCT FROM source.cod_Entidad_Legal OR
 # MAGIC     target.modalidad IS DISTINCT FROM source.modalidad OR
 # MAGIC     target.cod_Modalidad IS DISTINCT FROM source.cod_Modalidad OR
-# MAGIC     target.nombre_Web IS DISTINCT FROM source.nombre_Web OR
-# MAGIC     target.Fecha_Inicio_Reconocimiento IS DISTINCT FROM source.Fecha_Inicio_Reconocimiento OR
-# MAGIC     target.Fecha_Fin_Reconocimiento IS DISTINCT FROM source.Fecha_Fin_Reconocimiento OR
+# MAGIC     target.fecha_Inicio IS DISTINCT FROM source.fecha_Inicio OR
+# MAGIC     target.fecha_Fin IS DISTINCT FROM source.fecha_Fin OR
+# MAGIC     target.meses_Duracion IS DISTINCT FROM source.meses_Duracion OR
+# MAGIC     target.horas_Acreditadas IS DISTINCT FROM source.horas_Acreditadas OR
+# MAGIC     target.horas_Presenciales IS DISTINCT FROM source.horas_Presenciales OR
+# MAGIC     target.fecha_Inicio_Pago IS DISTINCT FROM source.fecha_Inicio_Pago OR
+# MAGIC     target.fecha_Fin_Pago IS DISTINCT FROM source.fecha_Fin_Pago OR
+# MAGIC     target.num_Cuotas IS DISTINCT FROM source.num_Cuotas OR
+# MAGIC     target.importe_Certificado IS DISTINCT FROM source.importe_Certificado OR
+# MAGIC     target.importe_Ampliacion IS DISTINCT FROM source.importe_Ampliacion OR
+# MAGIC     target.importe_Docencia IS DISTINCT FROM source.importe_Docencia OR
+# MAGIC     target.importe_Matricula IS DISTINCT FROM source.importe_Matricula OR
+# MAGIC     target.importe_Total IS DISTINCT FROM source.importe_Total OR
 # MAGIC     target.fecha_Inicio_Curso IS DISTINCT FROM source.fecha_Inicio_Curso OR
 # MAGIC     target.fecha_Fin_Curso IS DISTINCT FROM source.fecha_Fin_Curso OR
-# MAGIC     target.fecha_inicio IS DISTINCT FROM source.fecha_inicio OR
-# MAGIC     target.fecha_Fin IS DISTINCT FROM source.fecha_Fin OR
-# MAGIC     target.entidad_Legal IS DISTINCT FROM source.entidad_Legal OR
-# MAGIC     target.ETLupdatedDate < source.ETLupdatedDate
+# MAGIC     target.Fecha_Inicio_Reconocimiento IS DISTINCT FROM source.Fecha_Inicio_Reconocimiento OR
+# MAGIC     target.Fecha_Fin_Reconocimiento IS DISTINCT FROM source.Fecha_Fin_Reconocimiento
 # MAGIC )
 # MAGIC THEN UPDATE SET
-# MAGIC     target.nombre_Oficial = source.nombre_Oficial,
+# MAGIC     target.origen_Producto = source.origen_Producto,
 # MAGIC     target.tipo_Producto = source.tipo_Producto,
 # MAGIC     target.area = source.area,
+# MAGIC     target.nombre_Oficial = source.nombre_Oficial,
 # MAGIC     target.curso = source.curso,
+# MAGIC     target.numero_Curso = source.numero_Curso,
+# MAGIC     target.codigo_sede = source.codigo_sede,
+# MAGIC     target.sede = source.sede,
+# MAGIC     target.ciclo_id = source.ciclo_id,
+# MAGIC     target.num_Plazas = source.num_Plazas,
+# MAGIC     target.num_Grupo = source.num_Grupo,
 # MAGIC     target.vertical = source.vertical,
 # MAGIC     target.cod_Vertical = source.cod_Vertical,
+# MAGIC     target.especialidad = source.especialidad,
+# MAGIC     target.cod_Especialidad = source.cod_Especialidad,
+# MAGIC     target.num_Creditos = source.num_Creditos,
+# MAGIC     target.cod_Programa = source.cod_Programa,
+# MAGIC     target.admite_Admision = source.admite_Admision,
+# MAGIC     target.tipo_Negocio = source.tipo_Negocio,
+# MAGIC     target.acreditado = source.acreditado,
+# MAGIC     target.nombre_Web = source.nombre_Web,
+# MAGIC     target.entidad_Legal = source.entidad_Legal,
+# MAGIC     target.cod_Entidad_Legal = source.cod_Entidad_Legal,
 # MAGIC     target.modalidad = source.modalidad,
 # MAGIC     target.cod_Modalidad = source.cod_Modalidad,
-# MAGIC     target.nombre_Web = source.nombre_Web,
-# MAGIC     target.Fecha_Inicio_Reconocimiento = source.Fecha_Inicio_Reconocimiento,
-# MAGIC     target.Fecha_Fin_Reconocimiento = source.Fecha_Fin_Reconocimiento,
+# MAGIC     target.fecha_Inicio = source.fecha_Inicio,
+# MAGIC     target.fecha_Fin = source.fecha_Fin,
+# MAGIC     target.meses_Duracion = source.meses_Duracion,
+# MAGIC     target.horas_Acreditadas = source.horas_Acreditadas,
+# MAGIC     target.horas_Presenciales = source.horas_Presenciales,
+# MAGIC     target.fecha_Inicio_Pago = source.fecha_Inicio_Pago,
+# MAGIC     target.fecha_Fin_Pago = source.fecha_Fin_Pago,
+# MAGIC     target.num_Cuotas = source.num_Cuotas,
+# MAGIC     target.importe_Certificado = source.importe_Certificado,
+# MAGIC     target.importe_Ampliacion = source.importe_Ampliacion,
+# MAGIC     target.importe_Docencia = source.importe_Docencia,
+# MAGIC     target.importe_Matricula = source.importe_Matricula,
+# MAGIC     target.importe_Total = source.importe_Total,
 # MAGIC     target.fecha_Inicio_Curso = source.fecha_Inicio_Curso,
 # MAGIC     target.fecha_Fin_Curso = source.fecha_Fin_Curso,
-# MAGIC     target.fecha_inicio = source.fecha_inicio,
-# MAGIC     target.fecha_Fin = source.fecha_Fin,
-# MAGIC     target.entidad_Legal = source.entidad_Legal,
+# MAGIC     target.Fecha_Inicio_Reconocimiento = source.Fecha_Inicio_Reconocimiento,
+# MAGIC     target.Fecha_Fin_Reconocimiento = source.Fecha_Fin_Reconocimiento,
 # MAGIC     target.ETLupdatedDate = current_timestamp()
 # MAGIC
 # MAGIC WHEN NOT MATCHED THEN
@@ -319,7 +370,7 @@
 
 # DBTITLE 1,Validate duplicates >1
 # MAGIC %sql
-# MAGIC SELECT cod_Producto_origen, cod_Producto, COUNT(*) AS total_duplicados
+# MAGIC SELECT cod_Producto, COUNT(*) AS total_duplicados
 # MAGIC FROM gold_lakehouse.dim_producto
-# MAGIC GROUP BY cod_Producto_origen, cod_Producto
+# MAGIC GROUP BY cod_Producto
 # MAGIC HAVING COUNT(*) > 1;

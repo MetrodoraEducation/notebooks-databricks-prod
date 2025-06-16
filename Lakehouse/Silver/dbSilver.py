@@ -1560,8 +1560,6 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.ZohoLeads_38b (
     tipologia_cliente STRING,
     tipo_conversion STRING,
     dispositivo STRING,
-    fbclid STRING,
-    gclid STRING,
     id_producto STRING,
     id_programa STRING,
     lead_correlation_id STRING,
@@ -1582,6 +1580,10 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.ZohoLeads_38b (
     owner_email STRING,
     owner_id STRING,
     owner_name STRING,
+    id_oportunidad_asociada STRING,
+    name_oportunidad_asociada STRING,
+    id_clientify STRING,
+    modalidad_curso STRING,
     processdate TIMESTAMP,
     sourcesystem STRING
 )

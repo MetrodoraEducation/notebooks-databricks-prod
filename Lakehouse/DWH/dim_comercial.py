@@ -24,6 +24,7 @@ def upsert_dim_comercial(partition):
             nombre_comercial,
             equipo_comercial,
             cod_comercial,
+            email,
             activo,
             fecha_desde,
             fecha_hasta
@@ -33,6 +34,7 @@ def upsert_dim_comercial(partition):
             nombre_comercial = EXCLUDED.nombre_comercial,
             equipo_comercial = EXCLUDED.equipo_comercial,
             cod_comercial = EXCLUDED.cod_comercial,
+            email = EXCLUDED.email,
             activo = EXCLUDED.activo,
             fecha_desde = EXCLUDED.fecha_desde,
             fecha_hasta = EXCLUDED.fecha_hasta;
@@ -44,6 +46,7 @@ def upsert_dim_comercial(partition):
             row["nombre_comercial"],
             row["equipo_comercial"],
             row["cod_comercial"],
+            row["email"],
             row["activo"],
             row["fecha_desde"],
             row["fecha_hasta"]
@@ -65,7 +68,7 @@ def upsert_dim_comercial(partition):
 
 # Leer datos desde la tabla `gold_lakehouse.dim_comercial` en Databricks
 source_table = (spark.table("gold_lakehouse.dim_comercial")
-                .select("id_dim_comercial", "nombre_comercial", "equipo_comercial", "cod_comercial",
+                .select("id_dim_comercial", "nombre_comercial", "equipo_comercial", "cod_comercial", "email",
                         "activo", "fecha_desde", "fecha_hasta"))
 
 # Aplicar la función a las particiones de datos

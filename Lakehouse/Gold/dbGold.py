@@ -170,7 +170,8 @@ CREATE OR REPLACE TABLE gold_lakehouse.dim_comercial (
     id_dim_comercial BIGINT GENERATED ALWAYS AS IDENTITY (START WITH -1 INCREMENT BY 1),
     cod_comercial STRING, 
     nombre_comercial STRING,
-    equipo_comercial STRING,    
+    equipo_comercial STRING,
+    email STRING,    
     activo INTEGER,
     fecha_desde DATE,
     fecha_hasta DATE
@@ -286,8 +287,8 @@ spark.sql(sql_query)
 sql_query = f"""
 CREATE TABLE IF NOT EXISTS gold_lakehouse.dim_etapa_venta
 (
-    id_dim_etapa_venta BIGINT GENERATED ALWAYS AS IDENTITY (START WITH -1 INCREMENT BY 1),
-    orden_etapa BIGINT GENERATED ALWAYS AS IDENTITY (START WITH -1 INCREMENT BY 1),
+    id_dim_etapa_venta BIGINT,
+    orden_etapa INT,
     nombre_etapa_venta STRING,
     nombreEtapaVentaAgrupado STRING,
     esNe BIGINT,
