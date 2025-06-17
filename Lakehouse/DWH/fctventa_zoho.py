@@ -29,7 +29,7 @@ def upsert_fctventa(partition):
             kpi_lead_neto, kpi_lead_bruto, activo, id_classlife, id_tipo_registro, tipo_registro, id_dim_propietario_lead, 
             id_dim_programa, id_dim_producto, id_dim_utm_campaign, id_dim_utm_ad, id_dim_utm_source, 
             id_dim_nacionalidad, id_dim_tipo_formacion, id_dim_tipo_negocio, id_dim_modalidad, id_dim_institucion, 
-            id_dim_sede, id_dim_pais, id_dim_estado_venta, id_dim_etapa_venta, id_dim_motivo_perdida, id_dim_vertical,
+            id_dim_sede, id_dim_pais, id_dim_estado_venta, id_dim_etapa_venta, id_dim_motivo_perdida, id_dim_vertical, id_dim_tipo_conversion,
             ETLcreatedDate, ETLupdatedDate
         )
         VALUES %s
@@ -85,6 +85,7 @@ def upsert_fctventa(partition):
             id_dim_etapa_venta = EXCLUDED.id_dim_etapa_venta,
             id_dim_motivo_perdida = EXCLUDED.id_dim_motivo_perdida,
             id_dim_vertical = EXCLUDED.id_dim_vertical,
+            id_dim_tipo_conversion = EXCLUDED.id_dim_tipo_conversion,
             ETLupdatedDate = EXCLUDED.ETLupdatedDate;
         """
 
@@ -101,7 +102,7 @@ def upsert_fctventa(partition):
             row["id_dim_propietario_lead"], row["id_dim_programa"], row["id_dim_producto"], row["id_dim_utm_campaign"], 
             row["id_dim_utm_ad"], row["id_dim_utm_source"], row["id_dim_nacionalidad"], row["id_dim_tipo_formacion"], 
             row["id_dim_tipo_negocio"], row["id_dim_modalidad"], row["id_dim_institucion"], row["id_dim_sede"], 
-            row["id_dim_pais"], row["id_dim_estado_venta"], row["id_dim_etapa_venta"], row["id_dim_motivo_perdida"], row["id_dim_vertical"],
+            row["id_dim_pais"], row["id_dim_estado_venta"], row["id_dim_etapa_venta"], row["id_dim_motivo_perdida"], row["id_dim_vertical"], row["id_dim_tipo_conversion"],
             row["ETLcreatedDate"], row["ETLupdatedDate"]
         ) for row in partition]
 
@@ -121,7 +122,7 @@ def upsert_fctventa(partition):
 # Leer datos desde la tabla `gold_lakehouse.fctventa` en Databricks
 source_table = (spark.table("gold_lakehouse.fctventa")
                 .select(*["id_venta", "cod_lead", "cod_oportunidad", "nombre", "email", "telefono", "nombre_contacto", "importe_venta", "importe_descuento", "importe_venta_neto", "posibilidad_venta", "ciudad", "provincia", "calle", "codigo_postal", "nombre_scoring", "puntos_scoring", "dias_cierre", "fec_creacion", "fec_modificacion", "fec_cierre", "fec_pago_matricula", "fecha_hora_anulacion", "fecha_Modificacion_Lead", "fecha_Modificacion_Oportunidad", "importe_matricula", "importe_descuento_matricula", "importe_neto_matricula", "kpi_new_enrollent", "kpi_lead_neto", "kpi_lead_bruto", "activo", "id_classlife", "id_tipo_registro", "tipo_registro", "id_dim_propietario_lead", "id_dim_programa", "id_dim_producto", "id_dim_utm_campaign", "id_dim_utm_ad", "id_dim_utm_source", "id_dim_nacionalidad", "id_dim_tipo_formacion", "id_dim_tipo_negocio", "id_dim_modalidad", "id_dim_institucion", "id_dim_sede", "id_dim_pais", "id_dim_estado_venta", "id_dim_etapa_venta", 
-                "id_dim_motivo_perdida", "id_dim_vertical", "ETLcreatedDate", "ETLupdatedDate"]))
+                "id_dim_motivo_perdida", "id_dim_vertical", "id_dim_tipo_conversion", "ETLcreatedDate", "ETLupdatedDate"]))
 
 # Aplicar la función a las particiones de datos
 try:

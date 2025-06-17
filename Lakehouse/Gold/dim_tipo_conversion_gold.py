@@ -20,16 +20,30 @@
 
 # MAGIC %sql
 # MAGIC MERGE INTO gold_lakehouse.dim_tipo_conversion AS target
-# MAGIC USING (SELECT UPPER(tipo_conversion) AS tipo_conversion FROM tipo_conversion_tablon_view where tipo_conversion is not null and tipo_conversion not in ('','0') GROUP BY UPPER(tipo_conversion)) AS source  -- 🔹 Ojo tratar el espacio vacio y el 0 como nulos.
-# MAGIC ON UPPER(target.tipo_conversion) = UPPER(source.tipo_conversion)
-# MAGIC AND target.id_dim_tipo_conversion != -1  -- 🔹 Evita afectar el registro `-1`
+# MAGIC USING (
+# MAGIC     SELECT 
+# MAGIC         UPPER(tipo_conversion) AS tipo_conversion 
+# MAGIC     FROM 
+# MAGIC         tipo_conversion_tablon_view 
+# MAGIC     WHERE 
+# MAGIC         tipo_conversion IS NOT NULL 
+# MAGIC         AND tipo_conversion NOT IN ('', '0') 
+# MAGIC     GROUP BY 
+# MAGIC         UPPER(tipo_conversion)
+# MAGIC ) AS source
+# MAGIC ON 
+# MAGIC     UPPER(target.tipo_conversion) = UPPER(source.tipo_conversion)
+# MAGIC     AND target.id_dim_tipo_conversion != -1
 # MAGIC
-# MAGIC -- 🔹 **Si ya existe, lo actualiza (si aplicara)**
 # MAGIC WHEN MATCHED THEN 
 # MAGIC     UPDATE SET 
-# MAGIC         target.tipo_conversion = source.tipo_conversion
+# MAGIC         target.tipo_conversion = source.tipo_conversion,
+# MAGIC         target.etlupdateddate = current_timestamp()
 # MAGIC
-# MAGIC -- 🔹 **Si no existe, lo inserta**
 # MAGIC WHEN NOT MATCHED THEN 
-# MAGIC     INSERT (tipo_conversion)
-# MAGIC     VALUES (source.tipo_conversion);
+# MAGIC     INSERT (tipo_conversion, etlcreateddate, etlupdateddate)
+# MAGIC     VALUES (source.tipo_conversion, current_timestamp(), current_timestamp())
+
+# COMMAND ----------
+
+#%sql select * from gold_lakehouse.dim_tipo_conversion

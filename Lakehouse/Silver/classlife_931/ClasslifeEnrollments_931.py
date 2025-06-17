@@ -95,7 +95,7 @@ if "metas" in classlifetitulaciones_df.columns:
             *[col(f"metas.{c}").alias(f"metas_{c}") for c in metas_cols]  
         ).drop("metas")
 
-#display(classlifetitulaciones_df)
+display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -295,10 +295,8 @@ columnas_requeridas = [
     "enroll_in", "enroll_ini", "enroll_status", "enroll_status_id",
     "first_activate_enroll", "school_id", "school_name", "section_id", "section_title",
     "student_full_name", "student_id", "term_title", "updated_at", "year",
-    "zoho_deal_id", "ano_inicio_docencia", "cuota_matricula", "fecha_fin_cuotas",
-    "fecha_fin_docencia", "fecha_fin_reconocimiento_ingresos", "fecha_inicio_cuotas",
-    "fecha_inicio_docencia", "fecha_inicio_reconocimiento_ingresos", "fee_title", "fee_amount"
-]
+    "zoho_deal_id", "cuota_matricula", "fee_title", "fee_amount"
+]#, "ano_inicio_docencia", "fecha_fin_cuotas", "fecha_inicio_docencia", "fecha_fin_docencia", "fecha_fin_reconocimiento_ingresos", "fecha_inicio_cuotas", "fecha_inicio_reconocimiento_ingresos"
 
 # 📌 Lista de columnas con transformaciones a string + metadatos
 columnas_con_tipo = [
@@ -414,14 +412,7 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC     target.updated_at IS DISTINCT FROM source.updated_at OR
 # MAGIC     target.year IS DISTINCT FROM source.year OR
 # MAGIC     target.zoho_deal_id IS DISTINCT FROM source.zoho_deal_id OR
-# MAGIC     target.ano_inicio_docencia IS DISTINCT FROM source.ano_inicio_docencia OR
 # MAGIC     target.cuota_matricula IS DISTINCT FROM source.cuota_matricula OR
-# MAGIC     target.fecha_fin_cuotas IS DISTINCT FROM source.fecha_fin_cuotas OR
-# MAGIC     target.fecha_fin_docencia IS DISTINCT FROM source.fecha_fin_docencia OR
-# MAGIC     target.fecha_fin_reconocimiento_ingresos IS DISTINCT FROM source.fecha_fin_reconocimiento_ingresos OR
-# MAGIC     target.fecha_inicio_cuotas IS DISTINCT FROM source.fecha_inicio_cuotas OR
-# MAGIC     target.fecha_inicio_docencia IS DISTINCT FROM source.fecha_inicio_docencia OR
-# MAGIC     target.fecha_inicio_reconocimiento_ingresos IS DISTINCT FROM source.fecha_inicio_reconocimiento_ingresos OR
 # MAGIC     target.processdate IS DISTINCT FROM source.processdate OR
 # MAGIC     target.sourcesystem IS DISTINCT FROM source.sourcesystem OR
 # MAGIC     target.importe_matricula IS DISTINCT FROM source.importe_matricula OR
@@ -457,14 +448,7 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC     target.updated_at = source.updated_at,
 # MAGIC     target.year = source.year,
 # MAGIC     target.zoho_deal_id = source.zoho_deal_id,
-# MAGIC     target.ano_inicio_docencia = source.ano_inicio_docencia,
 # MAGIC     target.cuota_matricula = source.cuota_matricula,
-# MAGIC     target.fecha_fin_cuotas = source.fecha_fin_cuotas,
-# MAGIC     target.fecha_fin_docencia = source.fecha_fin_docencia,
-# MAGIC     target.fecha_fin_reconocimiento_ingresos = source.fecha_fin_reconocimiento_ingresos,
-# MAGIC     target.fecha_inicio_cuotas = source.fecha_inicio_cuotas,
-# MAGIC     target.fecha_inicio_docencia = source.fecha_inicio_docencia,
-# MAGIC     target.fecha_inicio_reconocimiento_ingresos = source.fecha_inicio_reconocimiento_ingresos,
 # MAGIC     target.processdate = source.processdate,
 # MAGIC     target.sourcesystem = source.sourcesystem,
 # MAGIC     target.importe_matricula = source.importe_matricula,

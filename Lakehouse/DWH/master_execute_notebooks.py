@@ -181,3 +181,8 @@
 
 # DBTITLE 1,fct_budget
 # MAGIC %run "../DWH/fct_budget"
+
+# COMMAND ----------
+
+# DBTITLE 1,dim_tipo_conversion
+# MAGIC %run "../DWH/dim_tipo_conversion"

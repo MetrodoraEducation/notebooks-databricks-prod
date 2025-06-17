@@ -140,12 +140,13 @@
 # MAGIC          ,tablon.utm_ad_id AS utm_ad_id
 # MAGIC          ,tablon.utm_source AS utm_source
 # MAGIC          ,tablon.linea_de_negocio
+# MAGIC          ,coalesce(tablon.tipo_Conversion_opotunidad,tablon.tipo_conversion_lead) as tipo_conversion 
 # MAGIC          ,contacts.sourcesystem
 # MAGIC      FROM silver_lakehouse.tablon_leads_and_deals tablon
 # MAGIC LEFT JOIN contactos_unidos contacts
 # MAGIC        ON tablon.cod_Contacto = contacts.id;
 # MAGIC
-# MAGIC --select * from zoho_table_view where cod_lead = 820629000006509547;
+# MAGIC --select * from zoho_table_view;
 
 # COMMAND ----------
 
@@ -204,6 +205,7 @@
 # MAGIC       ,COALESCE(utmcampaign.id_dim_utm_campaign, -1) AS id_dim_utm_campaign
 # MAGIC       ,COALESCE(utmadset.id_dim_utm_ad, -1) AS id_dim_utm_ad
 # MAGIC       ,COALESCE(utmsource.id_dim_utm_source, -1) AS id_dim_utm_source
+# MAGIC       ,COALESCE(conversion.id_Dim_Tipo_Conversion, -1) AS id_dim_tipo_conversion
 # MAGIC       ,current_timestamp AS ETLcreatedDate
 # MAGIC       ,current_timestamp AS ETLupdatedDate
 # MAGIC FROM zoho_table_view tablon 
@@ -229,12 +231,14 @@
 # MAGIC LEFT JOIN gold_lakehouse.dim_utm_campaign utmcampaign ON tablon.utm_campaign_id = NULLIF(utmcampaign.utm_campaign_id, '')
 # MAGIC LEFT JOIN gold_lakehouse.dim_utm_adset utmadset ON tablon.utm_ad_id = NULLIF(utmadset.utm_ad_id, '')
 # MAGIC LEFT JOIN gold_lakehouse.dim_utm_source utmsource ON tablon.utm_source = NULLIF(utmsource.utm_source, '')
-# MAGIC LEFT JOIN gold_lakehouse.dim_vertical vertical ON UPPER(producto.cod_Vertical) = NULLIF(UPPER(vertical.nombre_Vertical_Corto), '');
+# MAGIC LEFT JOIN gold_lakehouse.dim_vertical vertical ON UPPER(producto.cod_Vertical) = NULLIF(UPPER(vertical.nombre_Vertical_Corto), '')
+# MAGIC LEFT JOIN gold_lakehouse.dim_tipo_conversion conversion ON UPPER(tablon.tipo_conversion) = NULLIF(UPPER(conversion.tipo_conversion), '');
 # MAGIC
-# MAGIC --select * from zoho_dimensions_temp where cod_lead = 820629000006969475;
+# MAGIC --select * from zoho_dimensions_temp;
 
 # COMMAND ----------
 
+# DBTITLE 1,Count duplicates cod_Lead
 # MAGIC %sql
 # MAGIC SELECT cod_Lead, COUNT(*) 
 # MAGIC FROM zoho_dimensions_temp 
@@ -317,6 +321,7 @@
 # MAGIC         target.id_dim_utm_source = source.id_dim_utm_source,
 # MAGIC         target.activo = source.activo,
 # MAGIC         target.id_dim_vertical = source.id_dim_vertical,
+# MAGIC         target.id_dim_tipo_conversion = source.id_dim_tipo_conversion,
 # MAGIC         target.fec_Modificacion = source.fec_Modificacion,
 # MAGIC         target.ETLupdatedDate = current_timestamp;
 
@@ -375,6 +380,7 @@
 # MAGIC         target.id_dim_utm_source = source.id_dim_utm_source,
 # MAGIC         target.activo = source.activo,
 # MAGIC         target.id_dim_vertical = source.id_dim_vertical,
+# MAGIC         target.id_dim_tipo_conversion = source.id_dim_tipo_conversion,
 # MAGIC         target.fec_Modificacion = source.fec_Modificacion,
 # MAGIC         target.ETLupdatedDate = current_timestamp;
 # MAGIC
@@ -400,7 +406,7 @@
 # MAGIC         id_dim_programa, id_dim_producto, id_dim_utm_campaign, id_dim_utm_ad, id_dim_utm_source, 
 # MAGIC         id_dim_nacionalidad, id_dim_tipo_formacion, id_dim_tipo_negocio, id_dim_modalidad, 
 # MAGIC         id_dim_institucion, id_dim_sede, id_dim_pais, id_dim_estado_venta, id_dim_etapa_venta, 
-# MAGIC         id_dim_motivo_perdida, id_dim_vertical, ETLcreatedDate, ETLupdatedDate
+# MAGIC         id_dim_motivo_perdida, id_dim_vertical, id_dim_tipo_conversion, ETLcreatedDate, ETLupdatedDate
 # MAGIC     ) 
 # MAGIC     VALUES (
 # MAGIC         source.cod_lead, source.cod_oportunidad, source.nombre, source.email, source.telefono, 
@@ -416,11 +422,12 @@
 # MAGIC         source.id_dim_utm_source, source.id_dim_nacionalidad, source.id_dim_tipo_formacion, 
 # MAGIC         source.id_dim_tipo_negocio, source.id_dim_modalidad, source.id_dim_institucion, 
 # MAGIC         source.id_dim_sede, source.id_dim_pais, source.id_dim_estado_venta, source.id_dim_etapa_venta, 
-# MAGIC         source.id_dim_motivo_perdida, source.id_dim_vertical, current_timestamp, current_timestamp
+# MAGIC         source.id_dim_motivo_perdida, source.id_dim_vertical, source.id_dim_tipo_conversion, current_timestamp, current_timestamp
 # MAGIC     );
 
 # COMMAND ----------
 
+# DBTITLE 1,Registros que no han cambiado de estado pero actualizan campos
 # MAGIC %sql
 # MAGIC MERGE INTO gold_lakehouse.fctventa AS target
 # MAGIC USING fct_zoho_unique_temp AS source
@@ -428,7 +435,7 @@
 # MAGIC    AND COALESCE(target.cod_Lead, '') = COALESCE(source.cod_Lead, '')
 # MAGIC
 # MAGIC WHEN MATCHED AND (
-# MAGIC     source.fecha_Modificacion_Lead > target.fecha_Modificacion_Lead
+# MAGIC     source.fecha_Modificacion_Lead IS DISTINCT FROM target.fecha_Modificacion_Lead
 # MAGIC ) THEN
 # MAGIC UPDATE SET
 # MAGIC     target.importe_venta = source.importe_venta,
@@ -471,6 +478,7 @@
 # MAGIC     target.id_dim_etapa_venta = source.id_dim_etapa_venta,
 # MAGIC     target.id_dim_motivo_perdida = source.id_dim_motivo_perdida,
 # MAGIC     target.id_dim_vertical = source.id_dim_vertical,
+# MAGIC     target.id_dim_tipo_conversion = source.id_dim_tipo_conversion,
 # MAGIC     target.ETLupdatedDate = source.ETLupdatedDate;
 
 # COMMAND ----------
@@ -504,5 +512,4 @@
 
 # COMMAND ----------
 
-# MAGIC %sql
-# MAGIC select * from gold_lakehouse.fctventa where cod_lead = '820629000004370518'
+# MAGIC %sql select distinct id_dim_tipo_conversion from gold_lakehouse.fctventa;-- where cod_lead = '820629000004370518'

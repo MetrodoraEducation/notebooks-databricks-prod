@@ -998,6 +998,7 @@ CREATE TABLE IF NOT EXISTS gold_lakehouse.fctventa
     id_dim_etapa_venta BIGINT,
     id_dim_motivo_perdida BIGINT,
     id_dim_vertical BIGINT,
+    id_dim_tipo_conversion BIGINT,
     ETLcreatedDate TIMESTAMP,
     ETLupdatedDate TIMESTAMP
 )

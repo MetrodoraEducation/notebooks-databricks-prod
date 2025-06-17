@@ -1305,21 +1305,14 @@ CREATE TABLE IF NOT EXISTS silver_lakehouse.ClasslifeEnrollments_931
     ,updated_at STRING
     ,year STRING
     ,zoho_deal_id STRING
-    ,ano_inicio_docencia STRING
     ,cuota_matricula STRING
-    ,fecha_fin_cuotas STRING
-    ,fecha_fin_docencia STRING
-    ,fecha_fin_reconocimiento_ingresos STRING
-    ,fecha_inicio_cuotas STRING
-    ,fecha_inicio_docencia STRING
-    ,fecha_inicio_reconocimiento_ingresos STRING
-    ,processdate TIMESTAMP
-    ,sourcesystem STRING
     ,importe_matricula DECIMAL(18,2)
     ,importe_docencia DECIMAL(18,2)
     ,suma_descuentos DECIMAL(18,2)
     ,total_fees DECIMAL(18,2)
     ,total_restantes DECIMAL(18,2)
+    ,processdate TIMESTAMP
+    ,sourcesystem STRING
 )
 USING DELTA
 LOCATION 'abfss://silver@{storage_account_name}.dfs.core.windows.net/lakehouse/ClasslifeEnrollments_931';
