@@ -4,11 +4,14 @@
 
 # COMMAND ----------
 
-endpoint_process_name = "enrollments"
-table_name = "JsaClassLifeEnrollments"
+from pyspark.sql.functions import explode, col
 
-classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/{table_name}.json")
-classlifetitulaciones_df
+endpoint_process_name = "enrollments"
+table_name = "JsaClassLifeEnrollments_"
+
+classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/{table_name}*.json")
+
+print(f"Total de archivos leídos: {classlifetitulaciones_df.count()}")
 
 # COMMAND ----------
 
@@ -95,7 +98,7 @@ if "metas" in classlifetitulaciones_df.columns:
             *[col(f"metas.{c}").alias(f"metas_{c}") for c in metas_cols]  
         ).drop("metas")
 
-display(classlifetitulaciones_df)
+#display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -373,6 +376,10 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 
 # COMMAND ----------
 
+#%sql select count(*) from classlifetitulaciones_view; --03-jul son 1666 registros y solo ahi 1655 donde estan los 11
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC SELECT enroll_id, COUNT(*)
 # MAGIC FROM classlifetitulaciones_view
@@ -381,6 +388,7 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 
 # COMMAND ----------
 
+# DBTITLE 1,Merge ClasslifeEnrollments_931
 # MAGIC %sql
 # MAGIC MERGE INTO silver_lakehouse.ClasslifeEnrollments_931 AS target 
 # MAGIC USING classlifetitulaciones_view AS source

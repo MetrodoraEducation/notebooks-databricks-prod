@@ -298,10 +298,7 @@
 
 # COMMAND ----------
 
-# MAGIC %sql select source.cod_lead, source.cod_oportunidad, source.fecha_Modificacion_Lead, target.fecha_modificacion_lead, source.fecha_modificacion_oportunidad, target.fecha_modificacion_oportunidad from fct_zoho_unique_temp as source 
-# MAGIC inner join gold_lakehouse.fctventa AS target ON COALESCE(target.cod_Oportunidad, '') = COALESCE(source.cod_Oportunidad, '')
-# MAGIC           AND COALESCE(target.cod_Lead, '') = COALESCE(source.cod_Lead, '')
-# MAGIC where source.cod_oportunidad= 820629000008282160;
+# MAGIC %sql select * from fct_zoho_unique_temp where cod_oportunidad= 820629000008282160;
 
 # COMMAND ----------
 
@@ -484,7 +481,7 @@
 
 # COMMAND ----------
 
-# DBTITLE 1,Registros por fecha_Modificacion_Lead u Oportunidad que no han cambiado de estado y actualizan campos
+# DBTITLE 1,Registros por fecha_Modificacion_Lead que no han cambiado de estado y actualizan campos
 # MAGIC %sql
 # MAGIC MERGE INTO gold_lakehouse.fctventa AS target
 # MAGIC USING fct_zoho_unique_temp AS source
@@ -495,13 +492,10 @@
 # MAGIC    -- source.fecha_Modificacion_Lead IS DISTINCT FROM target.fecha_Modificacion_Lead OR
 # MAGIC     --source.kpi_lead_neto IS DISTINCT FROM target.kpi_lead_neto OR
 # MAGIC    -- source.kpi_lead_bruto IS DISTINCT FROM target.kpi_lead_bruto 
-# MAGIC    source.fecha_Modificacion_Lead > target.fecha_Modificacion_Lead OR
-# MAGIC    source.fecha_Modificacion_Oportunidad > target.fecha_Modificacion_Oportunidad OR
-# MAGIC    source.kpi_lead_neto <> target.kpi_lead_neto OR
-# MAGIC    source.kpi_lead_bruto <> target.kpi_lead_bruto OR
-# MAGIC    source.fec_pago_matricula <> target.fec_pago_matricula
-# MAGIC )
-# MAGIC  THEN
+# MAGIC     source.fecha_Modificacion_Lead > target.fecha_Modificacion_Lead OR
+# MAGIC     source.kpi_lead_neto <> target.kpi_lead_neto OR
+# MAGIC     source.kpi_lead_bruto <> target.kpi_lead_bruto 
+# MAGIC ) THEN
 # MAGIC UPDATE SET
 # MAGIC     target.importe_venta = source.importe_venta,
 # MAGIC     target.importe_descuento = source.importe_descuento,
@@ -516,6 +510,72 @@
 # MAGIC     target.fec_pago_matricula = source.fec_pago_matricula,
 # MAGIC     target.fecha_hora_anulacion = source.fecha_hora_anulacion,
 # MAGIC     target.fecha_Modificacion_Lead = source.fecha_Modificacion_Lead,
+# MAGIC     target.importe_matricula = source.importe_matricula,
+# MAGIC     target.importe_descuento_matricula = source.importe_descuento_matricula,
+# MAGIC     target.importe_neto_matricula = source.importe_neto_matricula,
+# MAGIC     target.kpi_new_enrollent = source.kpi_new_enrollent,
+# MAGIC     target.kpi_lead_neto = source.kpi_lead_neto,
+# MAGIC     target.kpi_lead_bruto = source.kpi_lead_bruto,
+# MAGIC     target.activo = source.activo,
+# MAGIC     target.id_classlife = source.id_classlife,
+# MAGIC     target.id_tipo_registro = source.id_tipo_registro,
+# MAGIC     target.tipo_registro = source.tipo_registro,
+# MAGIC     target.id_dim_propietario_lead = source.id_dim_propietario_lead,
+# MAGIC     target.id_dim_programa = source.id_dim_programa,
+# MAGIC     target.id_dim_producto = source.id_dim_producto,
+# MAGIC     target.id_dim_nacionalidad = source.id_dim_nacionalidad,
+# MAGIC     target.id_dim_tipo_formacion = source.id_dim_tipo_formacion,
+# MAGIC     target.id_dim_tipo_negocio = source.id_dim_tipo_negocio,
+# MAGIC     target.id_dim_modalidad = source.id_dim_modalidad,
+# MAGIC     target.id_dim_institucion = source.id_dim_institucion,
+# MAGIC     target.id_dim_sede = source.id_dim_sede,
+# MAGIC     target.id_dim_pais = source.id_dim_pais,
+# MAGIC     target.id_dim_estado_venta = source.id_dim_estado_venta,
+# MAGIC     target.id_dim_etapa_venta = source.id_dim_etapa_venta,
+# MAGIC     target.id_dim_motivo_perdida = source.id_dim_motivo_perdida,
+# MAGIC     target.id_dim_vertical = source.id_dim_vertical,
+# MAGIC     target.id_dim_tipo_conversion = source.id_dim_tipo_conversion,
+# MAGIC     target.id_dim_utm_ad = source.id_dim_utm_ad,
+# MAGIC     target.id_dim_utm_adset = source.id_dim_utm_adset,
+# MAGIC     target.id_dim_utm_campaign = source.id_dim_utm_campaign,
+# MAGIC     target.id_dim_utm_campaign_name = source.id_dim_utm_campaign_name,
+# MAGIC     target.id_dim_utm_channel = source.id_dim_utm_channel,
+# MAGIC     target.id_dim_utm_estrategia = source.id_dim_utm_estrategia,
+# MAGIC     target.id_dim_utm_medium = source.id_dim_utm_medium,
+# MAGIC     target.id_dim_utm_perfil = source.id_dim_utm_perfil,
+# MAGIC     target.id_dim_utm_source = source.id_dim_utm_source,
+# MAGIC     target.id_dim_utm_term = source.id_dim_utm_term,
+# MAGIC     target.id_dim_utm_type = source.id_dim_utm_type,
+# MAGIC     target.ETLupdatedDate = source.ETLupdatedDate;    
+
+# COMMAND ----------
+
+# DBTITLE 1,Registros por fecha_Modificacion_Oportunidad que no han cambiado de estado y actualizan campos
+# MAGIC %sql
+# MAGIC MERGE INTO gold_lakehouse.fctventa AS target
+# MAGIC USING fct_zoho_unique_temp AS source
+# MAGIC ON COALESCE(target.cod_Oportunidad, '') = COALESCE(source.cod_Oportunidad, '')
+# MAGIC    AND COALESCE(target.cod_Lead, '') = COALESCE(source.cod_Lead, '')
+# MAGIC
+# MAGIC WHEN MATCHED AND (
+# MAGIC     source.fecha_Modificacion_Oportunidad IS DISTINCT FROM target.fecha_Modificacion_Oportunidad OR
+# MAGIC     source.kpi_lead_neto IS DISTINCT FROM target.kpi_lead_neto OR
+# MAGIC     source.kpi_lead_bruto IS DISTINCT FROM target.kpi_lead_bruto
+# MAGIC ) THEN
+# MAGIC UPDATE SET
+# MAGIC     target.importe_venta = source.importe_venta,
+# MAGIC     target.importe_descuento = source.importe_descuento,
+# MAGIC     target.importe_venta_neto = source.importe_venta_neto,
+# MAGIC     target.posibilidad_venta = source.posibilidad_venta,
+# MAGIC     target.ciudad = source.ciudad,
+# MAGIC     target.provincia = source.provincia,
+# MAGIC     target.dias_cierre = source.dias_cierre,
+# MAGIC     target.fec_creacion = source.fec_creacion,
+# MAGIC     target.fec_modificacion = source.fec_modificacion,
+# MAGIC     target.fec_cierre = source.fec_cierre,
+# MAGIC     target.fec_pago_matricula = source.fec_pago_matricula,
+# MAGIC     target.fecha_hora_anulacion = source.fecha_hora_anulacion,
+# MAGIC     target.fecha_Modificacion_Oportunidad = source.fecha_Modificacion_Oportunidad,
 # MAGIC     target.importe_matricula = source.importe_matricula,
 # MAGIC     target.importe_descuento_matricula = source.importe_descuento_matricula,
 # MAGIC     target.importe_neto_matricula = source.importe_neto_matricula,

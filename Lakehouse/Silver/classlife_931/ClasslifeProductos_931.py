@@ -4,11 +4,14 @@
 
 # COMMAND ----------
 
-endpoint_process_name = "enroll_groups"
-table_name = "JsaClassLifeProductos"
+from pyspark.sql.functions import explode, col
 
-classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/{table_name}.json")
-classlifetitulaciones_df
+endpoint_process_name = "enroll_groups"
+table_name = "JsaClassLifeProductos_"
+
+classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/{table_name}*.json")
+
+print(f"Total de archivos leídos: {classlifetitulaciones_df.count()}")
 
 # COMMAND ----------
 
@@ -221,11 +224,17 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
 
 # COMMAND ----------
 
+# DBTITLE 1,Filter data enroll_group_name IS NOT NULL
 classlifetitulaciones_df = classlifetitulaciones_df.filter("enroll_group_name IS NOT NULL")
 classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 
 # COMMAND ----------
 
+#%sql select count(*) from classlifetitulaciones_view; -- tengo 323 registros en los json, veo que los 5 registros no tiene enroll_group_name 
+
+# COMMAND ----------
+
+# DBTITLE 1,Merge classlifetitulaciones_931
 # MAGIC %sql
 # MAGIC MERGE INTO silver_lakehouse.classlifetitulaciones_931 AS target
 # MAGIC USING classlifetitulaciones_view AS source

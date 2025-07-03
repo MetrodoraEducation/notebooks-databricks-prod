@@ -27,7 +27,8 @@ def upsert_dim_comercial(partition):
             email,
             activo,
             fecha_desde,
-            fecha_hasta
+            fecha_hasta,
+            sede
         )
         VALUES %s
         ON CONFLICT (id_dim_comercial) DO UPDATE SET
@@ -37,7 +38,8 @@ def upsert_dim_comercial(partition):
             email = EXCLUDED.email,
             activo = EXCLUDED.activo,
             fecha_desde = EXCLUDED.fecha_desde,
-            fecha_hasta = EXCLUDED.fecha_hasta;
+            fecha_hasta = EXCLUDED.fecha_hasta,
+            sede = EXCLUDED.sede;
         """
 
         # Transformar la partición de Spark en una lista de tuplas para insertar
@@ -49,7 +51,8 @@ def upsert_dim_comercial(partition):
             row["email"],
             row["activo"],
             row["fecha_desde"],
-            row["fecha_hasta"]
+            row["fecha_hasta"],
+            row["sede"]
         ) for row in partition]
 
         if values:
@@ -69,7 +72,7 @@ def upsert_dim_comercial(partition):
 # Leer datos desde la tabla `gold_lakehouse.dim_comercial` en Databricks
 source_table = (spark.table("gold_lakehouse.dim_comercial")
                 .select("id_dim_comercial", "nombre_comercial", "equipo_comercial", "cod_comercial", "email",
-                        "activo", "fecha_desde", "fecha_hasta"))
+                        "activo", "fecha_desde", "fecha_hasta", "sede"))
 
 # Aplicar la función a las particiones de datos
 try:

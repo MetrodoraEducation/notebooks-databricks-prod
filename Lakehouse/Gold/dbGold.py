@@ -984,9 +984,6 @@ CREATE TABLE IF NOT EXISTS gold_lakehouse.fctventa
     id_dim_propietario_lead BIGINT,
     id_dim_programa BIGINT,
     id_dim_producto BIGINT,
-    id_dim_utm_campaign BIGINT,
-    id_dim_utm_ad BIGINT,
-    id_dim_utm_source BIGINT,
     id_dim_nacionalidad BIGINT,
     id_dim_tipo_formacion BIGINT,
     id_dim_tipo_negocio BIGINT,
@@ -999,6 +996,17 @@ CREATE TABLE IF NOT EXISTS gold_lakehouse.fctventa
     id_dim_motivo_perdida BIGINT,
     id_dim_vertical BIGINT,
     id_dim_tipo_conversion BIGINT,
+    id_dim_utm_ad BIGINT,
+    id_dim_utm_adset BIGINT,
+    id_dim_utm_campaign BIGINT,
+    id_dim_utm_campaign_name BIGINT,
+    id_dim_utm_channel BIGINT,
+    id_dim_utm_estrategia BIGINT,
+    id_dim_utm_medium BIGINT,
+    id_dim_utm_perfil BIGINT,
+    id_dim_utm_source BIGINT,
+    id_dim_utm_term BIGINT,
+    id_dim_utm_type BIGINT,
     ETLcreatedDate TIMESTAMP,
     ETLupdatedDate TIMESTAMP
 )
@@ -1059,7 +1067,7 @@ CREATE TABLE IF NOT EXISTS gold_lakehouse.dim_estudiante
     phone STRING,
     fecha_creacion TIMESTAMP,
     estado STRING,
-    edad STRING,
+    edad DATE,
     id_zoho STRING,
     pais STRING,
     ciudad STRING,
@@ -1229,9 +1237,9 @@ CREATE TABLE IF NOT EXISTS gold_lakehouse.fct_budget
     ,id_Dim_Producto INT
     ,escenario STRING
     ,producto STRING
-    ,num_Leads_Netos BIGINT
-    ,num_Leads_Brutos BIGINT
-    ,num_Matriculas BIGINT
+    ,num_Leads_Netos DECIMAL(10,2)
+    ,num_Leads_Brutos DECIMAL(10,2)
+    ,num_Matriculas DECIMAL(10,2)
     ,importe_matriculacion DECIMAL(10,2)
     ,importe_Captacion DECIMAL(10,2)
     ,id_Dim_Programa INT

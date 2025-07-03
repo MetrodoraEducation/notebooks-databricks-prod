@@ -4,11 +4,14 @@
 
 # COMMAND ----------
 
-endpoint_process_name = "receipts"
-table_name = "JsaClassLifeReceipts"
+from pyspark.sql.functions import explode, col
 
-classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/{table_name}.json")
-#print(current_date)
+endpoint_process_name = "receipts"
+table_name = "JsaClassLifeReceipts_"
+
+classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/{table_name}*.json")
+
+print(f"Total de archivos leídos: {classlifetitulaciones_df.count()}")
 
 # COMMAND ----------
 
@@ -75,6 +78,7 @@ if "items" in classlifetitulaciones_df.columns:
 
 # COMMAND ----------
 
+# DBTITLE 1,Clean the columns
 from pyspark.sql.functions import col, to_date, to_timestamp, lit, current_timestamp
 from pyspark.sql.types import StringType
 
@@ -130,10 +134,11 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
     *[col(c).alias(c.strip().replace("`", "")) for c in columnas_seleccionadas]
 )
 
-display(classlifetitulaciones_df)
+#display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
+# DBTITLE 1,Select the colums
 from pyspark.sql.functions import col, to_timestamp, lit, current_timestamp
 from pyspark.sql.types import StringType, DoubleType
 
@@ -162,7 +167,7 @@ classlifetitulaciones_df = classlifetitulaciones_df \
     .withColumn("sourcesystem", lit("ClasslifeReceipts_931"))
 
 # 👁️ Mostrar resultado
-display(classlifetitulaciones_df)
+#display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -174,6 +179,10 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 
 # COMMAND ----------
 
+#%sql select count(*) from classlifetitulaciones_view; --03-jul 15369 json, toma todos los registros 15369
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC SELECT receipt_id, COUNT(*)
 # MAGIC FROM classlifetitulaciones_view
@@ -182,6 +191,7 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 
 # COMMAND ----------
 
+# DBTITLE 1,Merge ClasslifeReceipts_931
 # MAGIC %sql
 # MAGIC MERGE INTO silver_lakehouse.ClasslifeReceipts_931 AS target
 # MAGIC USING classlifetitulaciones_view AS source
@@ -208,26 +218,26 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC        target.receipt_price IS DISTINCT FROM source.receipt_price
 # MAGIC ) THEN 
 # MAGIC UPDATE SET
-# MAGIC     receipt_tax_per = source.receipt_tax_per,
-# MAGIC     payment_method = source.payment_method,
-# MAGIC     receipt_tax = source.receipt_tax,
-# MAGIC     student_id = source.student_id,
-# MAGIC     enroll_id = source.enroll_id,
-# MAGIC     remittance_id = source.remittance_id,
-# MAGIC     receipt_total = source.receipt_total,
-# MAGIC     invoice_id = source.invoice_id,
-# MAGIC     emission_date = source.emission_date,
-# MAGIC     expiry_date = source.expiry_date,
-# MAGIC     receipt_status = source.receipt_status,
-# MAGIC     payment_method_id = source.payment_method_id,
-# MAGIC     receipt_advanced = source.receipt_advanced,
-# MAGIC     collection_date = source.collection_date,
-# MAGIC     receipt_concept = source.receipt_concept,
-# MAGIC     receipt_status_id = source.receipt_status_id,
-# MAGIC     student_full_name = source.student_full_name,
-# MAGIC     receipt_price = source.receipt_price,
-# MAGIC     processdate = source.processdate,
-# MAGIC     sourcesystem = source.sourcesystem
+# MAGIC     target.receipt_tax_per = source.receipt_tax_per,
+# MAGIC     target.payment_method = source.payment_method,
+# MAGIC     target.receipt_tax = source.receipt_tax,
+# MAGIC     target.student_id = source.student_id,
+# MAGIC     target.enroll_id = source.enroll_id,
+# MAGIC     target.remittance_id = source.remittance_id,
+# MAGIC     target.receipt_total = source.receipt_total,
+# MAGIC     target.invoice_id = source.invoice_id,
+# MAGIC     target.emission_date = source.emission_date,
+# MAGIC     target.expiry_date = source.expiry_date,
+# MAGIC     target.receipt_status = source.receipt_status,
+# MAGIC     target.payment_method_id = source.payment_method_id,
+# MAGIC     target.receipt_advanced = source.receipt_advanced,
+# MAGIC     target.collection_date = source.collection_date,
+# MAGIC     target.receipt_concept = source.receipt_concept,
+# MAGIC     target.receipt_status_id = source.receipt_status_id,
+# MAGIC     target.student_full_name = source.student_full_name,
+# MAGIC     target.receipt_price = source.receipt_price,
+# MAGIC     target.processdate = source.processdate,
+# MAGIC     target.sourcesystem = source.sourcesystem
 # MAGIC
 # MAGIC WHEN NOT MATCHED THEN 
 # MAGIC INSERT (

@@ -34,7 +34,8 @@
 # MAGIC     z.role_name AS equipo_Comercial,
 # MAGIC     z.email AS email,
 # MAGIC     current_date() AS fecha_Desde,
-# MAGIC     NULL AS fecha_Hasta
+# MAGIC     NULL AS fecha_Hasta,
+# MAGIC     "FisioFocus" as Sede
 # MAGIC FROM silver_lakehouse.zohousers z
 # MAGIC UNION ALL
 # MAGIC SELECT DISTINCT
@@ -43,7 +44,8 @@
 # MAGIC     z.role_name AS equipo_Comercial,
 # MAGIC     z.email AS email,
 # MAGIC     current_date() AS fecha_Desde,
-# MAGIC     NULL AS fecha_Hasta
+# MAGIC     NULL AS fecha_Hasta,
+# MAGIC     z.sede as Sede
 # MAGIC FROM silver_lakehouse.ZohoUsers_38b z;
 # MAGIC
 # MAGIC --select * from dim_comercial_temp_view;
@@ -54,12 +56,12 @@
 # MAGIC -- 1️⃣ Asegurar que el registro `-1` siempre existe con valores `n/a`
 # MAGIC MERGE INTO gold_lakehouse.dim_comercial AS target
 # MAGIC USING (
-# MAGIC     SELECT 'n/a' AS cod_comercial, 'n/a' AS nombre_comercial, 'n/a' AS equipo_comercial, 'n/a' AS email, NULL AS activo, NULL AS fecha_desde, NULL AS fecha_hasta
+# MAGIC     SELECT 'n/a' AS cod_comercial, 'n/a' AS nombre_comercial, 'n/a' AS equipo_comercial, 'n/a' AS email, NULL AS activo, NULL AS fecha_desde, NULL AS fecha_hasta, null sede
 # MAGIC ) AS source
 # MAGIC ON target.id_dim_comercial = -1  -- Solo se compara con `-1`
 # MAGIC WHEN NOT MATCHED THEN 
-# MAGIC     INSERT (cod_comercial, nombre_comercial, equipo_comercial, email, activo, fecha_desde, fecha_hasta)
-# MAGIC     VALUES (source.cod_comercial, source.nombre_comercial, source.equipo_comercial, source.email, source.activo, source.fecha_desde, source.fecha_hasta);
+# MAGIC     INSERT (cod_comercial, nombre_comercial, equipo_comercial, email, activo, fecha_desde, fecha_hasta, sede)
+# MAGIC     VALUES (source.cod_comercial, source.nombre_comercial, source.equipo_comercial, source.email, source.activo, source.fecha_desde, source.fecha_hasta, source.sede);
 
 # COMMAND ----------
 
@@ -77,7 +79,7 @@
 # MAGIC         target.activo = 0;  -- Marcamos como inactivo
 # MAGIC
 # MAGIC -- 2️⃣ 🔹 Insertar nuevos registros para comerciales cerrados o inexistentes
-# MAGIC INSERT INTO gold_lakehouse.dim_comercial (cod_Comercial, nombre_Comercial, equipo_Comercial, email, fecha_Desde, fecha_Hasta, activo)
+# MAGIC INSERT INTO gold_lakehouse.dim_comercial (cod_Comercial, nombre_Comercial, equipo_Comercial, email, fecha_Desde, fecha_Hasta, activo, sede)
 # MAGIC SELECT 
 # MAGIC     source.cod_Comercial,
 # MAGIC     source.nombre_Comercial,
@@ -85,9 +87,17 @@
 # MAGIC     source.email,
 # MAGIC     CURRENT_DATE(), -- La nueva fecha desde es la de hoy
 # MAGIC     NULL, -- Se deja abierto hasta que vuelva a cambiar
-# MAGIC     1  -- Activo
+# MAGIC     1,  -- Activo
+# MAGIC     source.sede
 # MAGIC FROM dim_comercial_temp_view source
 # MAGIC LEFT JOIN gold_lakehouse.dim_comercial target
 # MAGIC ON COALESCE(source.cod_Comercial, '') = COALESCE(target.cod_Comercial, '')
 # MAGIC AND target.fecha_Hasta IS NULL -- Nos aseguramos de comparar solo los registros abiertos
 # MAGIC WHERE target.cod_Comercial IS NULL OR target.fecha_Hasta IS NOT NULL; -- 🔹 Insertar si no existe o si el último registro está cerrado
+# MAGIC
+# MAGIC
+# MAGIC UPDATE gold_lakehouse.dim_comercial com SET com.sede = (SELECT MAX(sede) FROM silver_lakehouse.ZohoUsers_38b WHERE id = com.cod_comercial);
+
+# COMMAND ----------
+
+# MAGIC %sql select * from gold_lakehouse.dim_comercial;

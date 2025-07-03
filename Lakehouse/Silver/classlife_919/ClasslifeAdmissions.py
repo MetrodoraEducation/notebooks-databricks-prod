@@ -1,13 +1,19 @@
 # Databricks notebook source
 # DBTITLE 1,ulac
-# MAGIC %run "../Silver/configuration"
+# MAGIC %run "../configuration"
 
 # COMMAND ----------
 
-endpoint_process_name = "admissions"
-table_name = "JsaClassLifeAdmissions"
+from pyspark.sql.functions import explode, col
 
-classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife/{endpoint_process_name}/{current_date}/{table_name}.json")
+table_prefix = "JsaClassLifeAdmissions_"
+endpoint_process_name = "admissions"
+
+classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife/{endpoint_process_name}/{current_date}/{table_prefix}*.json")
+
+print(f"Total de archivos leídos: {classlifetitulaciones_df.count()}")
+#classlifetitulaciones_df = classlifetitulaciones_df.select(explode(col("data")))
+#print(f"Total de registros leídos: {classlifetitulaciones_df.count()}")
 
 # COMMAND ----------
 
@@ -56,6 +62,8 @@ if "items" in classlifetitulaciones_df.columns:
     # Si `items` es un array de estructuras, lo explotamos
     if isinstance(classlifetitulaciones_df.schema["items"].dataType, ArrayType):
         classlifetitulaciones_df = classlifetitulaciones_df.withColumn("items", explode(col("items")))
+
+#display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -131,6 +139,8 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
     *[col(c).alias(c.strip().replace("`", "")) for c in columnas_seleccionadas]
 )
 
+#display(classlifetitulaciones_df)
+
 # COMMAND ----------
 
 from pyspark.sql.functions import col, to_timestamp, lit, current_timestamp
@@ -188,6 +198,10 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 
 # COMMAND ----------
 
+#%sql select count(*) from classlifetitulaciones_view; --471 Corresponden a los datos del dia 02-jul estaria correcto
+
+# COMMAND ----------
+
 # MAGIC %sql
 # MAGIC SELECT id, COUNT(*)
 # MAGIC FROM classlifetitulaciones_view
@@ -219,21 +233,21 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC     OR target.sourcesystem IS DISTINCT FROM source.sourcesystem
 # MAGIC ) THEN 
 # MAGIC     UPDATE SET
-# MAGIC        student_phone       = source.student_phone,
-# MAGIC        comercial           = source.comercial,
-# MAGIC        student_email       = source.student_email,
-# MAGIC        ini_date            = source.ini_date,
-# MAGIC        zoho_deal_id        = source.zoho_deal_id,
-# MAGIC        enroll_group        = source.enroll_group,
-# MAGIC        ciclo_title         = source.ciclo_title,
-# MAGIC        student_dni         = source.student_dni,
-# MAGIC        registration_date   = source.registration_date,
-# MAGIC        year_id             = source.year_id,
-# MAGIC        student_full_name   = source.student_full_name,
-# MAGIC        area_title          = source.area_title,
-# MAGIC        school_name         = source.school_name,
-# MAGIC        end_date            = source.end_date,
-# MAGIC        sourcesystem        = source.sourcesystem
+# MAGIC        target.student_phone       = source.student_phone,
+# MAGIC        target.comercial           = source.comercial,
+# MAGIC        target.student_email       = source.student_email,
+# MAGIC        target.ini_date            = source.ini_date,
+# MAGIC        target.zoho_deal_id        = source.zoho_deal_id,
+# MAGIC        target.enroll_group        = source.enroll_group,
+# MAGIC        target.ciclo_title         = source.ciclo_title,
+# MAGIC        target.student_dni         = source.student_dni,
+# MAGIC        target.registration_date   = source.registration_date,
+# MAGIC        target.year_id             = source.year_id,
+# MAGIC        target.student_full_name   = source.student_full_name,
+# MAGIC        target.area_title          = source.area_title,
+# MAGIC        target.school_name         = source.school_name,
+# MAGIC        target.end_date            = source.end_date,
+# MAGIC        target.sourcesystem        = source.sourcesystem
 # MAGIC
 # MAGIC WHEN NOT MATCHED THEN 
 # MAGIC     INSERT (

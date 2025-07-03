@@ -23,7 +23,7 @@
 # MAGIC     -- Solo devuelve datos si el registro -1 no existe
 # MAGIC     SELECT 'n/a' AS nombre_etapa_venta
 # MAGIC           ,'n/a' AS nombreEtapaVentaAgrupado
-# MAGIC           ,-1 AS esNE
+# MAGIC           ,0 AS esNE
 # MAGIC     WHERE NOT EXISTS (
 # MAGIC         SELECT 1 
 # MAGIC         FROM gold_lakehouse.dim_etapa_venta 
@@ -141,7 +141,7 @@
 # MAGIC     nombreEtapaVentaAgrupado,
 # MAGIC     esNE,
 # MAGIC     NULL AS id_dim_etapa_venta,
-# MAGIC     NULL AS orden_etapa,
+# MAGIC     orden_etapa,
 # MAGIC     ETLcreatedDate,
 # MAGIC     ETLupdatedDate
 # MAGIC   FROM dim_etapa_venta_view
@@ -153,6 +153,7 @@
 # MAGIC   UPDATE SET 
 # MAGIC     target.nombreEtapaVentaAgrupado = source.nombreEtapaVentaAgrupado,
 # MAGIC     target.esNE = source.esNE,
+# MAGIC     target.orden_etapa = source.orden_etapa,
 # MAGIC     target.ETLupdatedDate = source.ETLupdatedDate
 # MAGIC
 # MAGIC WHEN NOT MATCHED AND source.id_dim_etapa_venta IS NOT NULL THEN 

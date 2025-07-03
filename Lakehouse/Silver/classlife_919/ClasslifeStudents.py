@@ -1,13 +1,17 @@
 # Databricks notebook source
 # DBTITLE 1,ulac
-# MAGIC %run "../Silver/configuration"
+# MAGIC %run "../configuration"
 
 # COMMAND ----------
 
-endpoint_process_name = "students"
-table_name = "JsaClassLifeStudents"
+from pyspark.sql import SparkSession
 
-classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife/{endpoint_process_name}/{current_date}/{table_name}.json")
+table_prefix = "JsaClassLifeStudents_"
+endpoint_process_name = "students"
+
+classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife/{endpoint_process_name}/{current_date}/{table_prefix}*.json")
+
+print(f"Total de archivos leídos: {classlifetitulaciones_df.count()}")
 
 # COMMAND ----------
 
@@ -191,6 +195,8 @@ classlifetitulaciones_df = classlifetitulaciones_df \
     .withColumn("processdate", current_timestamp()) \
     .withColumn("sourcesystem", lit("classlifeStudents"))
 
+#display(classlifetitulaciones_df)
+
 # COMMAND ----------
 
 classlifetitulaciones_df = classlifetitulaciones_df.dropDuplicates()
@@ -201,6 +207,7 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 
 # COMMAND ----------
 
+# DBTITLE 1,Merge classlifeStudents
 # MAGIC %sql
 # MAGIC MERGE INTO silver_lakehouse.classlifeStudents AS target
 # MAGIC USING classlifetitulaciones_view AS source

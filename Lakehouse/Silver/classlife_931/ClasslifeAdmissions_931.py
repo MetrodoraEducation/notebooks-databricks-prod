@@ -4,10 +4,14 @@
 
 # COMMAND ----------
 
-endpoint_process_name = "admissions"
-table_name = "JsaClassLifeAdmissions"
+from pyspark.sql.functions import explode, col
 
-classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/{table_name}.json")
+endpoint_process_name = "admissions"
+table_name = "JsaClassLifeAdmissions_"
+
+classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/{table_name}*.json")
+
+print(f"Total de archivos leídos: {classlifetitulaciones_df.count()}")
 
 # COMMAND ----------
 
@@ -219,6 +223,10 @@ classlifetitulaciones_df = classlifetitulaciones_df.dropDuplicates()
 # COMMAND ----------
 
 classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
+
+# COMMAND ----------
+
+#%sql select count(*) from classlifetitulaciones_view; --116 registros, es lo correcto con la API
 
 # COMMAND ----------
 

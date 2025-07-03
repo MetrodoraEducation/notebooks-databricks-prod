@@ -6,7 +6,8 @@
 from pyspark.sql import SparkSession
 
 table_prefix = "JsaZohoLeads_"
-file_pattern = f"{bronze_folder_path}/lakehouse/zoho_38b/{current_date}/{table_prefix}*.json"
+#file_pattern = f"{bronze_folder_path}/lakehouse/zoho_38b/{current_date}/{table_prefix}*.json"
+file_pattern = f"{bronze_folder_path}/lakehouse/zoho_38b/Leads/{current_date}/{table_prefix}*.json"
 
 print(f"Leyendo archivos desde: {file_pattern}")
 
@@ -94,7 +95,8 @@ columns_mapping = {
     "data_oportunidad_asociada_id": "id_oportunidad_asociada",
     "data_oportunidad_asociada_name": "name_oportunidad_asociada",
     "data_id_clientify": "id_clientify",
-    "data_modalidad_de_curso": "modalidad_curso"
+    "data_modalidad_de_curso": "modalidad_de_curso",
+    "data_sede": "sede"
 }
 
 # Renombrar columnas si existen
@@ -206,7 +208,8 @@ zoholeads_df_filtered.createOrReplaceTempView("zoholeads_source_view")
 # MAGIC     target.id_oportunidad_asociada IS DISTINCT FROM source.id_oportunidad_asociada OR
 # MAGIC     target.name_oportunidad_asociada IS DISTINCT FROM source.name_oportunidad_asociada OR
 # MAGIC     target.id_clientify IS DISTINCT FROM source.id_clientify OR
-# MAGIC     target.modalidad_curso IS DISTINCT FROM source.modalidad_curso
+# MAGIC     target.modalidad_de_curso IS DISTINCT FROM source.modalidad_de_curso OR
+# MAGIC     target.sede IS DISTINCT FROM source.sede
 # MAGIC )
 # MAGIC THEN UPDATE SET
 # MAGIC     target.apellido_2 = source.apellido_2,
@@ -252,7 +255,8 @@ zoholeads_df_filtered.createOrReplaceTempView("zoholeads_source_view")
 # MAGIC     target.id_oportunidad_asociada = source.id_oportunidad_asociada,
 # MAGIC     target.name_oportunidad_asociada = source.name_oportunidad_asociada,
 # MAGIC     target.id_clientify = source.id_clientify,
-# MAGIC     target.modalidad_curso = source.modalidad_curso,
+# MAGIC     target.modalidad_de_curso = source.modalidad_de_curso,
+# MAGIC     target.sede = source.sede,
 # MAGIC     target.processdate = current_timestamp(),
 # MAGIC     target.sourcesystem = source.sourcesystem
 # MAGIC
@@ -261,4 +265,4 @@ zoholeads_df_filtered.createOrReplaceTempView("zoholeads_source_view")
 
 # COMMAND ----------
 
-# MAGIC %sql select * from silver_lakehouse.ZohoLeads_38b
+#%sql select distinct modalidad_de_curso, sede from silver_lakehouse.ZohoLeads_38b

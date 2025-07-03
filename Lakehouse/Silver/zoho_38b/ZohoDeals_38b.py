@@ -6,7 +6,8 @@
 from pyspark.sql import SparkSession
 
 table_prefix = "JsaZohoDeals_"
-file_pattern = f"{bronze_folder_path}/lakehouse/zoho_38b/{current_date}/{table_prefix}*.json"
+#file_pattern = f"{bronze_folder_path}/lakehouse/zoho_38b/{current_date}/{table_prefix}*.json"
+file_pattern = f"{bronze_folder_path}/lakehouse/zoho_38b/Deals/{current_date}/{table_prefix}*.json"
 
 print(f"Leyendo archivos desde: {file_pattern}")
 
@@ -44,7 +45,7 @@ for col in zohodeals_df.columns:
 for col in zohodeals_df.columns:
     zohodeals_df = zohodeals_df.withColumnRenamed(col, col.replace("-", "_"))
 
-display(zohodeals_df)
+#display(zohodeals_df)
 
 # COMMAND ----------
 
@@ -98,7 +99,8 @@ columns_mapping = {
     "data_owner_email": "owner_email",
     "data_owner_id": "owner_id",
     "data_owner_name": "owner_name",
-    "data_id_clientify": "id_clientify"
+    "data_id_clientify": "id_clientify",
+    "data_modalidad_de_curso": "modalidad_de_curso"
 }
 
 # Renombrar columnas si existen
@@ -116,7 +118,7 @@ zohodeals_df = zohodeals_df \
     .withColumn("linea_de_negocio",when(lower(col("linea_de_negocio")) == "metrodorafp", lit("METRODORA FP")).otherwise(col("linea_de_negocio"))) \
     .withColumn("linea_de_negocio",when(lower(col("linea_de_negocio")) == "océano", lit("OCEANO")).otherwise(col("linea_de_negocio")))
 
-display(zohodeals_df)
+#display(zohodeals_df)
 
 # COMMAND ----------
 
@@ -209,7 +211,8 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC     source.owner_email IS DISTINCT FROM target.owner_email OR
 # MAGIC     source.owner_id IS DISTINCT FROM target.owner_id OR
 # MAGIC     source.owner_name IS DISTINCT FROM target.owner_name OR
-# MAGIC     source.id_clientify IS DISTINCT FROM target.id_clientify
+# MAGIC     source.id_clientify IS DISTINCT FROM target.id_clientify OR
+# MAGIC     source.modalidad_de_curso IS DISTINCT FROM target.modalidad_de_curso
 # MAGIC )
 # MAGIC THEN UPDATE SET
 # MAGIC     target.importe = source.importe,
@@ -258,6 +261,7 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 # MAGIC     target.id_producto = source.id_producto,
 # MAGIC     target.owner_name = source.owner_name,
 # MAGIC     target.id_clientify = source.id_clientify,
+# MAGIC     target.modalidad_de_curso = source.modalidad_de_curso,
 # MAGIC     target.processdate = current_timestamp(),
 # MAGIC     target.sourcesystem = source.sourcesystem
 # MAGIC
@@ -266,4 +270,4 @@ zohodeals_df_filtered.createOrReplaceTempView("zohodeals_source_view")
 
 # COMMAND ----------
 
-# MAGIC %sql select * from silver_lakehouse.zohodeals_38b 
+#%sql select distinct modalidad_de_curso from silver_lakehouse.zohodeals_38b 

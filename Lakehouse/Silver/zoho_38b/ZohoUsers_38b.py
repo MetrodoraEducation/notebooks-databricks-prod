@@ -5,7 +5,8 @@
 
 table_name = "JsaZohoUsers"
 
-zohousers_df = spark.read.json(f"{bronze_folder_path}/lakehouse/zoho_38b/{current_date}/{table_name}.json")
+#zohousers_df = spark.read.json(f"{bronze_folder_path}/lakehouse/zoho_38b/{current_date}/{table_name}.json")
+zohousers_df = spark.read.json(f"{bronze_folder_path}/lakehouse/zoho_38b/Users/{current_date}/{table_name}.json")
 zohousers_df
 
 print(f"{bronze_folder_path}/lakehouse/zoho/{current_date}/{table_name}.json")
@@ -73,11 +74,12 @@ zohousers_df = zohousers_df \
     .withColumn("created_by_name", col("created_by_name").cast(StringType())) \
     .withColumn("role_id", col("role_id").cast(StringType())) \
     .withColumn("role_name", col("role_name").cast(StringType())) \
+    .withColumn("Sede", col("Sede").cast(StringType())) \
     .select(
          "id", "status", "isonline", "linea_de_negocio", "modified_time", "created_time", "city", "confirm",
         "country", "country_locale", "email", "first_name", "full_name", "language", "last_name",
         "mobile", "modified_by_id", "modified_by_name", "created_by_id", "created_by_name",
-        "role_id", "role_name", "processdate", "sourcesystem"
+        "role_id", "role_name", "processdate", "sourcesystem", "Sede"
     )
 
 # 👁️ Mostrar resultado
@@ -150,7 +152,8 @@ zohousers_df.createOrReplaceTempView("zohousers_source_view")
 # MAGIC     target.created_by_id IS DISTINCT FROM source.created_by_id OR
 # MAGIC     target.created_by_name IS DISTINCT FROM source.created_by_name OR
 # MAGIC     target.role_id IS DISTINCT FROM source.role_id OR
-# MAGIC     target.role_name IS DISTINCT FROM source.role_name
+# MAGIC     target.role_name IS DISTINCT FROM source.role_name OR
+# MAGIC     target.sede IS DISTINCT FROM source.sede
 # MAGIC )
 # MAGIC THEN UPDATE SET
 # MAGIC     target.status = source.status,
@@ -175,11 +178,12 @@ zohousers_df.createOrReplaceTempView("zohousers_source_view")
 # MAGIC     target.role_id = source.role_id,
 # MAGIC     target.role_name = source.role_name,
 # MAGIC     target.processdate = source.processdate,
-# MAGIC     target.sourcesystem = source.sourcesystem
+# MAGIC     target.sourcesystem = source.sourcesystem,
+# MAGIC     target.sede = source.sede
 # MAGIC     
 # MAGIC WHEN MATCHED THEN UPDATE SET *
 # MAGIC WHEN NOT MATCHED THEN INSERT *
 
 # COMMAND ----------
 
-#%sql select * from silver_lakehouse.ZohoUsers_38b
+# MAGIC %sql select * from silver_lakehouse.ZohoUsers_38b

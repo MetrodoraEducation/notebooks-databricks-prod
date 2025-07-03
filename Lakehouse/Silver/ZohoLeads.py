@@ -41,6 +41,8 @@ for col in zoholeads_df.columns:
 for col in zoholeads_df.columns:
     zoholeads_df = zoholeads_df.withColumnRenamed(col, col.replace("-", "_"))
 
+#display(zoholeads_df)
+
 # COMMAND ----------
 
 # Diccionario para mapear las columnas con nombres más entendibles
@@ -87,7 +89,9 @@ columns_mapping = {
     "data_utm_type": "utm_type",
     "data_owner_email": "owner_email",
     "data_owner_id": "owner_id",
-    "data_owner_name": "owner_name"
+    "data_owner_name": "owner_name",
+    "data_modalidad_de_curso": "modalidad_de_curso",
+    "data_sede": "sede"
 }
 
 
@@ -148,7 +152,11 @@ zoholeads_df = zoholeads_df \
     .withColumn("owner_email", col("owner_email").cast(StringType())) \
     .withColumn("owner_id", col("owner_id").cast(StringType())) \
     .withColumn("linea_de_negocio", col("data_l_nea_de_negocio").cast(StringType())).drop("data_l_nea_de_negocio") \
+    .withColumn("modalidad_de_curso", col("modalidad_de_curso").cast(StringType())) \
+    .withColumn("sede", col("sede").cast(StringType())) \
     .withColumn("owner_name", col("owner_name").cast(StringType())) 
+
+#display(zoholeads_df)
 
 # COMMAND ----------
 
@@ -224,6 +232,8 @@ zoholeads_df_filtered.createOrReplaceTempView("zoholeads_source_view")
 # MAGIC  OR target.lead_correlation_id IS DISTINCT FROM source.lead_correlation_id
 # MAGIC  OR target.Created_Time IS DISTINCT FROM source.Created_Time
 # MAGIC  OR target.Modified_Time IS DISTINCT FROM source.Modified_Time
+# MAGIC  OR target.modalidad_de_curso IS DISTINCT FROM source.modalidad_de_curso
+# MAGIC  OR target.sede IS DISTINCT FROM source.sede
 # MAGIC )
 # MAGIC THEN UPDATE SET
 # MAGIC     target.Description = source.Description,
@@ -257,9 +267,14 @@ zoholeads_df_filtered.createOrReplaceTempView("zoholeads_source_view")
 # MAGIC     target.Owner_id = source.Owner_id,
 # MAGIC     target.id_producto = source.id_producto,
 # MAGIC     target.lead_correlation_id = source.lead_correlation_id,
+# MAGIC     target.modalidad_de_curso = source.modalidad_de_curso,
+# MAGIC     target.sede = source.sede,
 # MAGIC     target.Created_Time = source.Created_Time,
 # MAGIC     target.Modified_Time = source.Modified_Time
 # MAGIC
-# MAGIC
 # MAGIC WHEN NOT MATCHED THEN
 # MAGIC   INSERT *;
+
+# COMMAND ----------
+
+##%sql select distinct modalidad_de_curso, sede from silver_lakehouse.zoholeads;

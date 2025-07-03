@@ -4,243 +4,451 @@
 
 # COMMAND ----------
 
-# DBTITLE 1,View temporal temp_utm_campaign
+# DBTITLE 1,Created View utm_ad_id
 # MAGIC %sql
-# MAGIC CREATE OR REPLACE TEMPORARY VIEW temp_utm_campaign AS
-# MAGIC WITH ranked_utm_campaign AS (
-# MAGIC     SELECT 
-# MAGIC         utm_campaign_id, 
-# MAGIC         utm_campaign_name, 
-# MAGIC         utm_strategy, 
-# MAGIC         utm_channel,
-# MAGIC         processdate,
-# MAGIC         ROW_NUMBER() OVER (
-# MAGIC             PARTITION BY utm_campaign_id 
-# MAGIC             ORDER BY processdate DESC  -- Se queda con la versión más reciente
-# MAGIC         ) AS row_num,
-# MAGIC         MIN(processdate) OVER (PARTITION BY utm_campaign_id) AS ETLcreatedDate,
-# MAGIC         MAX(processdate) OVER (PARTITION BY utm_campaign_id) AS ETLupdatedDate
-# MAGIC     FROM (
-# MAGIC         SELECT 
-# MAGIC             utm_campaign_id, utm_campaign_name, utm_strategy, utm_channel, processdate 
-# MAGIC         FROM silver_lakehouse.zohodeals
-# MAGIC         WHERE utm_campaign_id IS NOT NULL
-# MAGIC         
-# MAGIC         UNION ALL
-# MAGIC         
-# MAGIC         SELECT 
-# MAGIC             utm_campaign_id, utm_campaign_name, utm_strategy, utm_channel, processdate 
-# MAGIC         FROM silver_lakehouse.zoholeads
-# MAGIC         WHERE utm_campaign_id IS NOT NULL
-# MAGIC     ) utm_campaign_data
-# MAGIC )
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW utm_ad_id AS
 # MAGIC SELECT 
-# MAGIC     utm_campaign_id, 
-# MAGIC     utm_campaign_name, 
-# MAGIC     utm_strategy, 
-# MAGIC     utm_channel,
-# MAGIC     ETLcreatedDate,
-# MAGIC     ETLupdatedDate
-# MAGIC FROM ranked_utm_campaign
-# MAGIC WHERE row_num = 1
-# MAGIC   AND utm_campaign_id IS NOT NULL
-# MAGIC   AND utm_campaign_id != ''; -- Se queda solo con la fila más reciente por utm_campaign_id
+# MAGIC       DISTINCT utm_ad_id 
+# MAGIC   FROM silver_lakehouse.zohodeals deals
+# MAGIC  WHERE deals.utm_ad_id IS NOT NULL AND deals.utm_ad_id <> ''
 # MAGIC
-# MAGIC SELECT * FROM temp_utm_campaign;
-
-# COMMAND ----------
-
-# DBTITLE 1,MERGE dim_utm_campaign
-# MAGIC %sql
-# MAGIC -- 1️⃣ Asegurar que el registro `id_dim_utm_campaign = -1` existe con valores `n/a`
-# MAGIC MERGE INTO gold_lakehouse.dim_utm_campaign AS target
-# MAGIC USING (
-# MAGIC     SELECT 'n/a' AS utm_campaign_id, 'n/a' AS utm_campaign_name, 'n/a' AS utm_strategy, 'n/a' AS utm_channel
-# MAGIC ) AS source
-# MAGIC ON target.id_dim_utm_campaign = -1
-# MAGIC WHEN NOT MATCHED THEN 
-# MAGIC     INSERT (utm_campaign_id, utm_campaign_name, utm_strategy, utm_channel, ETLcreatedDate, ETLupdatedDate)
-# MAGIC     VALUES ('n/a', 'n/a', 'n/a', 'n/a', current_timestamp(), current_timestamp());
+# MAGIC UNION
 # MAGIC
-# MAGIC -- 2️⃣ MERGE para `dim_utm_campaign`, excluyendo `-1`
-# MAGIC MERGE INTO gold_lakehouse.dim_utm_campaign AS target
-# MAGIC USING (
-# MAGIC     SELECT DISTINCT * FROM temp_utm_campaign
-# MAGIC     WHERE utm_campaign_id <> 'n/a'
-# MAGIC ) AS source
-# MAGIC ON target.utm_campaign_id = source.utm_campaign_id
-# MAGIC
-# MAGIC WHEN MATCHED AND (
-# MAGIC     COALESCE(target.utm_campaign_name, '') <> COALESCE(source.utm_campaign_name, '') OR
-# MAGIC     COALESCE(target.utm_strategy, '') <> COALESCE(source.utm_strategy, '') OR
-# MAGIC     COALESCE(target.utm_channel, '') <> COALESCE(source.utm_channel, '') OR
-# MAGIC     target.ETLupdatedDate < source.ETLupdatedDate
-# MAGIC )
-# MAGIC THEN UPDATE SET 
-# MAGIC     target.utm_campaign_name = source.utm_campaign_name,
-# MAGIC     target.utm_strategy = source.utm_strategy,
-# MAGIC     target.utm_channel = source.utm_channel,
-# MAGIC     target.ETLupdatedDate = source.ETLupdatedDate
-# MAGIC
-# MAGIC WHEN NOT MATCHED THEN 
-# MAGIC     INSERT (utm_campaign_id, utm_campaign_name, utm_strategy, utm_channel, ETLcreatedDate, ETLupdatedDate)
-# MAGIC     VALUES (source.utm_campaign_id, source.utm_campaign_name, source.utm_strategy, source.utm_channel, source.ETLcreatedDate, source.ETLupdatedDate);
-
-# COMMAND ----------
-
-# DBTITLE 1,View temporal dim_utm_adset
-# MAGIC %sql
-# MAGIC CREATE OR REPLACE TEMPORARY VIEW temp_utm_adset AS
-# MAGIC WITH ranked_utm_adset AS (
-# MAGIC     SELECT 
-# MAGIC         utm_ad_id, 
-# MAGIC         utm_adset_id, 
-# MAGIC         utm_term,
-# MAGIC         processdate,
-# MAGIC         ROW_NUMBER() OVER (
-# MAGIC             PARTITION BY utm_ad_id 
-# MAGIC             ORDER BY processdate DESC  -- Mantiene la versión más reciente
-# MAGIC         ) AS row_num,
-# MAGIC         MIN(processdate) OVER (PARTITION BY utm_ad_id) AS ETLcreatedDate,
-# MAGIC         MAX(processdate) OVER (PARTITION BY utm_ad_id) AS ETLupdatedDate
-# MAGIC     FROM (
-# MAGIC         SELECT 
-# MAGIC             utm_ad_id, utm_adset_id, utm_term, processdate 
-# MAGIC         FROM silver_lakehouse.zohodeals
-# MAGIC         WHERE utm_ad_id IS NOT NULL
-# MAGIC         UNION ALL
-# MAGIC         SELECT 
-# MAGIC             utm_ad_id, utm_adset_id, utm_term, processdate 
-# MAGIC         FROM silver_lakehouse.zoholeads
-# MAGIC         WHERE utm_ad_id IS NOT NULL
-# MAGIC     ) utm_ad_data
-# MAGIC )
 # MAGIC SELECT 
-# MAGIC     utm_ad_id, 
-# MAGIC     utm_adset_id, 
-# MAGIC     utm_term,
-# MAGIC     ETLcreatedDate,
-# MAGIC     ETLupdatedDate
-# MAGIC FROM ranked_utm_adset
-# MAGIC WHERE row_num = 1
-# MAGIC   AND utm_ad_id != ''; -- Se queda solo con la fila más reciente por utm_ad_id
+# MAGIC       DISTINCT utm_ad_id 
+# MAGIC   FROM silver_lakehouse.zohodeals_38b deals_38b
+# MAGIC  WHERE deals_38b.utm_ad_id IS NOT NULL AND deals_38b.utm_ad_id <> '';
 # MAGIC
-# MAGIC SELECT * FROM temp_utm_adset;
+# MAGIC SELECT * FROM utm_ad_id;
 
 # COMMAND ----------
 
-# DBTITLE 1,MERGE dim_utm_adset
+# DBTITLE 1,Merge dim_utm_ad
 # MAGIC %sql
-# MAGIC -- 1️⃣ Asegurar que el registro `id_dim_utm_ad = -1` existe con valores `n/a`
-# MAGIC MERGE INTO gold_lakehouse.dim_utm_adset AS target
-# MAGIC USING (
-# MAGIC     SELECT 'n/a' AS utm_ad_id, 'n/a' AS utm_adset_id, 'n/a' AS utm_term
-# MAGIC ) AS source
-# MAGIC ON target.id_dim_utm_ad = -1
-# MAGIC WHEN NOT MATCHED THEN 
-# MAGIC     INSERT (utm_ad_id, utm_adset_id, utm_term, ETLcreatedDate, ETLupdatedDate)
-# MAGIC     VALUES ('n/a', 'n/a', 'n/a', current_timestamp(), current_timestamp());
+# MAGIC -- Paso 1: inserta -1 manualmente si no existe
+# MAGIC INSERT INTO gold_lakehouse.dim_utm_ad (utm_ad_id, ETLcreatedDate, ETLupdatedDate)
+# MAGIC SELECT 'n/a', null, null
+# MAGIC WHERE NOT EXISTS (
+# MAGIC   SELECT 1 FROM gold_lakehouse.dim_utm_ad WHERE utm_ad_id = 'n/a'
+# MAGIC );
 # MAGIC
-# MAGIC -- 2️⃣ MERGE para `dim_utm_adset`, excluyendo `-1`
-# MAGIC MERGE INTO gold_lakehouse.dim_utm_adset AS target
+# MAGIC -- Paso 2: MERGE normales (excluye el valor especial 'n/a')
+# MAGIC MERGE INTO gold_lakehouse.dim_utm_ad target
 # MAGIC USING (
-# MAGIC     SELECT DISTINCT * FROM temp_utm_adset
-# MAGIC     WHERE utm_ad_id <> 'n/a'
-# MAGIC ) AS source
+# MAGIC   SELECT utm_ad_id FROM utm_ad_id WHERE utm_ad_id <> 'n/a'
+# MAGIC ) source
 # MAGIC ON target.utm_ad_id = source.utm_ad_id
 # MAGIC
-# MAGIC WHEN MATCHED AND (
-# MAGIC     COALESCE(target.utm_adset_id, '') <> COALESCE(source.utm_adset_id, '') OR
-# MAGIC     COALESCE(target.utm_term, '') <> COALESCE(source.utm_term, '') OR
-# MAGIC     target.ETLupdatedDate < source.ETLupdatedDate
-# MAGIC )
-# MAGIC THEN UPDATE SET 
-# MAGIC     target.utm_adset_id = source.utm_adset_id,
-# MAGIC     target.utm_term = source.utm_term,
-# MAGIC     target.ETLupdatedDate = source.ETLupdatedDate
-# MAGIC
-# MAGIC WHEN NOT MATCHED THEN 
-# MAGIC     INSERT (utm_ad_id, utm_adset_id, utm_term, ETLcreatedDate, ETLupdatedDate)
-# MAGIC     VALUES (source.utm_ad_id, source.utm_adset_id, source.utm_term, source.ETLcreatedDate, source.ETLupdatedDate);
+# MAGIC WHEN NOT MATCHED THEN
+# MAGIC   INSERT (utm_ad_id, ETLcreatedDate, ETLupdatedDate)
+# MAGIC   VALUES (source.utm_ad_id, current_timestamp(), current_timestamp());
 
 # COMMAND ----------
 
-# DBTITLE 1,View temporal temp_utm_source
+# DBTITLE 1,Created View utm_adset_id
 # MAGIC %sql
-# MAGIC CREATE OR REPLACE TEMPORARY VIEW temp_utm_source AS
-# MAGIC WITH ranked_utm_source AS (
-# MAGIC     SELECT 
-# MAGIC         utm_source, 
-# MAGIC         utm_type, 
-# MAGIC         utm_medium, 
-# MAGIC         utm_profile,
-# MAGIC         processdate,
-# MAGIC         ROW_NUMBER() OVER (
-# MAGIC             PARTITION BY utm_source 
-# MAGIC             ORDER BY processdate DESC  -- Mantiene la versión más reciente
-# MAGIC         ) AS row_num,
-# MAGIC         MIN(processdate) OVER (PARTITION BY utm_source) AS ETLcreatedDate,
-# MAGIC         MAX(processdate) OVER (PARTITION BY utm_source) AS ETLupdatedDate
-# MAGIC     FROM (
-# MAGIC         SELECT 
-# MAGIC             utm_source, utm_type, utm_medium, utm_profile, processdate 
-# MAGIC         FROM silver_lakehouse.zohodeals
-# MAGIC         WHERE utm_source IS NOT NULL
-# MAGIC         UNION ALL
-# MAGIC         SELECT 
-# MAGIC             utm_source, utm_type, utm_medium, utm_profile, processdate 
-# MAGIC         FROM silver_lakehouse.zoholeads
-# MAGIC         WHERE utm_source IS NOT NULL
-# MAGIC     ) utm_source_data
-# MAGIC )
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW utm_adset_id AS
 # MAGIC SELECT 
-# MAGIC     utm_source, 
-# MAGIC     utm_type, 
-# MAGIC     utm_medium, 
-# MAGIC     utm_profile,
-# MAGIC     ETLcreatedDate,
-# MAGIC     ETLupdatedDate
-# MAGIC FROM ranked_utm_source
-# MAGIC WHERE row_num = 1
-# MAGIC   AND utm_source != ''; -- Se queda solo con la fila más reciente por utm_source
+# MAGIC       DISTINCT utm_adset_id 
+# MAGIC   FROM silver_lakehouse.zohodeals deals
+# MAGIC  WHERE deals.utm_adset_id IS NOT NULL AND deals.utm_adset_id <> ''
 # MAGIC
-# MAGIC SELECT * FROM temp_utm_source;
+# MAGIC UNION
+# MAGIC
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_adset_id 
+# MAGIC   FROM silver_lakehouse.zohodeals_38b deals_38b
+# MAGIC  WHERE deals_38b.utm_adset_id IS NOT NULL AND deals_38b.utm_adset_id <> '';
+# MAGIC
+# MAGIC SELECT * FROM utm_adset_id;
 
 # COMMAND ----------
 
-# DBTITLE 1,MERGE dim_utm_source
+# DBTITLE 1,Merge dim_utm_adset
 # MAGIC %sql
-# MAGIC -- 1️⃣ Asegurar que el registro `id_dim_utm_source = -1` existe con valores `n/a`
-# MAGIC MERGE INTO gold_lakehouse.dim_utm_source AS target
-# MAGIC USING (
-# MAGIC     SELECT 'n/a' AS utm_source, 'n/a' AS utm_type, 'n/a' AS utm_medium, 'n/a' AS utm_profile
-# MAGIC ) AS source
-# MAGIC ON target.id_dim_utm_source = -1
-# MAGIC WHEN NOT MATCHED THEN 
-# MAGIC     INSERT (utm_source, utm_type, utm_medium, utm_profile, ETLcreatedDate, ETLupdatedDate)
-# MAGIC     VALUES ('n/a', 'n/a', 'n/a', 'n/a', current_timestamp(), current_timestamp());
+# MAGIC -- Paso 1: inserta -1 manualmente si no existe
+# MAGIC INSERT INTO gold_lakehouse.dim_utm_adset (utm_adset_id, ETLcreatedDate, ETLupdatedDate)
+# MAGIC SELECT 'n/a', null, null
+# MAGIC WHERE NOT EXISTS (
+# MAGIC   SELECT 1 FROM gold_lakehouse.dim_utm_adset WHERE utm_adset_id = 'n/a'
+# MAGIC );
 # MAGIC
-# MAGIC -- 2️⃣ MERGE para `dim_utm_source`, excluyendo `-1`
-# MAGIC MERGE INTO gold_lakehouse.dim_utm_source AS target
+# MAGIC -- Paso 2: MERGE normales (excluye el valor especial 'n/a')
+# MAGIC MERGE INTO gold_lakehouse.dim_utm_adset target
 # MAGIC USING (
-# MAGIC     SELECT DISTINCT * FROM temp_utm_source
-# MAGIC     WHERE utm_source <> 'n/a'
-# MAGIC ) AS source
+# MAGIC   SELECT utm_adset_id FROM utm_adset_id WHERE utm_adset_id <> 'n/a'
+# MAGIC ) source
+# MAGIC ON target.utm_adset_id = source.utm_adset_id
+# MAGIC
+# MAGIC WHEN NOT MATCHED THEN
+# MAGIC   INSERT (utm_adset_id, ETLcreatedDate, ETLupdatedDate)
+# MAGIC   VALUES (source.utm_adset_id, current_timestamp(), current_timestamp());
+
+# COMMAND ----------
+
+# DBTITLE 1,utm_campaign_id
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW utm_campaign_id AS
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_campaign_id 
+# MAGIC   FROM silver_lakehouse.zohodeals deals
+# MAGIC  WHERE deals.utm_campaign_id IS NOT NULL AND deals.utm_campaign_id <> ''
+# MAGIC
+# MAGIC UNION
+# MAGIC
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_campaign_id 
+# MAGIC   FROM silver_lakehouse.zohodeals_38b deals_38b
+# MAGIC  WHERE deals_38b.utm_campaign_id IS NOT NULL AND deals_38b.utm_campaign_id <> '';
+# MAGIC
+# MAGIC SELECT * FROM utm_campaign_id;
+
+# COMMAND ----------
+
+# DBTITLE 1,Merge dim_utm_campaign
+# MAGIC %sql
+# MAGIC -- Paso 1: inserta -1 manualmente si no existe
+# MAGIC INSERT INTO gold_lakehouse.dim_utm_campaign (utm_campaign_id, ETLcreatedDate, ETLupdatedDate)
+# MAGIC SELECT 'n/a', null, null
+# MAGIC WHERE NOT EXISTS (
+# MAGIC   SELECT 1 FROM gold_lakehouse.dim_utm_campaign WHERE utm_campaign_id = 'n/a'
+# MAGIC );
+# MAGIC
+# MAGIC -- Paso 2: MERGE normales (excluye el valor especial 'n/a')
+# MAGIC MERGE INTO gold_lakehouse.dim_utm_campaign target
+# MAGIC USING (
+# MAGIC   SELECT utm_campaign_id FROM utm_campaign_id WHERE utm_campaign_id <> 'n/a'
+# MAGIC ) source
+# MAGIC ON target.utm_campaign_id = source.utm_campaign_id
+# MAGIC
+# MAGIC WHEN NOT MATCHED THEN
+# MAGIC   INSERT (utm_campaign_id, ETLcreatedDate, ETLupdatedDate)
+# MAGIC   VALUES (source.utm_campaign_id, current_timestamp(), current_timestamp());
+
+# COMMAND ----------
+
+# DBTITLE 1,utm_campaign_name
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW utm_campaign_name AS
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_campaign_name 
+# MAGIC   FROM silver_lakehouse.zohodeals deals
+# MAGIC  WHERE deals.utm_campaign_name IS NOT NULL AND deals.utm_campaign_name <> ''
+# MAGIC
+# MAGIC UNION
+# MAGIC
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_campaign_name 
+# MAGIC   FROM silver_lakehouse.zohodeals_38b deals_38b
+# MAGIC  WHERE deals_38b.utm_campaign_name IS NOT NULL AND deals_38b.utm_campaign_name <> '';
+# MAGIC
+# MAGIC SELECT * FROM utm_campaign_name;
+
+# COMMAND ----------
+
+# DBTITLE 1,Merge dim_utm_campaign_name
+# MAGIC %sql
+# MAGIC -- Paso 1: inserta -1 manualmente si no existe
+# MAGIC INSERT INTO gold_lakehouse.dim_utm_campaign_name (utm_campaign_name, ETLcreatedDate, ETLupdatedDate)
+# MAGIC SELECT 'n/a', null, null
+# MAGIC WHERE NOT EXISTS (
+# MAGIC   SELECT 1 FROM gold_lakehouse.dim_utm_campaign_name WHERE utm_campaign_name = 'n/a'
+# MAGIC );
+# MAGIC
+# MAGIC -- Paso 2: MERGE normales (excluye el valor especial 'n/a')
+# MAGIC MERGE INTO gold_lakehouse.dim_utm_campaign_name target
+# MAGIC USING (
+# MAGIC   SELECT utm_campaign_name FROM utm_campaign_name WHERE utm_campaign_name <> 'n/a'
+# MAGIC ) source
+# MAGIC ON target.utm_campaign_name = source.utm_campaign_name
+# MAGIC
+# MAGIC WHEN NOT MATCHED THEN
+# MAGIC   INSERT (utm_campaign_name, ETLcreatedDate, ETLupdatedDate)
+# MAGIC   VALUES (source.utm_campaign_name, current_timestamp(), current_timestamp());
+
+# COMMAND ----------
+
+# DBTITLE 1,utm_channel
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW utm_channel AS
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_channel 
+# MAGIC   FROM silver_lakehouse.zohodeals deals
+# MAGIC  WHERE deals.utm_channel IS NOT NULL AND deals.utm_channel <> ''
+# MAGIC
+# MAGIC UNION
+# MAGIC
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_channel 
+# MAGIC   FROM silver_lakehouse.zohodeals_38b deals_38b
+# MAGIC  WHERE deals_38b.utm_channel IS NOT NULL AND deals_38b.utm_channel <> '';
+# MAGIC
+# MAGIC SELECT * FROM utm_channel;
+
+# COMMAND ----------
+
+# DBTITLE 1,Merge dim_utm_channel
+# MAGIC %sql
+# MAGIC -- Paso 1: inserta -1 manualmente si no existe
+# MAGIC INSERT INTO gold_lakehouse.dim_utm_channel (utm_channel, ETLcreatedDate, ETLupdatedDate)
+# MAGIC SELECT 'n/a', null, null
+# MAGIC WHERE NOT EXISTS (
+# MAGIC   SELECT 1 FROM gold_lakehouse.dim_utm_channel WHERE utm_channel = 'n/a'
+# MAGIC );
+# MAGIC
+# MAGIC -- Paso 2: MERGE normales (excluye el valor especial 'n/a')
+# MAGIC MERGE INTO gold_lakehouse.dim_utm_channel target
+# MAGIC USING (
+# MAGIC   SELECT utm_channel FROM utm_channel WHERE utm_channel <> 'n/a'
+# MAGIC ) source
+# MAGIC ON target.utm_channel = source.utm_channel
+# MAGIC
+# MAGIC WHEN NOT MATCHED THEN
+# MAGIC   INSERT (utm_channel, ETLcreatedDate, ETLupdatedDate)
+# MAGIC   VALUES (source.utm_channel, current_timestamp(), current_timestamp());
+
+# COMMAND ----------
+
+# DBTITLE 1,utm_estrategia
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW utm_estrategia AS
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_estrategia 
+# MAGIC   FROM silver_lakehouse.zohodeals deals
+# MAGIC  WHERE deals.utm_estrategia IS NOT NULL AND deals.utm_estrategia <> ''
+# MAGIC
+# MAGIC UNION
+# MAGIC
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_estrategia 
+# MAGIC   FROM silver_lakehouse.zohodeals_38b deals_38b
+# MAGIC  WHERE deals_38b.utm_estrategia IS NOT NULL AND deals_38b.utm_estrategia <> '';
+# MAGIC
+# MAGIC SELECT * FROM utm_estrategia;
+
+# COMMAND ----------
+
+# DBTITLE 1,Merge dim_utm_estrategia
+# MAGIC %sql
+# MAGIC -- Paso 1: inserta -1 manualmente si no existe
+# MAGIC INSERT INTO gold_lakehouse.dim_utm_estrategia (utm_estrategia, ETLcreatedDate, ETLupdatedDate)
+# MAGIC SELECT 'n/a', null, null
+# MAGIC WHERE NOT EXISTS (
+# MAGIC   SELECT 1 FROM gold_lakehouse.dim_utm_estrategia WHERE utm_estrategia = 'n/a'
+# MAGIC );
+# MAGIC
+# MAGIC -- Paso 2: MERGE normales (excluye el valor especial 'n/a')
+# MAGIC MERGE INTO gold_lakehouse.dim_utm_estrategia target
+# MAGIC USING (
+# MAGIC   SELECT utm_estrategia FROM utm_estrategia WHERE utm_estrategia <> 'n/a'
+# MAGIC ) source
+# MAGIC ON target.utm_estrategia = source.utm_estrategia
+# MAGIC
+# MAGIC WHEN NOT MATCHED THEN
+# MAGIC   INSERT (utm_estrategia, ETLcreatedDate, ETLupdatedDate)
+# MAGIC   VALUES (source.utm_estrategia, current_timestamp(), current_timestamp());
+
+# COMMAND ----------
+
+# DBTITLE 1,utm_medium
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW utm_medium AS
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_medium 
+# MAGIC   FROM silver_lakehouse.zohodeals deals
+# MAGIC  WHERE deals.utm_medium IS NOT NULL AND deals.utm_medium <> ''
+# MAGIC
+# MAGIC UNION
+# MAGIC
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_medium 
+# MAGIC   FROM silver_lakehouse.zohodeals_38b deals_38b
+# MAGIC  WHERE deals_38b.utm_medium IS NOT NULL AND deals_38b.utm_medium <> '';
+# MAGIC
+# MAGIC SELECT * FROM utm_medium;
+
+# COMMAND ----------
+
+# DBTITLE 1,Merge dim_utm_medium
+# MAGIC %sql
+# MAGIC -- Paso 1: inserta -1 manualmente si no existe
+# MAGIC INSERT INTO gold_lakehouse.dim_utm_medium (utm_medium, ETLcreatedDate, ETLupdatedDate)
+# MAGIC SELECT 'n/a', null, null
+# MAGIC WHERE NOT EXISTS (
+# MAGIC   SELECT 1 FROM gold_lakehouse.dim_utm_medium WHERE utm_medium = 'n/a'
+# MAGIC );
+# MAGIC
+# MAGIC -- Paso 2: MERGE normales (excluye el valor especial 'n/a')
+# MAGIC MERGE INTO gold_lakehouse.dim_utm_medium target
+# MAGIC USING (
+# MAGIC   SELECT utm_medium FROM utm_medium WHERE utm_medium <> 'n/a'
+# MAGIC ) source
+# MAGIC ON target.utm_medium = source.utm_medium
+# MAGIC
+# MAGIC WHEN NOT MATCHED THEN
+# MAGIC   INSERT (utm_medium, ETLcreatedDate, ETLupdatedDate)
+# MAGIC   VALUES (source.utm_medium, current_timestamp(), current_timestamp());
+
+# COMMAND ----------
+
+# DBTITLE 1,utm_perfil
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW utm_perfil AS
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_perfil 
+# MAGIC   FROM silver_lakehouse.zohodeals deals
+# MAGIC  WHERE deals.utm_perfil IS NOT NULL AND deals.utm_perfil <> ''
+# MAGIC
+# MAGIC UNION
+# MAGIC
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_perfil 
+# MAGIC   FROM silver_lakehouse.zohodeals_38b deals_38b
+# MAGIC  WHERE deals_38b.utm_perfil IS NOT NULL AND deals_38b.utm_perfil <> '';
+# MAGIC
+# MAGIC SELECT * FROM utm_perfil;
+
+# COMMAND ----------
+
+# DBTITLE 1,Merge dim_utm_perfil
+# MAGIC %sql
+# MAGIC -- Paso 1: inserta -1 manualmente si no existe
+# MAGIC INSERT INTO gold_lakehouse.dim_utm_perfil (utm_perfil, ETLcreatedDate, ETLupdatedDate)
+# MAGIC SELECT 'n/a', null, null
+# MAGIC WHERE NOT EXISTS (
+# MAGIC   SELECT 1 FROM gold_lakehouse.dim_utm_perfil WHERE utm_perfil = 'n/a'
+# MAGIC );
+# MAGIC
+# MAGIC -- Paso 2: MERGE normales (excluye el valor especial 'n/a')
+# MAGIC MERGE INTO gold_lakehouse.dim_utm_perfil target
+# MAGIC USING (
+# MAGIC   SELECT utm_perfil FROM utm_perfil WHERE utm_perfil <> 'n/a'
+# MAGIC ) source
+# MAGIC ON target.utm_perfil = source.utm_perfil
+# MAGIC
+# MAGIC WHEN NOT MATCHED THEN
+# MAGIC   INSERT (utm_perfil, ETLcreatedDate, ETLupdatedDate)
+# MAGIC   VALUES (source.utm_perfil, current_timestamp(), current_timestamp());
+
+# COMMAND ----------
+
+# DBTITLE 1,utm_source
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW utm_source AS
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_source 
+# MAGIC   FROM silver_lakehouse.zohodeals deals
+# MAGIC  WHERE deals.utm_source IS NOT NULL AND deals.utm_source <> ''
+# MAGIC
+# MAGIC UNION
+# MAGIC
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_source 
+# MAGIC   FROM silver_lakehouse.zohodeals_38b deals_38b
+# MAGIC  WHERE deals_38b.utm_source IS NOT NULL AND deals_38b.utm_source <> '';
+# MAGIC
+# MAGIC SELECT * FROM utm_source;
+
+# COMMAND ----------
+
+# DBTITLE 1,Merge dim_utm_source
+# MAGIC %sql
+# MAGIC -- Paso 1: inserta -1 manualmente si no existe
+# MAGIC INSERT INTO gold_lakehouse.dim_utm_source (utm_source, ETLcreatedDate, ETLupdatedDate)
+# MAGIC SELECT 'n/a', null, null
+# MAGIC WHERE NOT EXISTS (
+# MAGIC   SELECT 1 FROM gold_lakehouse.dim_utm_source WHERE utm_source = 'n/a'
+# MAGIC );
+# MAGIC
+# MAGIC -- Paso 2: MERGE normales (excluye el valor especial 'n/a')
+# MAGIC MERGE INTO gold_lakehouse.dim_utm_source target
+# MAGIC USING (
+# MAGIC   SELECT utm_source FROM utm_source WHERE utm_source <> 'n/a'
+# MAGIC ) source
 # MAGIC ON target.utm_source = source.utm_source
 # MAGIC
-# MAGIC WHEN MATCHED AND (
-# MAGIC     COALESCE(target.utm_type, '') <> COALESCE(source.utm_type, '') OR
-# MAGIC     COALESCE(target.utm_medium, '') <> COALESCE(source.utm_medium, '') OR
-# MAGIC     COALESCE(target.utm_profile, '') <> COALESCE(source.utm_profile, '') OR
-# MAGIC     target.ETLupdatedDate < source.ETLupdatedDate
-# MAGIC )
-# MAGIC THEN UPDATE SET 
-# MAGIC     target.utm_type = source.utm_type,
-# MAGIC     target.utm_medium = source.utm_medium,
-# MAGIC     target.utm_profile = source.utm_profile,
-# MAGIC     target.ETLupdatedDate = source.ETLupdatedDate
+# MAGIC WHEN NOT MATCHED THEN
+# MAGIC   INSERT (utm_source, ETLcreatedDate, ETLupdatedDate)
+# MAGIC   VALUES (source.utm_source, current_timestamp(), current_timestamp());
+
+# COMMAND ----------
+
+# DBTITLE 1,utm_term
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW utm_term AS
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_term 
+# MAGIC   FROM silver_lakehouse.zohodeals deals
+# MAGIC  WHERE deals.utm_term IS NOT NULL AND deals.utm_term <> ''
 # MAGIC
-# MAGIC WHEN NOT MATCHED THEN 
-# MAGIC     INSERT (utm_source, utm_type, utm_medium, utm_profile, ETLcreatedDate, ETLupdatedDate)
-# MAGIC     VALUES (source.utm_source, source.utm_type, source.utm_medium, source.utm_profile, source.ETLcreatedDate, source.ETLupdatedDate);
+# MAGIC UNION
 # MAGIC
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_term 
+# MAGIC   FROM silver_lakehouse.zohodeals_38b deals_38b
+# MAGIC  WHERE deals_38b.utm_term IS NOT NULL AND deals_38b.utm_term <> '';
+# MAGIC
+# MAGIC SELECT * FROM utm_term;
+
+# COMMAND ----------
+
+# DBTITLE 1,Merge dim_utm_term
+# MAGIC %sql
+# MAGIC -- Paso 1: inserta -1 manualmente si no existe
+# MAGIC INSERT INTO gold_lakehouse.dim_utm_term (utm_term, ETLcreatedDate, ETLupdatedDate)
+# MAGIC SELECT 'n/a', null, null
+# MAGIC WHERE NOT EXISTS (
+# MAGIC   SELECT 1 FROM gold_lakehouse.dim_utm_term WHERE utm_term = 'n/a'
+# MAGIC );
+# MAGIC
+# MAGIC -- Paso 2: MERGE normales (excluye el valor especial 'n/a')
+# MAGIC MERGE INTO gold_lakehouse.dim_utm_term target
+# MAGIC USING (
+# MAGIC   SELECT utm_term FROM utm_term WHERE utm_term <> 'n/a'
+# MAGIC ) source
+# MAGIC ON target.utm_term = source.utm_term
+# MAGIC
+# MAGIC WHEN NOT MATCHED THEN
+# MAGIC   INSERT (utm_term, ETLcreatedDate, ETLupdatedDate)
+# MAGIC   VALUES (source.utm_term, current_timestamp(), current_timestamp());
+
+# COMMAND ----------
+
+# DBTITLE 1,utm_type
+# MAGIC %sql
+# MAGIC CREATE OR REPLACE TEMPORARY VIEW utm_type AS
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_type 
+# MAGIC   FROM silver_lakehouse.zohodeals deals
+# MAGIC  WHERE deals.utm_type IS NOT NULL AND deals.utm_type <> ''
+# MAGIC
+# MAGIC UNION
+# MAGIC
+# MAGIC SELECT 
+# MAGIC       DISTINCT utm_type 
+# MAGIC   FROM silver_lakehouse.zohodeals_38b deals_38b
+# MAGIC  WHERE deals_38b.utm_type IS NOT NULL AND deals_38b.utm_type <> '';
+# MAGIC
+# MAGIC SELECT * FROM utm_type;
+
+# COMMAND ----------
+
+# DBTITLE 1,Merge dim_utm_type
+# MAGIC %sql
+# MAGIC -- Paso 1: inserta -1 manualmente si no existe
+# MAGIC INSERT INTO gold_lakehouse.dim_utm_type (utm_type, ETLcreatedDate, ETLupdatedDate)
+# MAGIC SELECT 'n/a', null, null
+# MAGIC WHERE NOT EXISTS (
+# MAGIC   SELECT 1 FROM gold_lakehouse.dim_utm_type WHERE utm_type = 'n/a'
+# MAGIC );
+# MAGIC
+# MAGIC -- Paso 2: MERGE normales (excluye el valor especial 'n/a')
+# MAGIC MERGE INTO gold_lakehouse.dim_utm_type target
+# MAGIC USING (
+# MAGIC   SELECT utm_type FROM utm_type WHERE utm_type <> 'n/a'
+# MAGIC ) source
+# MAGIC ON target.utm_type = source.utm_type
+# MAGIC
+# MAGIC WHEN NOT MATCHED THEN
+# MAGIC   INSERT (utm_type, ETLcreatedDate, ETLupdatedDate)
+# MAGIC   VALUES (source.utm_type, current_timestamp(), current_timestamp());

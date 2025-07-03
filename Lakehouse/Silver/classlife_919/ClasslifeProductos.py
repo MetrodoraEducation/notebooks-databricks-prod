@@ -1,14 +1,17 @@
 # Databricks notebook source
 # DBTITLE 1,ulac
-# MAGIC %run "../Silver/configuration"
+# MAGIC %run "../configuration"
 
 # COMMAND ----------
 
-endpoint_process_name = "enroll_groups"
-table_name = "JsaClassLifeProductos"
+from pyspark.sql import SparkSession
 
-classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife/{endpoint_process_name}/{current_date}/{table_name}.json")
-classlifetitulaciones_df
+table_prefix = "JsaClassLifeProductos_"
+endpoint_process_name = "enroll_groups"
+
+classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife/{endpoint_process_name}/{current_date}/{table_prefix}*.json")
+
+print(f"Total de archivos leídos: {classlifetitulaciones_df.count()}")
 
 # COMMAND ----------
 
@@ -205,10 +208,16 @@ for col_name in string_columns:
     if col_name in classlifetitulaciones_df.columns:
         classlifetitulaciones_df = classlifetitulaciones_df.withColumn(col_name, col(col_name).cast(StringType()))
 
+#display(classlifetitulaciones_df)
+
 # COMMAND ----------
 
 classlifetitulaciones_df = classlifetitulaciones_df.filter("enroll_group_name IS NOT NULL")
 classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
+
+# COMMAND ----------
+
+#%sql select count(*) from classlifetitulaciones_view; --02-jul el resultado son 615 registros pero solo veo 609, donde se pierden esos 6 registros?
 
 # COMMAND ----------
 
@@ -421,4 +430,3 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC
 # MAGIC WHEN NOT MATCHED THEN
 # MAGIC   INSERT *;
-# MAGIC

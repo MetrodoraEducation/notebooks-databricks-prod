@@ -1,14 +1,18 @@
 # Databricks notebook source
 # DBTITLE 1,ulac
-# MAGIC %run "../Silver/configuration"
+# MAGIC %run "../configuration"
 
 # COMMAND ----------
 
-endpoint_process_name = "enrollments"
-table_name = "JsaClassLifeEnrollments"
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import explode, col
 
-classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife/{endpoint_process_name}/{current_date}/{table_name}.json")
-classlifetitulaciones_df
+table_prefix = "JsaClassLifeEnrollments_"
+endpoint_process_name = "enrollments"
+
+classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife/{endpoint_process_name}/{current_date}/{table_prefix}*.json")
+
+print(f"Total de archivos leídos: {classlifetitulaciones_df.count()}")
 
 # COMMAND ----------
 
@@ -296,6 +300,10 @@ classlifetitulaciones_df = classlifetitulaciones_df.dropDuplicates()
 # COMMAND ----------
 
 classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
+
+# COMMAND ----------
+
+#%sql select count(*) from classlifetitulaciones_view; --02-Jul Me marcan 750 registros pero son 762, donde se pierden esos 12?
 
 # COMMAND ----------
 

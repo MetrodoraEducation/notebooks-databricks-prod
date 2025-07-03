@@ -20,11 +20,12 @@ def upsert_dim_programa(partition):
         # Query con claves únicas cod_Programa + nombre_Programa
         query = """
         INSERT INTO dim_programa (
-            cod_Programa, nombre_Programa, tipo_Programa, entidad_Legal,
+            id_dim_programa, cod_Programa, nombre_Programa, tipo_Programa, entidad_Legal,
             especialidad, vertical, nombre_Programa_Completo, ETLcreatedDate, ETLupdatedDate
         )
         VALUES %s
-        ON CONFLICT (cod_Programa) DO UPDATE SET
+        ON CONFLICT (id_dim_programa) DO UPDATE SET
+            cod_Programa = EXCLUDED.cod_Programa,
             nombre_Programa = EXCLUDED.nombre_Programa,
             tipo_Programa = EXCLUDED.tipo_Programa,
             entidad_Legal = EXCLUDED.entidad_Legal,
@@ -36,6 +37,7 @@ def upsert_dim_programa(partition):
 
         # Lista de valores sin incluir id_Dim_Programa
         values = [(
+            row["id_dim_programa"],
             row["cod_Programa"],
             row["nombre_Programa"],
             row["tipo_Programa"],
@@ -62,7 +64,7 @@ def upsert_dim_programa(partition):
 
 # Leer datos desde la tabla en Databricks
 source_table = (spark.table("gold_lakehouse.dim_programa")
-                .select("cod_Programa", "nombre_Programa", "tipo_Programa",
+                .select("id_dim_programa","cod_Programa", "nombre_Programa", "tipo_Programa",
                         "entidad_Legal", "especialidad", "vertical",
                         "nombre_Programa_Completo", "ETLcreatedDate", "ETLupdatedDate"))
 

@@ -22,7 +22,11 @@
 # MAGIC   LEFT JOIN gold_lakehouse.dim_producto producto ON producto.cod_Producto = budget_ff.producto
 # MAGIC   LEFT JOIN gold_lakehouse.dim_programa programa ON programa.cod_Programa = producto.cod_Programa
 # MAGIC   LEFT JOIN gold_lakehouse.dim_modalidad modalidad ON UPPER(modalidad.nombre_modalidad) = UPPER(producto.modalidad)
-# MAGIC   LEFT JOIN gold_lakehouse.dim_institucion institucion ON UPPER(producto.entidad_Legal) = UPPER(institucion.nombre_institucion)
+# MAGIC
+# MAGIC     -- Cambio para usar la nueva tabla de mapeo de instituciones silver_lakehouse.entidad_legal
+# MAGIC   --LEFT JOIN gold_lakehouse.dim_institucion institucion ON UPPER(producto.entidad_Legal) = UPPER(institucion.nombre_institucion)
+# MAGIC    LEFT JOIN (select ent.entidad_legal, ins.id_dim_institucion from gold_lakehouse.dim_institucion ins
+# MAGIC               left join silver_lakehouse.entidad_legal ent on ent.institucion = ins.nombre_institucion) institucion ON UPPER(producto.entidad_Legal) = NULLIF(UPPER(institucion.entidad_legal), '')
 # MAGIC   LEFT JOIN gold_lakehouse.dim_sede sede ON UPPER(producto.sede) = UPPER(sede.nombre_sede)
 # MAGIC   LEFT JOIN gold_lakehouse.dim_tipo_formacion tipo_formacion ON UPPER(tipo_formacion.tipo_formacion_desc) = UPPER(producto.tipo_Producto)
 # MAGIC   LEFT JOIN gold_lakehouse.dim_tipo_negocio tiponegocio ON UPPER(producto.tipo_Negocio) = UPPER(tiponegocio.tipo_negocio_desc);

@@ -4,10 +4,14 @@
 
 # COMMAND ----------
 
-endpoint_process_name = "students"
-table_name = "JsaClassLifeStudents"
+from pyspark.sql.functions import explode, col
 
-classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/student_cleaned/{table_name}.json")
+endpoint_process_name = "students"
+table_name = "JsaClassLifeStudents_"
+
+classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife_931/{endpoint_process_name}/{current_date}/student_cleaned/{table_name}*.json")
+
+print(f"Total de archivos leídos: {classlifetitulaciones_df.count()}")
 
 # COMMAND ----------
 
@@ -169,7 +173,7 @@ if "data" in classlifetitulaciones_df.columns:
 
 # COMMAND ----------
 
-# DBTITLE 1,Selecciona columnas
+# DBTITLE 1,Select the columns
 from pyspark.sql.functions import col, lit, current_timestamp
 from pyspark.sql.types import StringType
 
@@ -186,7 +190,8 @@ columnas_requeridas = [
     "pais",
     "student_phone",
     "student_registration_date",
-    "zoho_id"
+    "zoho_id",
+    "nacimiento"
 ]
 
 # 🧼 Selección y casteo de columnas
@@ -197,8 +202,7 @@ classlifetitulaciones_df = classlifetitulaciones_df.select(
 )
 
 # 👁️ Visualizar resultado
-display(classlifetitulaciones_df)
-
+#display(classlifetitulaciones_df)
 
 # COMMAND ----------
 
@@ -210,6 +214,11 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 
 # COMMAND ----------
 
+#%sql select count(*) from classlifetitulaciones_view;
+
+# COMMAND ----------
+
+# DBTITLE 1,Merge ClasslifeStudents_931
 # MAGIC %sql
 # MAGIC MERGE INTO silver_lakehouse.ClasslifeStudents_931 AS target
 # MAGIC USING classlifetitulaciones_view AS source
@@ -226,7 +235,8 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC     target.pais IS DISTINCT FROM source.pais OR
 # MAGIC     target.student_phone IS DISTINCT FROM source.student_phone OR
 # MAGIC     target.student_registration_date IS DISTINCT FROM source.student_registration_date OR
-# MAGIC     target.zoho_id IS DISTINCT FROM source.zoho_id
+# MAGIC     target.zoho_id IS DISTINCT FROM source.zoho_id OR
+# MAGIC     target.nacimiento IS DISTINCT FROM source.nacimiento
 # MAGIC )
 # MAGIC
 # MAGIC THEN UPDATE SET
@@ -241,6 +251,7 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC     target.student_phone = source.student_phone,
 # MAGIC     target.student_registration_date = source.student_registration_date,
 # MAGIC     target.zoho_id = source.zoho_id,
+# MAGIC     target.nacimiento = source.nacimiento,
 # MAGIC     target.processdate = source.processdate,
 # MAGIC     target.sourcesystem = source.sourcesystem
 # MAGIC

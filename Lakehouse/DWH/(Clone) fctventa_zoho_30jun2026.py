@@ -8,6 +8,7 @@
 from pyspark.sql.functions import col
 from psycopg2.extras import execute_values
 
+# Función para insertar o actualizar registros en `fctventa`
 def upsert_fctventa(partition):
     if not partition:
         logger.info("La partición está vacía, no se procesarán registros.")
@@ -17,25 +18,21 @@ def upsert_fctventa(partition):
         conn = get_pg_connection()
         cursor = conn.cursor()
 
-        # 🔁 BORRADO MASIVO antes del INSERT (basado en cod_lead y cod_oportunidad si existen con tipo_registro = 2)
-        delete_query = """
-        DELETE FROM fctventa target
-        USING fctventa existing
-        WHERE target.id_tipo_registro IN (1,3)
-        AND existing.id_tipo_registro = 2
-        AND (
-            (target.cod_lead IS NOT DISTINCT FROM existing.cod_lead)
-            OR
-            (target.cod_oportunidad IS NOT DISTINCT FROM existing.cod_oportunidad)
-        );
-        """
-        cursor.execute(delete_query)
-        conn.commit()
-        logger.info("Se ejecutó el DELETE con JOIN entre registros 1-3 y registros tipo 2.")
-
-        # 🧱 Preparar datos para INSERT
         values = []
         for row in partition:
+            cod_lead = row["cod_lead"]
+            cod_opp = row["cod_oportunidad"]
+
+            # 🔁 Eliminar registros existentes con la misma combinación
+        if cod_lead:
+            delete_query = """
+                DELETE FROM fctventa
+                WHERE cod_lead IS NOT DISTINCT FROM %s
+                AND (%s IS NULL OR cod_oportunidad IS NOT DISTINCT FROM %s);
+            """
+            cursor.execute(delete_query, (cod_lead, cod_opp, cod_opp))
+
+            # Armar tupla para inserción posterior
             values.append((
                 row["id_venta"], row["cod_lead"], row["cod_oportunidad"], row["nombre"], row["email"], row["telefono"],
                 row["nombre_contacto"], row["importe_venta"], row["importe_descuento"], row["importe_venta_neto"],
@@ -48,14 +45,10 @@ def upsert_fctventa(partition):
                 row["tipo_registro"], row["id_dim_propietario_lead"], row["id_dim_programa"], row["id_dim_producto"], row["id_dim_nacionalidad"],
                 row["id_dim_tipo_formacion"], row["id_dim_tipo_negocio"], row["id_dim_modalidad"], row["id_dim_institucion"],
                 row["id_dim_sede"], row["id_dim_pais"], row["id_dim_estado_venta"], row["id_dim_etapa_venta"],
-                row["id_dim_motivo_perdida"], row["id_dim_vertical"], row["id_dim_tipo_conversion"], row["id_dim_utm_ad"], 
-                row["id_dim_utm_adset"], row["id_dim_utm_campaign"], row["id_dim_utm_campaign_name"], row["id_dim_utm_channel"], 
-                row["id_dim_utm_estrategia"], row["id_dim_utm_medium"], row["id_dim_utm_perfil"], row["id_dim_utm_source"], 
-                row["id_dim_utm_term"], row["id_dim_utm_type"], row["ETLcreatedDate"], row["ETLupdatedDate"]
+                row["id_dim_motivo_perdida"], row["id_dim_vertical"], row["id_dim_tipo_conversion"], row["id_dim_utm_ad"], row["id_dim_utm_adset"], row["id_dim_utm_campaign"], 
+                row["id_dim_utm_campaign_name"], row["id_dim_utm_channel"], row["id_dim_utm_estrategia"], row["id_dim_utm_medium"], row["id_dim_utm_perfil"], row["id_dim_utm_source"], 
+                row["id_dim_utm_term"], row["id_dim_utm_type"],row["ETLcreatedDate"], row["ETLupdatedDate"]
             ))
-
-        cursor.execute("SELECT COUNT(*) FROM fctventa WHERE id_tipo_registro IN (1,3)")
-        logger.info(f"Filas antes del insert (tipo 1 o 3): {cursor.fetchone()[0]}")
 
         if values:
             insert_query = """
@@ -69,7 +62,8 @@ def upsert_fctventa(partition):
                 id_dim_programa, id_dim_producto, id_dim_nacionalidad, id_dim_tipo_formacion, id_dim_tipo_negocio, id_dim_modalidad, id_dim_institucion, 
                 id_dim_sede, id_dim_pais, id_dim_estado_venta, id_dim_etapa_venta, id_dim_motivo_perdida, id_dim_vertical, id_dim_tipo_conversion,
                 id_dim_utm_ad, id_dim_utm_adset, id_dim_utm_campaign, id_dim_utm_campaign_name, id_dim_utm_channel, id_dim_utm_estrategia, id_dim_utm_medium, 
-                id_dim_utm_perfil, id_dim_utm_source, id_dim_utm_term, id_dim_utm_type, ETLcreatedDate, ETLupdatedDate
+                id_dim_utm_perfil, id_dim_utm_source,id_dim_utm_term, id_dim_utm_type,
+                ETLcreatedDate, ETLupdatedDate
             )
             VALUES %s
             ON CONFLICT (id_venta) DO UPDATE SET
@@ -149,40 +143,15 @@ def upsert_fctventa(partition):
         raise
 
 
-# COMMAND ----------
+# Leer datos desde la tabla `gold_lakehouse.fctventa` en Databricks
+source_table = (spark.table("gold_lakehouse.fctventa")
+                .select(*["id_venta", "cod_lead", "cod_oportunidad", "nombre", "email", "telefono", "nombre_contacto", "importe_venta", "importe_descuento", "importe_venta_neto", "posibilidad_venta", "ciudad", "provincia", "calle", "codigo_postal", "nombre_scoring", "puntos_scoring", "dias_cierre", "fec_creacion", "fec_modificacion", "fec_cierre", "fec_pago_matricula", "fecha_hora_anulacion", "fecha_Modificacion_Lead", "fecha_Modificacion_Oportunidad", "importe_matricula", "importe_descuento_matricula", "importe_neto_matricula", "kpi_new_enrollent", "kpi_lead_neto", "kpi_lead_bruto", "activo", "id_classlife", "id_tipo_registro", "tipo_registro", "id_dim_propietario_lead", "id_dim_programa", "id_dim_producto", "id_dim_nacionalidad", "id_dim_tipo_formacion", "id_dim_tipo_negocio", "id_dim_modalidad", "id_dim_institucion", "id_dim_sede", "id_dim_pais", "id_dim_estado_venta", "id_dim_etapa_venta", "id_dim_motivo_perdida", "id_dim_vertical", "id_dim_tipo_conversion", "id_dim_utm_ad", "id_dim_utm_estrategia", "id_dim_utm_medium", "id_dim_utm_source", "id_dim_utm_term", "id_dim_utm_type", "id_dim_utm_adset", "id_dim_utm_campaign", "id_dim_utm_campaign_name", "id_dim_utm_channel", "id_dim_utm_perfil",
+                "ETLcreatedDate", "ETLupdatedDate"]))
 
-# DBTITLE 1,Lectura + deduplicación en Spark (ANTES del foreachPartition)
-# Leer datos desde la tabla en Databricks
-source_table = (
-    spark.table("gold_lakehouse.fctventa")
-    .select("id_venta", "cod_lead", "cod_oportunidad", "nombre", "email", "telefono", "nombre_contacto",
-            "importe_venta", "importe_descuento", "importe_venta_neto", "posibilidad_venta", "ciudad", "provincia",
-            "calle", "codigo_postal", "nombre_scoring", "puntos_scoring", "dias_cierre", "fec_creacion",
-            "fec_modificacion", "fec_cierre", "fec_pago_matricula", "fecha_hora_anulacion", "fecha_Modificacion_Lead",
-            "fecha_Modificacion_Oportunidad", "importe_matricula", "importe_descuento_matricula", "importe_neto_matricula",
-            "kpi_new_enrollent", "kpi_lead_neto", "kpi_lead_bruto", "activo", "id_classlife", "id_tipo_registro",
-            "tipo_registro", "id_dim_propietario_lead", "id_dim_programa", "id_dim_producto", "id_dim_nacionalidad",
-            "id_dim_tipo_formacion", "id_dim_tipo_negocio", "id_dim_modalidad", "id_dim_institucion", "id_dim_sede",
-            "id_dim_pais", "id_dim_estado_venta", "id_dim_etapa_venta", "id_dim_motivo_perdida", "id_dim_vertical",
-            "id_dim_tipo_conversion", "id_dim_utm_ad", "id_dim_utm_adset", "id_dim_utm_campaign", "id_dim_utm_campaign_name",
-            "id_dim_utm_channel", "id_dim_utm_estrategia", "id_dim_utm_medium", "id_dim_utm_perfil", "id_dim_utm_source",
-            "id_dim_utm_term", "id_dim_utm_type", "ETLcreatedDate", "ETLupdatedDate")
-)
-
-# Deduplicación: dejar solo el registro más reciente por cod_lead
-from pyspark.sql.window import Window
-from pyspark.sql.functions import row_number, desc
-
-window_spec = Window.partitionBy("cod_lead", "cod_oportunidad").orderBy(desc("ETLupdatedDate"))
-df_deduped = source_table.withColumn("rn", row_number().over(window_spec)).filter("rn = 1").drop("rn")
-
-# COMMAND ----------
-
-# DBTITLE 1,Aplicar la función
-# Aplicar la función a las particiones deduplicadas
+# Aplicar la función a las particiones de datos
 try:
-    df_deduped.foreachPartition(upsert_fctventa)
-    logger.info("Proceso completado con éxito (Upsert deduplicado en fctventa de PostgreSQL).")
+    source_table.foreachPartition(upsert_fctventa)
+    logger.info("Proceso completado con éxito (Upsert en fctventa de PostgreSQL).")
 except Exception as e:
     logger.error(f"Error general en el proceso: {e}")
 

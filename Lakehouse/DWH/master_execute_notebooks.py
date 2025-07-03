@@ -70,7 +70,7 @@
 # COMMAND ----------
 
 # DBTITLE 1,fct_venta
-# MAGIC %run "../DWH/fct_venta"
+#%run "../DWH/fct_venta"
 
 # COMMAND ----------
 
@@ -186,3 +186,7 @@
 
 # DBTITLE 1,dim_tipo_conversion
 # MAGIC %run "../DWH/dim_tipo_conversion"
+
+# COMMAND ----------
+
+# MAGIC %run "../DWH/master_dim_utm"

@@ -1,20 +1,17 @@
 # Databricks notebook source
 # DBTITLE 1,ulac
-# MAGIC %run "../Silver/configuration"
+# MAGIC %run "../configuration"
 
 # COMMAND ----------
 
+from pyspark.sql import SparkSession
+
+table_prefix = "JsaClassLifeReceipts_"
 endpoint_process_name = "receipts"
-table_name = "JsaClassLifeReceipts"
 
-classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife/{endpoint_process_name}/{current_date}/{table_name}.json")
-classlifetitulaciones_df
+classlifetitulaciones_df = spark.read.json(f"{bronze_folder_path}/lakehouse/classlife/{endpoint_process_name}/{current_date}/{table_prefix}*.json")
 
-# 📌 Inspeccionar el esquema inicial
-print("📌 Esquema inicial antes de limpieza:")
-classlifetitulaciones_df.printSchema()
-
-display(classlifetitulaciones_df)
+print(f"Total de archivos leídos: {classlifetitulaciones_df.count()}")
 
 # COMMAND ----------
 
@@ -194,24 +191,24 @@ classlifetitulaciones_df.createOrReplaceTempView("classlifetitulaciones_view")
 # MAGIC
 # MAGIC WHEN MATCHED AND 
 # MAGIC     (
-# MAGIC         target.receipt_tax_per <> source.receipt_tax_per OR
-# MAGIC         target.payment_method <> source.payment_method OR
-# MAGIC         target.receipt_tax <> source.receipt_tax OR
-# MAGIC         target.student_id <> source.student_id OR
-# MAGIC         target.enroll_id <> source.enroll_id OR
-# MAGIC         target.remittance_id <> source.remittance_id OR
-# MAGIC         target.receipt_total <> source.receipt_total OR
-# MAGIC         target.invoice_id <> source.invoice_id OR
-# MAGIC         target.receipt_concept <> source.receipt_concept OR
-# MAGIC         target.receipt_status_id <> source.receipt_status_id OR
-# MAGIC         target.student_full_name <> source.student_full_name OR
-# MAGIC         target.receipt_price <> source.receipt_price OR
-# MAGIC         target.receipt_status <> source.receipt_status OR
-# MAGIC         target.payment_method_id <> source.payment_method_id OR
-# MAGIC         target.receipt_advanced <> source.receipt_advanced OR
-# MAGIC         target.emission_date <> source.emission_date OR
-# MAGIC         target.expiry_date <> source.expiry_date OR
-# MAGIC         target.collection_date <> source.collection_date
+# MAGIC         target.receipt_tax_per IS DISTINCT FROM source.receipt_tax_per OR
+# MAGIC         target.payment_method IS DISTINCT FROM source.payment_method OR
+# MAGIC         target.receipt_tax IS DISTINCT FROM source.receipt_tax OR
+# MAGIC         target.student_id IS DISTINCT FROM source.student_id OR
+# MAGIC         target.enroll_id IS DISTINCT FROM source.enroll_id OR
+# MAGIC         target.remittance_id IS DISTINCT FROM source.remittance_id OR
+# MAGIC         target.receipt_total IS DISTINCT FROM source.receipt_total OR
+# MAGIC         target.invoice_id IS DISTINCT FROM source.invoice_id OR
+# MAGIC         target.receipt_concept IS DISTINCT FROM source.receipt_concept OR
+# MAGIC         target.receipt_status_id IS DISTINCT FROM source.receipt_status_id OR
+# MAGIC         target.student_full_name IS DISTINCT FROM source.student_full_name OR
+# MAGIC         target.receipt_price IS DISTINCT FROM source.receipt_price OR
+# MAGIC         target.receipt_status IS DISTINCT FROM source.receipt_status OR
+# MAGIC         target.payment_method_id IS DISTINCT FROM source.payment_method_id OR
+# MAGIC         target.receipt_advanced IS DISTINCT FROM source.receipt_advanced OR
+# MAGIC         target.emission_date IS DISTINCT FROM source.emission_date OR
+# MAGIC         target.expiry_date IS DISTINCT FROM source.expiry_date OR
+# MAGIC         target.collection_date IS DISTINCT FROM source.collection_date
 # MAGIC     ) 
 # MAGIC THEN 
 # MAGIC     UPDATE SET 
